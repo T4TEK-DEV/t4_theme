@@ -1,0 +1,93 @@
+// =============================================================================
+// T4 Theme — Enhanced View Styles (List, Kanban, Graph)
+// =============================================================================
+
+// -- List View --
+.o_list_view {
+    .o_list_table {
+        thead th {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            background-color: var(--t4-bg-sidebar, #f8f9fa);
+            border-bottom: 2px solid var(--t4-border-color, #dee2e6);
+        }
+
+        tbody tr {
+            &:hover {
+                background-color: var(--t4-bg-hover, #f0f0f0);
+            }
+
+            &.o_data_row.o_row_draggable {
+                cursor: grab;
+            }
+        }
+
+        // Clickable cells cursor
+        tbody td.o_data_cell {
+            cursor: pointer;
+        }
+    }
+
+    // Group header
+    .o_group_header {
+        font-weight: 600;
+        background-color: var(--t4-bg-sidebar, #f8f9fa);
+
+        .o_group_name {
+            font-size: 0.8125rem;
+        }
+    }
+}
+
+// -- Kanban View --
+.o_kanban_view {
+    .o_kanban_record:not(.o_legacy_kanban_record) {
+        border-radius: var(--t4-border-radius, 4px);
+        transition: box-shadow 0.15s ease;
+
+        &:hover {
+            box-shadow: var(--t4-shadow-md, 0 4px 6px rgba(0, 0, 0, 0.07));
+        }
+    }
+
+    // Kanban column header
+    .o_kanban_group_header {
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    // Kanban quick create
+    .o_kanban_quick_create {
+        border-radius: var(--t4-border-radius, 4px);
+        box-shadow: var(--t4-shadow-sm);
+    }
+}
+
+// -- Graph View --
+.o_graph_view {
+    .o_graph_canvas_container {
+        canvas {
+            border-radius: var(--t4-border-radius, 4px);
+        }
+    }
+}
+
+// -- Calendar View --
+.o_calendar_view {
+    .fc-header-toolbar {
+        .fc-button {
+            font-size: 0.8125rem;
+        }
+    }
+}
+
+// -- Pivot View --
+.o_pivot_view {
+    .o_pivot_table {
+        thead th {
+            background-color: var(--t4-bg-sidebar, #f8f9fa);
+            font-weight: 600;
+            font-size: 0.8125rem;
+        }
+    }
+}

@@ -41,12 +41,12 @@
             't4_theme/static/src/xml/theme_panel.xml',
             't4_theme/static/src/xml/theme_systray.xml',
         ],
-        # Dark mode: variable overrides (loaded BEFORE web's defaults)
-        'web._assets_primary_variables': [
+        # Dark mode: all dark SCSS in one bundle only (NOT in _assets_primary_variables
+        # which would break light mode since it's shared between both bundles).
+        'web.assets_web_dark': [
+            # Primary variable overrides BEFORE web's defaults (critical for SCSS compile order)
             ('before', 'web/static/src/scss/primary_variables.scss',
              't4_theme/static/src/scss/dark/primary_variables.dark.scss'),
-        ],
-        'web.assets_web_dark': [
             # Dark SCSS variable layers
             't4_theme/static/src/scss/variables/_dark.scss',
             't4_theme/static/src/scss/dark/secondary_variables.dark.scss',

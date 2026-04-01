@@ -2,7 +2,6 @@
 
 import { Component, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
 import { T4ThemePanel } from "./theme_panel";
 
 /**
@@ -18,7 +17,6 @@ export class T4ThemeSystray extends Component {
 
     setup() {
         this.state = useState({ panelOpen: false });
-        this.themeState = useService("t4_theme");
     }
 
     togglePanel() {

@@ -1,11 +1,10 @@
 /** @odoo-module **/
 
 import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
 import { rpc } from "@web/core/network/rpc";
 import { cookie } from "@web/core/browser/cookie";
 import { browser } from "@web/core/browser/browser";
-import { user } from "@web/core/user";
+import { session } from "@web/session";
 
 /**
  * T4 Theme Panel — Floating real-time theme configurator.
@@ -55,7 +54,7 @@ const BOOTSTRAP_COLOR_MAP = {
 
 export class T4ThemePanel extends Component {
     static template = "t4_theme.ThemePanel";
-    static props = { onClose: Function };
+    static props = { onClose: { type: Function } };
 
     setup() {
         this.panelRef = useRef("panel");
@@ -93,9 +92,16 @@ export class T4ThemePanel extends Component {
     // --- Data Loading ---
 
     async _loadConfig() {
-        const companyId = user.activeCompanies?.[0]?.id || user.defaultCompany?.id;
+        // Try session_info first, then fallback to RPC
+        const t4Data = session.t4_theme;
+        if (t4Data && t4Data.config) {
+            this._applyToState(t4Data.config);
+            this.savedConfig = { ...this.state };
+            this.savedConfig.dirty = false;
+            return;
+        }
         try {
-            const config = await rpc("/t4/theme/config", { company_id: companyId });
+            const config = await rpc("/t4/theme/config", {});
             if (config) {
                 this._applyToState(config);
                 this.savedConfig = { ...this.state };
@@ -107,6 +113,12 @@ export class T4ThemePanel extends Component {
     }
 
     async _loadPresets() {
+        // Try session_info first, then fallback to RPC
+        const t4Data = session.t4_theme;
+        if (t4Data && t4Data.presets) {
+            this.state.presets = t4Data.presets;
+            return;
+        }
         try {
             const presets = await rpc("/t4/theme/presets", {});
             this.state.presets = presets || [];
@@ -156,7 +168,7 @@ export class T4ThemePanel extends Component {
         // Color scheme
         const effective = this._resolveScheme(this.state.color_scheme);
         root.dataset.t4ColorScheme = effective;
-        cookie.set("color_scheme", effective, 365 * 24 * 60 * 60, "optional");
+        cookie.set("color_scheme", effective, 365 * 24 * 60 * 60);
 
         // Navbar bg
         root.style.setProperty("--t4-navbar-bg", this.state.primary_color);
@@ -222,12 +234,10 @@ export class T4ThemePanel extends Component {
 
     async onSave() {
         this.state.saving = true;
-        const companyId = user.activeCompanies?.[0]?.id || user.defaultCompany?.id;
         const schemeChanged =
             this.savedConfig && this.savedConfig.color_scheme !== this.state.color_scheme;
         try {
             await rpc("/t4/theme/config/save", {
-                company_id: companyId,
                 config: {
                     color_scheme: this.state.color_scheme,
                     primary_color: this.state.primary_color,
@@ -240,7 +250,7 @@ export class T4ThemePanel extends Component {
             // If color scheme changed (light↔dark), must reload to swap CSS bundles
             if (schemeChanged) {
                 const effective = this._resolveScheme(this.state.color_scheme);
-                cookie.set("color_scheme", effective, 365 * 24 * 60 * 60, "optional");
+                cookie.set("color_scheme", effective, 365 * 24 * 60 * 60);
                 browser.location.reload();
                 return;
             }

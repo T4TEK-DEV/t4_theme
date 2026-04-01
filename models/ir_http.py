@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import logging
 
-from odoo import models
+from odoo import api, models
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -31,3 +32,25 @@ class IrHttp(models.AbstractModel):
         if scheme == 'auto':
             return 'light'
         return scheme
+
+    def session_info(self) -> dict:
+        """Inject t4_theme config and presets into session_info.
+
+        This eliminates the need for a separate RPC call on page load,
+        following the pattern used by udoo_om_ux.
+        """
+        result = super().session_info()
+        if not request or not request.session.uid:
+            return result
+        try:
+            ThemeConfig = self.env['t4.theme.config']
+            config_data = ThemeConfig.get_config_for_company()
+            presets = self.env['t4.theme.preset'].sudo().search([])
+            preset_list = [{**p.to_dict(), 'id': p.id} for p in presets]
+            result['t4_theme'] = {
+                'config': config_data,
+                'presets': preset_list,
+            }
+        except Exception:
+            _logger.warning('Failed to load t4_theme config for session_info', exc_info=True)
+        return result

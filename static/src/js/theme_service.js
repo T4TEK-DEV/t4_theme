@@ -3,7 +3,7 @@
 import { browser } from "@web/core/browser/browser";
 import { registry } from "@web/core/registry";
 import { cookie } from "@web/core/browser/cookie";
-import { user } from "@web/core/user";
+import { session } from "@web/session";
 import { reactive } from "@odoo/owl";
 import { rpc } from "@web/core/network/rpc";
 
@@ -11,11 +11,11 @@ import { rpc } from "@web/core/network/rpc";
  * T4 Theme Service
  *
  * Manages per-company theme configuration:
- * - Fetches config from backend on startup
+ * - Reads initial config from session_info (injected by ir.http)
  * - Sets CSS custom properties on :root
- * - Listens for company switch → re-applies theme
  * - Sets color_scheme cookie for Odoo core compatibility
  * - Handles "auto" scheme via OS prefers-color-scheme
+ * - Falls back to RPC if session data is missing
  */
 
 const T4_COOKIE_NAME = "color_scheme";
@@ -37,10 +37,9 @@ export const t4ThemeService = {
     start(env) {
         const state = reactive({ ...DEFAULT_CONFIG, loading: true });
 
-        let currentCompanyId = user.activeCompanies?.[0]?.id || user.defaultCompany?.id;
         let mediaQuery = null;
 
-        // --- Core: fetch config from backend ---
+        // --- Core: fetch config from backend (fallback) ---
         async function fetchConfig(companyId) {
             try {
                 const config = await rpc("/t4/theme/config", {
@@ -77,7 +76,7 @@ export const t4ThemeService = {
         // --- Set color_scheme cookie for Odoo core compat ---
         function setColorSchemeCookie(scheme) {
             const effective = resolveScheme(scheme);
-            cookie.set(T4_COOKIE_NAME, effective, 365 * 24 * 60 * 60, "optional");
+            cookie.set(T4_COOKIE_NAME, effective, 365 * 24 * 60 * 60);
         }
 
         // --- Apply sidebar style as data attribute ---
@@ -123,32 +122,34 @@ export const t4ThemeService = {
             }
         }
 
-        // --- Init: fetch and apply on startup ---
+        // --- Init: use session_info data if available, else fetch via RPC ---
         async function init() {
-            if (currentCompanyId) {
-                const config = await fetchConfig(currentCompanyId);
-                applyConfig(config);
-                setupAutoListener(config.color_scheme);
+            const t4Data = session.t4_theme;
+            if (t4Data && t4Data.config) {
+                applyConfig(t4Data.config);
+                setupAutoListener(t4Data.config.color_scheme);
+            } else {
+                // Fallback: fetch via RPC (e.g. session_info not populated)
+                try {
+                    const config = await rpc("/t4/theme/config", {});
+                    applyConfig(config || DEFAULT_CONFIG);
+                    setupAutoListener((config || DEFAULT_CONFIG).color_scheme);
+                } catch {
+                    applyConfig(DEFAULT_CONFIG);
+                }
             }
         }
 
         init();
 
-        // --- Listen for company switch (page reload in Odoo 19) ---
-        // Odoo 19 reloads the page on company switch, so init() handles it.
-        // But we also listen in case future versions support hot-switch.
-        env.bus?.addEventListener?.("COMPANY-CHANGED", async () => {
-            const newCompanyId = user.activeCompanies?.[0]?.id;
-            if (newCompanyId && newCompanyId !== currentCompanyId) {
-                currentCompanyId = newCompanyId;
-                state.loading = true;
-                const config = await fetchConfig(newCompanyId);
-                applyConfig(config);
-                setupAutoListener(config.color_scheme);
-            }
-        });
-
-        return state;
+        return {
+            get state() {
+                return state;
+            },
+            resolveScheme,
+            applyConfig,
+            fetchConfig,
+        };
     },
 };
 

@@ -63,12 +63,31 @@ export const t4ThemeService = {
             return configScheme || "light";
         }
 
+        // --- Hex to RGB helper ---
+        function hexToRgbStr(hex) {
+            if (!hex) return null;
+            const c = hex.replace("#", "");
+            if (c.length !== 6) return null;
+            return `${parseInt(c.substring(0, 2), 16)}, ${parseInt(c.substring(2, 4), 16)}, ${parseInt(c.substring(4, 6), 16)}`;
+        }
+
         // --- Apply CSS custom properties to :root ---
         function applyCssVars(cssVars) {
             const root = document.documentElement;
             for (const [prop, value] of Object.entries(cssVars)) {
                 if (value) {
                     root.style.setProperty(prop, value);
+                    // Also set RGB variant for Bootstrap opacity support
+                    if (prop === "--t4-primary" || prop === "--t4-accent") {
+                        const rgb = hexToRgbStr(value);
+                        if (rgb) {
+                            root.style.setProperty(`${prop}-rgb`, rgb);
+                            if (prop === "--t4-primary") {
+                                root.style.setProperty("--bs-primary", value);
+                                root.style.setProperty("--bs-primary-rgb", rgb);
+                            }
+                        }
+                    }
                 }
             }
         }

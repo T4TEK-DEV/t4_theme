@@ -1,19 +1,76 @@
 // =============================================================================
 // T4 Theme — Navbar (Light Mode)
 // =============================================================================
+// Navbar background uses theme primary color.
+// All text/icons inside navbar forced to white for contrast.
 
 .o_main_navbar {
-    background-color: var(--t4-navbar-bg) !important;
-    color: var(--t4-navbar-text);
+    background-color: var(--t4-navbar-bg, var(--t4-primary, #714B67)) !important;
+    color: var(--t4-navbar-text, #ffffff);
 
+    // ---- All text inside navbar → white ----
     .o_menu_brand,
+    .o_menu_toggle,
+    .o_nav_entry,
     .o_menu_entry,
-    .dropdown-toggle {
-        color: var(--t4-navbar-text) !important;
+    .o_menu_entry_lvl_1,
+    .dropdown-toggle,
+    .dropdown-toggle span,
+    .o_menu_sections .dropdown-item,
+    .o_menu_sections > a,
+    .o_menu_sections > button,
+    .o_menu_sections > button > span,
+    .o_navbar_breadcrumbs,
+    .o_navbar_breadcrumbs .btn {
+        color: var(--t4-navbar-text, #ffffff) !important;
     }
 
+    // ---- Hover state ----
+    .o_nav_entry:hover,
     .o_menu_entry:hover,
-    .dropdown-toggle:hover {
-        background-color: var(--t4-navbar-hover-bg);
+    .dropdown-toggle:hover,
+    .o_menu_sections > a:hover,
+    .o_menu_sections > button:hover {
+        background-color: var(--t4-navbar-hover-bg, rgba(255, 255, 255, 0.15));
+    }
+
+    // ---- Active section ----
+    .o_menu_sections .dropdown-item.focus,
+    .o_menu_sections .dropdown-item:focus,
+    .o_menu_sections .show > .dropdown-toggle {
+        background-color: var(--t4-navbar-hover-bg, rgba(255, 255, 255, 0.15));
+    }
+
+    // ---- Systray icons → white ----
+    .o_menu_systray {
+        .dropdown-toggle,
+        .btn,
+        .fa,
+        .oi {
+            color: var(--t4-navbar-text, #ffffff) !important;
+        }
+
+        .dropdown-toggle:hover,
+        .btn:hover {
+            background-color: var(--t4-navbar-hover-bg, rgba(255, 255, 255, 0.15));
+        }
+    }
+
+    // ---- App menu dropdown (the opened dropdown below navbar) ----
+    // These dropdowns have white background, so items should be dark text
+    .o_menu_sections .dropdown-menu {
+        .dropdown-item {
+            color: var(--t4-text-primary, #212529) !important;
+
+            &:hover, &.focus, &:focus {
+                background-color: var(--t4-bg-hover, #f0f0f0);
+                color: var(--t4-text-primary, #212529) !important;
+            }
+
+            &.selected, &.active {
+                background-color: var(--t4-primary, #714B67);
+                color: #ffffff !important;
+            }
+        }
     }
 }

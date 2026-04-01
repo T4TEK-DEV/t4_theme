@@ -9,21 +9,26 @@
                t-att-class="{'t4_sidebar--collapsed': state.collapsed, 't4_sidebar--resizing': state.resizing}"
                t-att-style="sidebarStyle">
 
+            <!-- APPS header -->
+            <div class="t4_sidebar__apps_header" t-if="!state.collapsed">
+                <span>APPS</span>
+            </div>
+
             <!-- App Icons -->
             <div class="t4_sidebar__apps">
                 <t t-foreach="apps" t-as="app" t-key="app.id">
                     <div t-att-class="{'t4_sidebar__app': true, 't4_sidebar__app--active': isActiveApp(app)}"
                          t-on-click="() => this.onAppClick(app)"
                          t-att-title="app.name">
-                        <!-- App icon: image or font icon -->
-                        <div class="t4_sidebar__app_icon">
+                        <!-- App icon: colored square with image or font icon -->
+                        <div class="t4_sidebar__app_icon"
+                             t-att-style="getAppIconBg(app) ? ('background-color: ' + getAppIconBg(app)) : ''">
                             <img t-if="getAppIcon(app)"
                                  t-att-src="getAppIcon(app)"
                                  class="t4_sidebar__app_img"
                                  t-att-alt="app.name"/>
                             <span t-else=""
-                                  t-att-class="getAppIconClass(app)"
-                                  t-att-style="getAppIconColor(app) ? ('color: ' + getAppIconColor(app)) : ''"/>
+                                  t-att-class="getAppIconClass(app)"/>
                         </div>
                         <!-- App name (hidden when collapsed) -->
                         <span class="t4_sidebar__app_name" t-if="!state.collapsed">

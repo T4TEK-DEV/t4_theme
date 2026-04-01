@@ -77,39 +77,57 @@
     }
 }
 
-// Individual app item
+// APPS header
+.t4_sidebar__apps_header {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--t4-text-secondary, #6c757d);
+}
+
+// Individual app item (OMUX style)
 .t4_sidebar__app {
     display: flex;
     align-items: center;
-    padding: 6px 12px;
+    padding: 7px 12px;
     cursor: pointer;
     color: var(--t4-sidebar-text, var(--t4-text-primary, #212529));
     text-decoration: none;
     border-left: 3px solid transparent;
+    border-radius: 0;
     transition: background-color 0.15s, border-color 0.15s;
 
     &:hover {
-        background-color: var(--t4-sidebar-hover-bg, rgba(0, 0, 0, 0.04));
+        background-color: var(--t4-sidebar-hover-bg, rgba(0, 0, 0, 0.05));
     }
 
     &--active {
-        background-color: var(--t4-sidebar-active-bg, rgba(113, 75, 103, 0.08));
+        background-color: var(--t4-sidebar-active-bg, rgba(113, 75, 103, 0.1));
         border-left-color: var(--t4-primary, #714B67);
         font-weight: 600;
+        color: var(--t4-primary, #714B67);
     }
 }
 
+// App icon: colored rounded square (OMUX style)
 .t4_sidebar__app_icon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 10px;
     flex-shrink: 0;
-    font-size: 16px;
-    border-radius: 6px;
+    font-size: 14px;
+    border-radius: 8px;
     overflow: hidden;
+    color: #ffffff;
+    // Default background when no icon bg color is set
+    background-color: var(--t4-primary, #714B67);
 }
 
 .t4_sidebar__app_img {

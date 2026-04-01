@@ -1,22 +1,81 @@
 // =============================================================================
 // T4 Theme — Main Entry
 // =============================================================================
-// This file applies t4 CSS custom properties to Odoo core elements.
-// Variables are defined in variables/_light.scss and variables/_dark.scss.
-// Runtime overrides come from the t4ThemeService (JS).
+// Applies t4 CSS custom properties to Odoo core elements.
+// Variables: variables/_light.scss, variables/_dark.scss
+// Runtime overrides: t4ThemeService (JS)
 
-// -- Global font override --
+// ---- Bootstrap variable bridge ----
+// Override Bootstrap's --bs-primary with t4 theme color so ALL Odoo components
+// (buttons, badges, links, form focus) inherit the theme automatically.
+:root {
+    --bs-primary: var(--t4-primary, #714B67);
+    --bs-primary-rgb: var(--t4-primary-rgb, 113, 75, 103);
+}
+
+// ---- Global ----
 body {
     font-family: var(--t4-font-family, inherit);
 }
 
-// -- View backgrounds --
+// ---- Primary buttons ----
+.btn-primary {
+    --bs-btn-bg: var(--t4-primary, #714B67);
+    --bs-btn-border-color: var(--t4-primary, #714B67);
+    --bs-btn-hover-bg: var(--t4-primary, #714B67);
+    --bs-btn-hover-border-color: var(--t4-primary, #714B67);
+    --bs-btn-active-bg: var(--t4-primary, #714B67);
+    --bs-btn-active-border-color: var(--t4-primary, #714B67);
+    filter: brightness(1);
+
+    &:hover {
+        filter: brightness(1.1);
+    }
+
+    &:active, &.active {
+        filter: brightness(0.9);
+    }
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--t4-primary, #714B67);
+    --bs-btn-border-color: var(--t4-primary, #714B67);
+    --bs-btn-hover-bg: var(--t4-primary, #714B67);
+    --bs-btn-hover-border-color: var(--t4-primary, #714B67);
+    --bs-btn-active-bg: var(--t4-primary, #714B67);
+    --bs-btn-active-border-color: var(--t4-primary, #714B67);
+}
+
+// ---- Links ----
+a {
+    color: var(--t4-primary, #714B67);
+
+    &:hover {
+        color: var(--t4-primary, #714B67);
+        filter: brightness(0.85);
+    }
+}
+
+// ---- Form focus ring ----
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--t4-accent, #00A09D);
+    box-shadow: 0 0 0 0.2rem rgba(var(--t4-accent-rgb, 0, 160, 157), 0.25);
+}
+
+// ---- Checkbox/Radio ----
+.form-check-input:checked {
+    background-color: var(--t4-primary, #714B67);
+    border-color: var(--t4-primary, #714B67);
+}
+
+// ---- View backgrounds ----
 .o_view_controller,
 .o_content {
     background-color: var(--t4-bg-view);
 }
 
-// -- Form sheet --
+// ---- Form sheet ----
 .o_form_sheet_bg {
     background-color: var(--t4-bg-base);
 }
@@ -26,7 +85,7 @@ body {
     box-shadow: var(--t4-shadow-sm);
 }
 
-// -- List view --
+// ---- List view ----
 .o_list_view {
     .o_list_table {
         thead {
@@ -35,7 +94,7 @@ body {
     }
 }
 
-// -- Kanban --
+// ---- Kanban ----
 .o_kanban_view {
     .o_kanban_record {
         background-color: var(--t4-bg-card);
@@ -44,8 +103,13 @@ body {
     }
 }
 
-// -- Settings preview panel --
-.t4_theme_preview {
-    margin-top: 1rem;
-    font-family: var(--t4-font-family, inherit);
+// ---- Selection highlight / active state ----
+.o_statusbar_status .o_arrow_button.o_arrow_button_current {
+    color: var(--t4-primary, #714B67);
+}
+
+// ---- Badge primary ----
+.badge.text-bg-primary,
+.badge.bg-primary {
+    background-color: var(--t4-primary, #714B67) !important;
 }

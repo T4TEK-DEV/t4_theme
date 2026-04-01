@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ================================================================
+         T4 Sidebar — Persistent vertical navigation
+         ================================================================ -->
+    <t t-name="t4_theme.Sidebar">
+        <aside class="t4_sidebar d-print-none"
+               t-att-class="{'t4_sidebar--collapsed': state.collapsed, 't4_sidebar--resizing': state.resizing}"
+               t-att-style="sidebarStyle">
+
+            <!-- App Icons -->
+            <div class="t4_sidebar__apps">
+                <t t-foreach="apps" t-as="app" t-key="app.id">
+                    <div t-att-class="{'t4_sidebar__app': true, 't4_sidebar__app--active': isActiveApp(app)}"
+                         t-on-click="() => this.onAppClick(app)"
+                         t-att-title="app.name">
+                        <!-- App icon: image or font icon -->
+                        <div class="t4_sidebar__app_icon">
+                            <img t-if="getAppIcon(app)"
+                                 t-att-src="getAppIcon(app)"
+                                 class="t4_sidebar__app_img"
+                                 t-att-alt="app.name"/>
+                            <span t-else=""
+                                  t-att-class="getAppIconClass(app)"
+                                  t-att-style="getAppIconColor(app) ? ('color: ' + getAppIconColor(app)) : ''"/>
+                        </div>
+                        <!-- App name (hidden when collapsed) -->
+                        <span class="t4_sidebar__app_name" t-if="!state.collapsed">
+                            <t t-esc="app.name"/>
+                        </span>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Submenu (current app children) -->
+            <div class="t4_sidebar__submenu" t-if="!state.collapsed and subMenuItems.length">
+                <div class="t4_sidebar__submenu_header">
+                    <strong t-if="currentApp" t-esc="currentApp.name"/>
+                </div>
+                <t t-foreach="subMenuItems" t-as="item" t-key="item.id">
+                    <t t-call="t4_theme.SidebarMenuItem">
+                        <t t-set="menuItem" t-value="item"/>
+                        <t t-set="depth" t-value="0"/>
+                    </t>
+                </t>
+            </div>
+
+            <!-- Collapse toggle -->
+            <div class="t4_sidebar__footer">
+                <button class="t4_sidebar__toggle btn btn-sm"
+                        t-on-click="toggleCollapse"
+                        t-att-title="state.collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+                    <i t-att-class="state.collapsed ? 'fa fa-chevron-right' : 'fa fa-chevron-left'"/>
+                </button>
+            </div>
+
+            <!-- Resize handle -->
+            <div class="t4_sidebar__resize_handle"
+                 t-if="!state.collapsed"
+                 t-on-mousedown="onResizeStart"/>
+        </aside>
+    </t>
+
+    <!-- Recursive menu item template -->
+    <t t-name="t4_theme.SidebarMenuItem">
+        <div t-att-class="{'t4_sidebar__menu_item': true, 't4_sidebar__menu_item--has-children': menuItem.childrenTree and menuItem.childrenTree.length}"
+             t-att-style="'padding-left: ' + (12 + depth * 16) + 'px'">
+            <a class="t4_sidebar__menu_link"
+               t-on-click.prevent="() => this.onMenuItemClick(menuItem)"
+               href="#">
+                <span class="t4_sidebar__menu_text" t-esc="menuItem.name"/>
+                <i t-if="menuItem.childrenTree and menuItem.childrenTree.length"
+                   t-att-class="isMenuExpanded(menuItem.id) ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
+                   class="t4_sidebar__menu_arrow"/>
+            </a>
+        </div>
+        <!-- Nested children -->
+        <t t-if="menuItem.childrenTree and menuItem.childrenTree.length and isMenuExpanded(menuItem.id)">
+            <t t-foreach="menuItem.childrenTree" t-as="child" t-key="child.id">
+                <t t-call="t4_theme.SidebarMenuItem">
+                    <t t-set="menuItem" t-value="child"/>
+                    <t t-set="depth" t-value="depth + 1"/>
+                </t>
+            </t>
+        </t>
+    </t>
+
+    <!-- Patch WebClient template to include sidebar -->
+    <t t-name="t4_theme.WebClient" t-inherit="web.WebClient" t-inherit-mode="extension">
+        <xpath expr="//ActionContainer" position="before">
+            <T4Sidebar/>
+        </xpath>
+    </t>
+
+</templates>

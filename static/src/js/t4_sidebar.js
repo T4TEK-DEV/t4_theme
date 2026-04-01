@@ -3,6 +3,7 @@
 import { Component, useState, onMounted } from "@odoo/owl";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
+import { user } from "@web/core/user";
 
 const STORAGE_KEY_COLLAPSED = "t4_sidebar_collapsed";
 const STORAGE_KEY_WIDTH = "t4_sidebar_width";
@@ -33,8 +34,13 @@ export class T4Sidebar extends Component {
         this.menuService = useService("menu");
         this.actionService = useService("action");
 
-        const savedCollapsed = browser.localStorage.getItem(STORAGE_KEY_COLLAPSED) === "true";
-        const savedWidth = parseInt(browser.localStorage.getItem(STORAGE_KEY_WIDTH)) || DEFAULT_WIDTH;
+        // Read preferences from user settings (server-persisted), fallback to localStorage
+        const settings = user.settings || {};
+        const savedCollapsed = settings.t4_sidebar_collapsed
+            ?? (browser.localStorage.getItem(STORAGE_KEY_COLLAPSED) === "true");
+        const savedWidth = settings.t4_sidebar_width
+            || parseInt(browser.localStorage.getItem(STORAGE_KEY_WIDTH))
+            || DEFAULT_WIDTH;
 
         this.state = useState({
             collapsed: savedCollapsed,
@@ -164,6 +170,8 @@ export class T4Sidebar extends Component {
         this.state.collapsed = !this.state.collapsed;
         browser.localStorage.setItem(STORAGE_KEY_COLLAPSED, String(this.state.collapsed));
         this._applySidebarStyle();
+        // Persist to server (fire-and-forget)
+        user.setUserSettings("t4_sidebar_collapsed", this.state.collapsed).catch(() => {});
     }
 
     _applySidebarStyle() {
@@ -191,6 +199,7 @@ export class T4Sidebar extends Component {
         const onMouseUp = () => {
             this.state.resizing = false;
             browser.localStorage.setItem(STORAGE_KEY_WIDTH, String(this.state.width));
+            user.setUserSettings("t4_sidebar_width", this.state.width).catch(() => {});
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
         };

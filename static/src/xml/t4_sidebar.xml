@@ -46,6 +46,27 @@
                 </t>
             </div>
 
+            <!-- Bookmarks (pinned) -->
+            <div class="t4_sidebar__bookmarks" t-if="!state.collapsed and pinnedBookmarks.length">
+                <div class="t4_sidebar__recents_header">
+                    <span>Bookmarks</span>
+                </div>
+                <t t-foreach="pinnedBookmarks" t-as="bm" t-key="bm.actionId">
+                    <div class="t4_sidebar__recent_item"
+                         t-on-click="() => this.onBookmarkClick(bm)">
+                        <i class="fa fa-bookmark t4_sidebar__recent_icon" style="color: var(--t4-accent, #00A09D)"/>
+                        <div class="t4_sidebar__recent_text">
+                            <span class="t4_sidebar__recent_name" t-esc="bm.name"/>
+                        </div>
+                        <button class="btn btn-sm border-0 p-0 ms-auto"
+                                t-on-click.stop="() => this.onBookmarkRemove(bm.actionId)"
+                                title="Remove bookmark">
+                            <i class="fa fa-times small text-muted"/>
+                        </button>
+                    </div>
+                </t>
+            </div>
+
             <!-- Recent Items -->
             <div class="t4_sidebar__recents" t-if="!state.collapsed and state.recentItems.length">
                 <div class="t4_sidebar__recents_header">

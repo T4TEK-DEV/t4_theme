@@ -33,6 +33,7 @@ export class T4Sidebar extends Component {
     setup() {
         this.menuService = useService("menu");
         this.actionService = useService("action");
+        this.bookmarkService = useService("t4_bookmarks");
 
         // Read preferences from user settings (server-persisted), fallback to localStorage
         const settings = user.settings || {};
@@ -253,6 +254,22 @@ export class T4Sidebar extends Component {
         if (item.actionId) {
             this.actionService.doAction(item.actionId, { clearBreadcrumbs: true });
         }
+    }
+
+    // ---- Bookmarks ----
+
+    get pinnedBookmarks() {
+        return this.bookmarkService.pinnedBookmarks;
+    }
+
+    onBookmarkClick(bm) {
+        if (bm.actionId) {
+            this.actionService.doAction(bm.actionId, { clearBreadcrumbs: true });
+        }
+    }
+
+    onBookmarkRemove(actionId) {
+        this.bookmarkService.remove(actionId);
     }
 
     clearRecents() {

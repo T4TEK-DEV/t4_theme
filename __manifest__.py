@@ -38,6 +38,7 @@
             't4_theme/static/src/scss/_theme_panel.scss',
             't4_theme/static/src/scss/t4_theme.scss',
             't4_theme/static/src/js/theme_service.js',
+            't4_theme/static/src/js/t4_bookmark_service.js',
             't4_theme/static/src/js/t4_sidebar.js',
             't4_theme/static/src/js/t4_webclient_patch.js',
             't4_theme/static/src/js/theme_panel.js',

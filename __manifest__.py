@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'T4 Theme Engine',
-    'version': '1.0.0',
+    'version': '1.1.0',
     'category': 'Technical',
     'sequence': 101,
-    'summary': 'Per-company theme configuration: colors, dark mode, sidebar, presets',
+    'summary': 'Full UX theme: sidebar nav, dark mode, bookmarks, form layout, presets',
     'description': """
         T4 Theme Engine
         ===============
@@ -45,6 +45,7 @@
             't4_theme/static/src/js/t4_webclient_patch.js',
             't4_theme/static/src/js/t4_form_patch.js',
             't4_theme/static/src/js/t4_view_patches.js',
+            't4_theme/static/src/js/t4_navbar_patch.js',
             't4_theme/static/src/js/theme_panel.js',
             't4_theme/static/src/js/theme_systray.js',
             't4_theme/static/src/xml/t4_sidebar.xml',

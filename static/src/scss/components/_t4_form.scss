@@ -1,0 +1,83 @@
+// =============================================================================
+// T4 Theme — Form View Enhancements
+// =============================================================================
+// Side-by-side chatter layout on XL+ screens.
+// Attachment preview alongside form sheet.
+// Adapted from udoo_om_ux form layout patterns.
+
+// -- Side-by-side chatter on wide screens --
+@media (min-width: 1200px) {
+    .o_form_view {
+        // When chatter exists, create a flex layout
+        .o_form_sheet_bg {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: flex-start;
+
+            .o_form_sheet {
+                flex: 1;
+                min-width: 0;
+            }
+        }
+
+        // Chatter panel beside form
+        .o-mail-Form-chatter {
+            position: sticky;
+            top: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            border-left: 1px solid var(--t4-border-color, #dee2e6);
+            width: 380px;
+            min-width: 320px;
+            flex-shrink: 0;
+
+            &::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: var(--t4-border-color, #dee2e6);
+                border-radius: 2px;
+            }
+        }
+
+        // Form sheet max width adjustments
+        .o_form_sheet {
+            max-width: none;
+        }
+    }
+}
+
+// -- Form sheet styling --
+.o_form_sheet {
+    border-radius: var(--t4-border-radius, 4px);
+}
+
+// -- Required field indicator --
+.o_form_label.o_form_label_empty.o_required_modifier {
+    &::after {
+        content: " *";
+        color: var(--t4-danger, #dc3545);
+        font-weight: bold;
+    }
+}
+
+// -- Notebook tabs --
+.o_form_view .o_notebook {
+    .nav-tabs .nav-link {
+        font-size: 0.8125rem;
+        font-weight: 500;
+
+        &.active {
+            border-bottom-color: var(--t4-primary, #714B67);
+            color: var(--t4-primary, #714B67);
+        }
+    }
+}
+
+// -- Status bar improvements --
+.o_form_view .o_statusbar_status {
+    .o_arrow_button {
+        font-size: 0.8125rem;
+    }
+}

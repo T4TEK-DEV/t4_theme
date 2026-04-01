@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_t4_theme" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.t4.theme</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app name="t4_theme" string="T4 Theme"
+                     groups="base.group_system">
+                    <block title="Color Scheme" name="t4_color_scheme_setting">
+                        <setting string="Theme Mode"
+                                 help="Choose light, dark, or auto (follows OS preference)">
+                            <field name="t4_color_scheme" widget="radio"/>
+                        </setting>
+                    </block>
+
+                    <block title="Colors" name="t4_colors_setting">
+                        <setting string="Primary Color"
+                                 help="Main brand color for navbar and primary buttons">
+                            <field name="t4_primary_color" widget="color"/>
+                        </setting>
+                        <setting string="Secondary Color"
+                                 help="Secondary color for less prominent elements">
+                            <field name="t4_secondary_color" widget="color"/>
+                        </setting>
+                        <setting string="Accent Color"
+                                 help="Highlights and focus states">
+                            <field name="t4_accent_color" widget="color"/>
+                        </setting>
+                    </block>
+
+                    <block title="Appearance" name="t4_appearance_setting">
+                        <setting string="Font">
+                            <field name="t4_font_family"/>
+                        </setting>
+                        <setting string="Sidebar Style">
+                            <field name="t4_sidebar_style" widget="radio"/>
+                        </setting>
+                        <setting string="Dark Mode Logo"
+                                 help="Logo variant displayed when dark mode is active">
+                            <field name="t4_dark_mode_logo" widget="image"
+                                   options="{'size': [200, 100]}"/>
+                        </setting>
+                    </block>
+
+                    <block title="Presets" name="t4_presets_setting">
+                        <setting string="Apply Preset"
+                                 help="Select a preset and apply it">
+                            <div class="mt8">
+                                <field name="t4_preset_id"
+                                       options="{'no_create': True}"/>
+                                <button name="action_apply_preset"
+                                        string="Apply Preset"
+                                        type="object"
+                                        class="btn-secondary mt8"
+                                        icon="fa-paint-brush"/>
+                            </div>
+                        </setting>
+                        <setting string="Import Preset"
+                                 help="Paste preset JSON to import">
+                            <div class="mt8">
+                                <field name="t4_preset_json_import"
+                                       placeholder='Paste JSON here...'/>
+                                <button name="action_import_preset"
+                                        string="Import"
+                                        type="object"
+                                        class="btn-secondary mt8"
+                                        icon="fa-upload"/>
+                            </div>
+                        </setting>
+                        <setting string="Reset to Defaults">
+                            <button name="action_reset_defaults"
+                                    string="Reset Theme"
+                                    type="object"
+                                    class="btn-danger mt8"
+                                    icon="fa-undo"
+                                    confirm="Reset all theme settings to factory defaults?"/>
+                        </setting>
+                    </block>
+
+                    <block title="Advanced" name="t4_advanced_setting">
+                        <setting string="Custom CSS Variables"
+                                 help="JSON object with CSS custom property overrides">
+                            <field name="t4_custom_css_vars"
+                                   placeholder='{"--t4-border-radius": "8px"}'/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.ThemeSystray">
+        <div class="t4_theme_systray d-flex align-items-center">
+            <button class="btn border-0 text-white opacity-75 opacity-100-hover px-2"
+                    t-on-click="togglePanel"
+                    title="Theme Configuration"
+                    t-attf-class="{{state.panelOpen ? 'opacity-100' : ''}}">
+                <i class="fa fa-paint-brush"/>
+            </button>
+            <T4ThemePanel t-if="state.panelOpen"
+                          onClose.bind="closePanel"/>
+        </div>
+    </t>
+</templates>

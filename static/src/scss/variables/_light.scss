@@ -1,0 +1,43 @@
+// =============================================================================
+// T4 Theme — Light Mode CSS Custom Properties
+// =============================================================================
+// Loaded via web.assets_backend (light mode default).
+// These extend the base variables from t4_standard.
+// Runtime values from t4.theme.config override these via JS.
+
+:root {
+    // -- Surfaces --
+    --t4-bg-base: #ffffff;
+    --t4-bg-view: #ffffff;
+    --t4-bg-card: #ffffff;
+    --t4-bg-sidebar: #f8f9fa;
+    --t4-bg-input: #ffffff;
+    --t4-bg-hover: #f0f0f0;
+
+    // -- Text --
+    --t4-text-primary: #212529;
+    --t4-text-secondary: #6c757d;
+    --t4-text-muted: #adb5bd;
+    --t4-text-inverse: #ffffff;
+
+    // -- Borders --
+    --t4-border-color: #dee2e6;
+    --t4-border-color-strong: #ced4da;
+
+    // -- Shadows --
+    --t4-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --t4-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --t4-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    // -- Navbar --
+    --t4-navbar-bg: var(--t4-primary, #714B67);
+    --t4-navbar-text: #ffffff;
+    --t4-navbar-hover-bg: rgba(255, 255, 255, 0.1);
+
+    // -- Sidebar --
+    --t4-sidebar-bg: var(--t4-bg-sidebar);
+    --t4-sidebar-text: var(--t4-text-primary);
+    --t4-sidebar-hover-bg: var(--t4-bg-hover);
+    --t4-sidebar-active-bg: rgba(113, 75, 103, 0.1);
+    --t4-sidebar-border: var(--t4-border-color);
+}

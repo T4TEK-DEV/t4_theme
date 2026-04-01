@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Top-level menu under Settings -->
+    <menuitem id="menu_t4_theme_root"
+              name="T4 Theme"
+              parent="base.menu_administration"
+              sequence="90"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_t4_theme_config"
+              name="Theme Configurations"
+              parent="menu_t4_theme_root"
+              action="action_t4_theme_config"
+              sequence="10"/>
+
+    <menuitem id="menu_t4_theme_preset"
+              name="Theme Presets"
+              parent="menu_t4_theme_root"
+              action="action_t4_theme_preset"
+              sequence="20"/>
+</odoo>

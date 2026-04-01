@@ -1,0 +1,51 @@
+// =============================================================================
+// T4 Theme — Main Entry
+// =============================================================================
+// This file applies t4 CSS custom properties to Odoo core elements.
+// Variables are defined in variables/_light.scss and variables/_dark.scss.
+// Runtime overrides come from the t4ThemeService (JS).
+
+// -- Global font override --
+body {
+    font-family: var(--t4-font-family, inherit);
+}
+
+// -- View backgrounds --
+.o_view_controller,
+.o_content {
+    background-color: var(--t4-bg-view);
+}
+
+// -- Form sheet --
+.o_form_sheet_bg {
+    background-color: var(--t4-bg-base);
+}
+
+.o_form_sheet {
+    background-color: var(--t4-bg-card);
+    box-shadow: var(--t4-shadow-sm);
+}
+
+// -- List view --
+.o_list_view {
+    .o_list_table {
+        thead {
+            background-color: var(--t4-bg-sidebar);
+        }
+    }
+}
+
+// -- Kanban --
+.o_kanban_view {
+    .o_kanban_record {
+        background-color: var(--t4-bg-card);
+        border-color: var(--t4-border-color);
+        box-shadow: var(--t4-shadow-sm);
+    }
+}
+
+// -- Settings preview panel --
+.t4_theme_preview {
+    margin-top: 1rem;
+    font-family: var(--t4-font-family, inherit);
+}

@@ -1,0 +1,31 @@
+// =============================================================================
+// T4 Theme — Sidebar (Light Mode)
+// =============================================================================
+
+// Sidebar style controlled by data-t4-sidebar attribute on <body>
+// Values: "full", "collapsed", "auto_hide"
+
+.o_action_manager {
+    // Full sidebar (default)
+    body[data-t4-sidebar="full"] & {
+        .o_cp_searchview {
+            // No modifications needed for full mode
+        }
+    }
+
+    // Collapsed sidebar
+    body[data-t4-sidebar="collapsed"] & {
+        .o_menu_sections {
+            .o_menu_entry_lvl_1 > .dropdown-toggle > span {
+                display: none;
+            }
+        }
+    }
+
+    // Auto-hide sidebar
+    body[data-t4-sidebar="auto_hide"] & {
+        .o_menu_sections {
+            transition: width 0.2s ease-in-out;
+        }
+    }
+}

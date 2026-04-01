@@ -1,0 +1,138 @@
+// =============================================================================
+// T4 Theme — Dark Mode Custom Styles
+// =============================================================================
+// Edge-case CSS overrides that pure variable inversion can't handle.
+
+// Navbar text colors (lighter blue for readability)
+.o_main_navbar {
+    .o_menu_brand,
+    .o_navbar_breadcrumbs,
+    .o_navbar_breadcrumbs .btn {
+        color: rgba(100, 150, 255, 0.9) !important;
+    }
+
+    .o_menu_brand,
+    .o_navbar_apps_menu .dropdown-toggle,
+    .o_nav_entry,
+    .dropdown-toggle:not(.o-dropdown-toggle-custo),
+    .o_menu_toggle {
+        color: rgba(120, 170, 255, 0.9) !important;
+        font-weight: 700;
+    }
+}
+
+// Button success (keep bright green)
+.btn-success {
+    --btn-color: #000 !important;
+    --btn-bg: #26b949 !important;
+    --btn-border-color: #26b949 !important;
+    --btn-disabled-bg: #26b949 !important;
+    --btn-disabled-border-color: #26b949 !important;
+    --btn-hover-color: #000000 !important;
+}
+
+// Form group borders
+.oe_group_border {
+    border: 1px solid #444 !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+    width: 100%;
+    margin: 5px !important;
+    background-color: #2a2a2a !important;
+}
+
+.oe_group_border .oe_group_label {
+    background-color: #3a3a3a !important;
+    padding: 2px 8px !important;
+    border-radius: 3px !important;
+    font-weight: bold !important;
+    color: #e0e0e0 !important;
+}
+
+// Images with transparent backgrounds
+.o_field_image {
+    --ImageField-background-color: #ffffff;
+}
+
+// Form list renderer
+.o_form_view .o_field_widget .o_list_renderer {
+    --ListRenderer-thead-bg-active-color: #{$o-gray-300};
+}
+
+// Kanban
+.o_kanban_renderer {
+    --KanbanColumn__highlight-background: #{mix($o-action, $o-gray-100, 10%)};
+    --KanbanColumn__highlight-border: #{rgba($o-action, 0.5)};
+
+    .o_kanban_record:not(.o_legacy_kanban_record) {
+        .o_attachment_image > img {
+            background-color: #ffffff;
+        }
+    }
+}
+
+// Notebook tabs
+.o_notebook {
+    --notebook-link-border-color: #{$nav-tabs-border-color};
+    --notebook-link-border-color-hover: #{$nav-tabs-border-color};
+    --notebook-link-border-color-active-accent: #{$o-main-link-color};
+}
+
+// Search view
+.o_searchview {
+    --SearchBar-background-color: #{$o-gray-100};
+    &:focus-within {
+        $-searchbar-border-color: rgba($input-focus-border-color, 0.5);
+        border-color: $-searchbar-border-color;
+        + .o_searchview_dropdown_toggler {
+            border-left-color: $-searchbar-border-color;
+            border-top-color: $-searchbar-border-color;
+            border-right-color: $-searchbar-border-color;
+            border-bottom-color: $-searchbar-border-color;
+        }
+    }
+}
+
+// Properties field icons
+.o_field_property_definition_type .o_field_property_dropdown img,
+.o_field_property_definition_type_menu .dropdown-item img {
+    filter: invert(100%);
+}
+
+.o_property_field_value {
+    select option {
+        background-color: $dropdown-bg;
+    }
+}
+
+.o_field_properties div:not([columns="1"]) .o_property_drag_group {
+    background-color: #{mix($o-action, $o-view-background-color, 10%)};
+    border: 1px solid #{rgba($o-action, 0.5)};
+}
+
+// Tags
+.o_tag {
+    @for $size from 1 through length($o-colors) {
+        &.o_tag_color_#{$size - 1} {
+            $-bg: mix(nth($o-colors, $size), $o-view-background-color, 10%);
+            $-color: scale-color(
+                nth($o-colors, $size),
+                $lightness: 65%,
+                $saturation: 100%
+            );
+            &,
+            &::after {
+                --background-color: #{$-bg};
+                --color: #{$-color};
+            }
+        }
+    }
+}
+
+// Color list
+@for $size from 2 through length($o-colors) {
+    .o_colorlist_item_color_#{$size - 1} {
+        --background-color: #{mix(nth($o-colors, $size), $o-view-background-color, 95%)};
+        --color: #{color-contrast(nth($o-colors, $size))};
+    }
+}

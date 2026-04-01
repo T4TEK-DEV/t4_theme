@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- ===================== LIGHT PRESETS ===================== -->
+
+    <record id="preset_industrial_light" model="t4.theme.preset">
+        <field name="name">Industrial Light</field>
+        <field name="sequence">1</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#714B67</field>
+        <field name="secondary_color">#8f8f8f</field>
+        <field name="accent_color">#00A09D</field>
+        <field name="font_family">inherit</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_modern_blue" model="t4.theme.preset">
+        <field name="name">Modern Blue</field>
+        <field name="sequence">2</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#1565C0</field>
+        <field name="secondary_color">#546E7A</field>
+        <field name="accent_color">#FF6F00</field>
+        <field name="font_family">inter</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_forest_green" model="t4.theme.preset">
+        <field name="name">Forest Green</field>
+        <field name="sequence">3</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#2E7D32</field>
+        <field name="secondary_color">#689F38</field>
+        <field name="accent_color">#FF8F00</field>
+        <field name="font_family">roboto</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_warm_orange" model="t4.theme.preset">
+        <field name="name">Warm Orange</field>
+        <field name="sequence">4</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#E65100</field>
+        <field name="secondary_color">#795548</field>
+        <field name="accent_color">#00897B</field>
+        <field name="font_family">open_sans</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_corporate_gray" model="t4.theme.preset">
+        <field name="name">Corporate Gray</field>
+        <field name="sequence">5</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#37474F</field>
+        <field name="secondary_color">#78909C</field>
+        <field name="accent_color">#0288D1</field>
+        <field name="font_family">source_sans</field>
+        <field name="sidebar_style">collapsed</field>
+    </record>
+
+    <record id="preset_royal_purple" model="t4.theme.preset">
+        <field name="name">Royal Purple</field>
+        <field name="sequence">6</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">light</field>
+        <field name="primary_color">#6A1B9A</field>
+        <field name="secondary_color">#8E24AA</field>
+        <field name="accent_color">#00BCD4</field>
+        <field name="font_family">lato</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <!-- ===================== DARK PRESETS ===================== -->
+
+    <record id="preset_industrial_dark" model="t4.theme.preset">
+        <field name="name">Industrial Dark</field>
+        <field name="sequence">10</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">dark</field>
+        <field name="primary_color">#71639e</field>
+        <field name="secondary_color">#6c757d</field>
+        <field name="accent_color">#00c7c7</field>
+        <field name="font_family">inherit</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_midnight_blue" model="t4.theme.preset">
+        <field name="name">Midnight Blue</field>
+        <field name="sequence">11</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">dark</field>
+        <field name="primary_color">#1E88E5</field>
+        <field name="secondary_color">#546E7A</field>
+        <field name="accent_color">#FFB300</field>
+        <field name="font_family">inter</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <record id="preset_cyber_green" model="t4.theme.preset">
+        <field name="name">Cyber Green</field>
+        <field name="sequence">12</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">dark</field>
+        <field name="primary_color">#00C853</field>
+        <field name="secondary_color">#69F0AE</field>
+        <field name="accent_color">#FF6D00</field>
+        <field name="font_family">roboto</field>
+        <field name="sidebar_style">collapsed</field>
+    </record>
+
+    <record id="preset_crimson_dark" model="t4.theme.preset">
+        <field name="name">Crimson Dark</field>
+        <field name="sequence">13</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">dark</field>
+        <field name="primary_color">#C62828</field>
+        <field name="secondary_color">#EF5350</field>
+        <field name="accent_color">#26C6DA</field>
+        <field name="font_family">inherit</field>
+        <field name="sidebar_style">full</field>
+    </record>
+
+    <!-- ===================== AUTO PRESET ===================== -->
+
+    <record id="preset_auto_system" model="t4.theme.preset">
+        <field name="name">Auto (System)</field>
+        <field name="sequence">20</field>
+        <field name="is_system" eval="True"/>
+        <field name="color_scheme">auto</field>
+        <field name="primary_color">#714B67</field>
+        <field name="secondary_color">#8f8f8f</field>
+        <field name="accent_color">#00A09D</field>
+        <field name="font_family">inherit</field>
+        <field name="sidebar_style">full</field>
+    </record>
+</odoo>

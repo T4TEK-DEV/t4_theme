@@ -1,0 +1,42 @@
+// =============================================================================
+// T4 Theme — Dark Mode CSS Custom Properties
+// =============================================================================
+// Loaded via web.assets_web_dark bundle.
+// Overrides light mode variables when dark scheme is active.
+
+:root {
+    // -- Surfaces --
+    --t4-bg-base: #1e1e1e;
+    --t4-bg-view: #252525;
+    --t4-bg-card: #2d2d2d;
+    --t4-bg-sidebar: #1a1a1a;
+    --t4-bg-input: #333333;
+    --t4-bg-hover: #3a3a3a;
+
+    // -- Text --
+    --t4-text-primary: #e0e0e0;
+    --t4-text-secondary: #aaaaaa;
+    --t4-text-muted: #777777;
+    --t4-text-inverse: #1e1e1e;
+
+    // -- Borders --
+    --t4-border-color: #444444;
+    --t4-border-color-strong: #555555;
+
+    // -- Shadows (lighter for dark backgrounds) --
+    --t4-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --t4-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --t4-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+    // -- Navbar --
+    --t4-navbar-bg: var(--t4-primary, #71639e);
+    --t4-navbar-text: #ffffff;
+    --t4-navbar-hover-bg: rgba(255, 255, 255, 0.15);
+
+    // -- Sidebar --
+    --t4-sidebar-bg: var(--t4-bg-sidebar);
+    --t4-sidebar-text: var(--t4-text-primary);
+    --t4-sidebar-hover-bg: var(--t4-bg-hover);
+    --t4-sidebar-active-bg: rgba(113, 99, 158, 0.2);
+    --t4-sidebar-border: var(--t4-border-color);
+}

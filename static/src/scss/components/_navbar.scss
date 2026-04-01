@@ -1,0 +1,19 @@
+// =============================================================================
+// T4 Theme — Navbar (Light Mode)
+// =============================================================================
+
+.o_main_navbar {
+    background-color: var(--t4-navbar-bg) !important;
+    color: var(--t4-navbar-text);
+
+    .o_menu_brand,
+    .o_menu_entry,
+    .dropdown-toggle {
+        color: var(--t4-navbar-text) !important;
+    }
+
+    .o_menu_entry:hover,
+    .dropdown-toggle:hover {
+        background-color: var(--t4-navbar-hover-bg);
+    }
+}

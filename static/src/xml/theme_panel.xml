@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.ThemePanel">
+        <div class="t4_theme_panel position-fixed shadow-lg" t-ref="panel">
+            <!-- Header -->
+            <div class="t4_panel_header d-flex align-items-center justify-content-between px-3 py-2">
+                <strong>Theme</strong>
+                <div class="d-flex gap-1">
+                    <span t-if="state.dirty"
+                          class="badge bg-warning text-dark small">Unsaved</span>
+                    <button class="btn btn-sm btn-close"
+                            t-on-click="() => this.props.onClose()"/>
+                </div>
+            </div>
+
+            <div class="t4_panel_body px-3 py-2 overflow-auto">
+                <!-- Color Scheme -->
+                <div class="t4_section mb-3">
+                    <label class="t4_label">Color Scheme</label>
+                    <div class="btn-group w-100" role="group">
+                        <t t-foreach="colorSchemeOptions" t-as="opt" t-key="opt.value">
+                            <button t-attf-class="btn btn-sm {{state.color_scheme === opt.value ? 'btn-primary' : 'btn-outline-secondary'}}"
+                                    t-on-click="() => this.onColorSchemeChange(opt.value)">
+                                <i t-attf-class="fa {{opt.icon}} me-1"/>
+                                <t t-esc="opt.label"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Colors -->
+                <div class="t4_section mb-3">
+                    <label class="t4_label">Colors</label>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="t4_color_input"
+                                   t-att-value="state.primary_color"
+                                   t-on-input="(ev) => this.onColorChange('primary_color', ev)"/>
+                            <span class="small">Primary</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="t4_color_input"
+                                   t-att-value="state.secondary_color"
+                                   t-on-input="(ev) => this.onColorChange('secondary_color', ev)"/>
+                            <span class="small">Secondary</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="t4_color_input"
+                                   t-att-value="state.accent_color"
+                                   t-on-input="(ev) => this.onColorChange('accent_color', ev)"/>
+                            <span class="small">Accent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Font -->
+                <div class="t4_section mb-3">
+                    <label class="t4_label">Font</label>
+                    <select class="form-select form-select-sm"
+                            t-on-change="onFontChange">
+                        <t t-foreach="fontOptions" t-as="opt" t-key="opt.value">
+                            <option t-att-value="opt.value"
+                                    t-att-selected="state.font_family === opt.value">
+                                <t t-esc="opt.label"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="t4_section mb-3">
+                    <label class="t4_label">Sidebar</label>
+                    <div class="btn-group w-100" role="group">
+                        <t t-foreach="sidebarOptions" t-as="opt" t-key="opt.value">
+                            <button t-attf-class="btn btn-sm {{state.sidebar_style === opt.value ? 'btn-primary' : 'btn-outline-secondary'}}"
+                                    t-on-click="() => this.onSidebarChange(opt.value)"
+                                    t-att-title="opt.label">
+                                <i t-attf-class="fa {{opt.icon}}"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="t4_section mb-3" t-if="state.presets.length">
+                    <label class="t4_label">Presets</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <t t-foreach="state.presets" t-as="preset" t-key="preset.id">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    t-on-click="() => this.onPresetClick(preset)">
+                                <span class="t4_preset_dot me-1"
+                                      t-attf-style="background-color: {{preset.primary_color}}"/>
+                                <t t-esc="preset.name"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="t4_panel_footer d-flex gap-2 px-3 py-2 border-top">
+                <button class="btn btn-sm btn-primary flex-grow-1"
+                        t-on-click="onSave"
+                        t-att-disabled="!state.dirty || state.saving">
+                    <i class="fa fa-save me-1"/>
+                    <t t-if="state.saving">Saving...</t>
+                    <t t-else="">Save</t>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary"
+                        t-on-click="onCancel"
+                        title="Cancel">
+                    <i class="fa fa-times"/>
+                </button>
+                <button class="btn btn-sm btn-outline-danger"
+                        t-on-click="onReset"
+                        title="Reset to defaults">
+                    <i class="fa fa-undo"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

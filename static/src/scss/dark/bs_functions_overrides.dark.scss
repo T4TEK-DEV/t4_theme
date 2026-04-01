@@ -1,0 +1,14 @@
+// =============================================================================
+// T4 Theme — Bootstrap Function Inversions for Dark Mode
+// =============================================================================
+// Inverts tint-color() and shade-color() so Bootstrap's automatic
+// color adjustments work correctly on dark backgrounds.
+// Loaded AFTER Bootstrap _functions.scss via asset bundle ordering.
+
+@function tint-color($color, $weight) {
+    @return mix(#000000, $color, $weight);
+}
+
+@function shade-color($color, $weight) {
+    @return mix(#ffffff, $color, $weight);
+}

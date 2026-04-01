@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+{
+    'name': 'T4 Theme Engine',
+    'version': '1.0.0',
+    'category': 'Technical',
+    'sequence': 101,
+    'summary': 'Per-company theme configuration: colors, dark mode, sidebar, presets',
+    'description': """
+        T4 Theme Engine
+        ===============
+        Theme configuration per-company cho chuẩn công nghiệp:
+        - Color scheme: light / dark / auto (OS preference)
+        - Primary, secondary, accent color pickers
+        - Custom CSS variable override
+        - Dark mode logo per company
+        - Font selection, sidebar style
+        - Import/Export theme presets (JSON)
+        - Settings UI with live preview
+    """,
+    'author': 'T4Tek',
+    'website': 'https://t4tek.co',
+    'depends': ['t4_standard'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/t4_theme_preset_data.xml',
+        'views/t4_theme_config_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/menus.xml',
+    ],
+    'assets': {
+        # Light mode: backend assets
+        'web.assets_backend': [
+            't4_theme/static/src/scss/variables/_light.scss',
+            't4_theme/static/src/scss/components/_navbar.scss',
+            't4_theme/static/src/scss/components/_sidebar.scss',
+            't4_theme/static/src/scss/_theme_panel.scss',
+            't4_theme/static/src/scss/t4_theme.scss',
+            't4_theme/static/src/js/theme_service.js',
+            't4_theme/static/src/js/theme_panel.js',
+            't4_theme/static/src/js/theme_systray.js',
+            't4_theme/static/src/xml/theme_panel.xml',
+            't4_theme/static/src/xml/theme_systray.xml',
+        ],
+        # Dark mode: variable overrides (loaded BEFORE web's defaults)
+        'web._assets_primary_variables': [
+            ('before', 'web/static/src/scss/primary_variables.scss',
+             't4_theme/static/src/scss/dark/primary_variables.dark.scss'),
+        ],
+        'web.assets_web_dark': [
+            # Dark SCSS variable layers
+            't4_theme/static/src/scss/variables/_dark.scss',
+            't4_theme/static/src/scss/dark/secondary_variables.dark.scss',
+            't4_theme/static/src/scss/dark/navbar.variables.dark.scss',
+            # Bootstrap overrides for dark
+            't4_theme/static/src/scss/dark/bootstrap_overridden.dark.scss',
+            't4_theme/static/src/scss/dark/bs_functions_overrides.dark.scss',
+            # Component dark styles
+            't4_theme/static/src/scss/components/_navbar.dark.scss',
+            't4_theme/static/src/scss/components/_sidebar.dark.scss',
+            't4_theme/static/src/scss/dark/custom_styles.dark.scss',
+        ],
+    },
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'license': 'LGPL-3',
+}

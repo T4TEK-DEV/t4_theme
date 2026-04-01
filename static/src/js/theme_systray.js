@@ -2,12 +2,13 @@
 
 import { Component, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { T4ThemePanel } from "./theme_panel";
 
 /**
  * T4 Theme Systray Button
  *
- * Adds a paint brush icon to the navbar systray area.
+ * Only visible to super admin (base.group_system).
  * Clicking toggles the floating theme configuration panel.
  */
 export class T4ThemeSystray extends Component {
@@ -17,6 +18,7 @@ export class T4ThemeSystray extends Component {
 
     setup() {
         this.state = useState({ panelOpen: false });
+        this.isSystem = user.isSystem;
     }
 
     togglePanel() {

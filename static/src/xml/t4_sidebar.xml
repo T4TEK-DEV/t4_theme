@@ -2,7 +2,8 @@
 <templates xml:space="preserve">
 
     <!-- ================================================================
-         T4 Sidebar — Persistent vertical navigation
+         T4 Sidebar — Persistent vertical navigation (OMUX style)
+         No submenu here — submenus stay in the top navbar.
          ================================================================ -->
     <t t-name="t4_theme.Sidebar">
         <aside class="t4_sidebar d-print-none"
@@ -14,13 +15,15 @@
                 <span>APPS</span>
             </div>
 
-            <!-- App Icons -->
+            <!-- App list -->
             <div class="t4_sidebar__apps">
                 <t t-foreach="apps" t-as="app" t-key="app.id">
                     <div t-att-class="{'t4_sidebar__app': true, 't4_sidebar__app--active': isActiveApp(app)}"
                          t-on-click="() => this.onAppClick(app)"
                          t-att-title="app.name">
-                        <!-- App icon: colored square with image or font icon -->
+                        <!-- Active blob indicator (OMUX style) -->
+                        <span class="t4_sidebar__blob" t-if="isActiveApp(app)"/>
+                        <!-- App icon -->
                         <div class="t4_sidebar__app_icon"
                              t-att-style="getAppIconBg(app) ? ('background-color: ' + getAppIconBg(app)) : ''">
                             <img t-if="getAppIcon(app)"
@@ -38,54 +41,41 @@
                 </t>
             </div>
 
-            <!-- Submenu (current app children) -->
-            <div class="t4_sidebar__submenu" t-if="!state.collapsed and subMenuItems.length">
-                <div class="t4_sidebar__submenu_header">
-                    <strong t-if="currentApp" t-esc="currentApp.name"/>
-                </div>
-                <t t-foreach="subMenuItems" t-as="item" t-key="item.id">
-                    <t t-call="t4_theme.SidebarMenuItem">
-                        <t t-set="menuItem" t-value="item"/>
-                        <t t-set="depth" t-value="0"/>
-                    </t>
-                </t>
-            </div>
-
             <!-- Bookmarks (pinned) -->
-            <div class="t4_sidebar__bookmarks" t-if="!state.collapsed and pinnedBookmarks.length">
-                <div class="t4_sidebar__recents_header">
-                    <span>Bookmarks</span>
+            <div class="t4_sidebar__section" t-if="!state.collapsed and pinnedBookmarks.length">
+                <div class="t4_sidebar__section_header">
+                    <span>BOOKMARKS</span>
                 </div>
                 <t t-foreach="pinnedBookmarks" t-as="bm" t-key="bm.actionId">
                     <div class="t4_sidebar__recent_item"
                          t-on-click="() => this.onBookmarkClick(bm)">
-                        <i class="fa fa-bookmark t4_sidebar__recent_icon" style="color: var(--t4-accent, #00A09D)"/>
+                        <i class="fa fa-bookmark t4_sidebar__recent_icon" style="color: var(--t4-accent)"/>
                         <div class="t4_sidebar__recent_text">
                             <span class="t4_sidebar__recent_name" t-esc="bm.name"/>
                         </div>
                         <button class="btn btn-sm border-0 p-0 ms-auto"
                                 t-on-click.stop="() => this.onBookmarkRemove(bm.actionId)"
-                                title="Remove bookmark">
+                                title="Remove">
                             <i class="fa fa-times small text-muted"/>
                         </button>
                     </div>
                 </t>
             </div>
 
-            <!-- Recent Items -->
-            <div class="t4_sidebar__recents" t-if="!state.collapsed and state.recentItems.length">
-                <div class="t4_sidebar__recents_header">
-                    <span>Recent</span>
-                    <button class="btn btn-sm border-0 p-0 ms-auto"
-                            t-on-click="clearRecents"
-                            title="Clear recents">
+            <!-- Recent Items (OMUX style) -->
+            <div class="t4_sidebar__section" t-if="!state.collapsed and state.recentItems.length">
+                <div class="t4_sidebar__section_header">
+                    <span>RECENTS</span>
+                    <span class="badge bg-secondary ms-auto" t-esc="state.recentItems.length"/>
+                    <button class="btn btn-sm border-0 p-0 ms-1"
+                            t-on-click="clearRecents" title="Clear">
                         <i class="fa fa-times small text-muted"/>
                     </button>
                 </div>
                 <t t-foreach="state.recentItems.slice(0, 10)" t-as="item" t-key="item.id">
                     <div class="t4_sidebar__recent_item"
                          t-on-click="() => this.onRecentClick(item)">
-                        <i class="fa fa-clock-o t4_sidebar__recent_icon"/>
+                        <i class="fa fa-circle t4_sidebar__recent_dot"/>
                         <div class="t4_sidebar__recent_text">
                             <span class="t4_sidebar__recent_name" t-esc="item.name"/>
                             <span class="t4_sidebar__recent_app" t-if="item.appName" t-esc="item.appName"/>
@@ -98,7 +88,7 @@
             <div class="t4_sidebar__footer">
                 <button class="t4_sidebar__toggle btn btn-sm"
                         t-on-click="toggleCollapse"
-                        t-att-title="state.collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+                        t-att-title="state.collapsed ? 'Expand' : 'Collapse'">
                     <i t-att-class="state.collapsed ? 'fa fa-chevron-right' : 'fa fa-chevron-left'"/>
                 </button>
             </div>
@@ -108,30 +98,6 @@
                  t-if="!state.collapsed"
                  t-on-mousedown="onResizeStart"/>
         </aside>
-    </t>
-
-    <!-- Recursive menu item template -->
-    <t t-name="t4_theme.SidebarMenuItem">
-        <div t-att-class="{'t4_sidebar__menu_item': true, 't4_sidebar__menu_item--has-children': menuItem.childrenTree and menuItem.childrenTree.length}"
-             t-att-style="'padding-left: ' + (12 + depth * 16) + 'px'">
-            <a class="t4_sidebar__menu_link"
-               t-on-click.prevent="() => this.onMenuItemClick(menuItem)"
-               href="#">
-                <span class="t4_sidebar__menu_text" t-esc="menuItem.name"/>
-                <i t-if="menuItem.childrenTree and menuItem.childrenTree.length"
-                   t-att-class="isMenuExpanded(menuItem.id) ? 'fa fa-chevron-down' : 'fa fa-chevron-right'"
-                   class="t4_sidebar__menu_arrow"/>
-            </a>
-        </div>
-        <!-- Nested children -->
-        <t t-if="menuItem.childrenTree and menuItem.childrenTree.length and isMenuExpanded(menuItem.id)">
-            <t t-foreach="menuItem.childrenTree" t-as="child" t-key="child.id">
-                <t t-call="t4_theme.SidebarMenuItem">
-                    <t t-set="menuItem" t-value="child"/>
-                    <t t-set="depth" t-value="depth + 1"/>
-                </t>
-            </t>
-        </t>
     </t>
 
     <!-- Patch WebClient template to include sidebar -->

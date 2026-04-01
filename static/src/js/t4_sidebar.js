@@ -47,13 +47,7 @@ export class T4Sidebar extends Component {
             collapsed: savedCollapsed,
             width: savedWidth,
             resizing: false,
-            expandedMenus: {},
             recentItems: this._loadRecents(),
-        });
-
-        // Listen for app changes to update submenu
-        useBus(this.env.bus, "MENUS:APP-CHANGED", () => {
-            this.state.expandedMenus = {};
         });
 
         // Track navigation actions for recent items
@@ -74,18 +68,6 @@ export class T4Sidebar extends Component {
 
     get currentApp() {
         return this.menuService.getCurrentApp();
-    }
-
-    get currentAppTree() {
-        const app = this.currentApp;
-        if (!app) return null;
-        return this.menuService.getMenuAsTree(app.id);
-    }
-
-    get subMenuItems() {
-        const tree = this.currentAppTree;
-        if (!tree || !tree.childrenTree) return [];
-        return tree.childrenTree;
     }
 
     get sidebarWidth() {
@@ -147,23 +129,7 @@ export class T4Sidebar extends Component {
         return null;
     }
 
-    // ---- Submenu Navigation ----
-
-    onMenuItemClick(menuItem) {
-        if (menuItem.actionID) {
-            this.menuService.selectMenu(menuItem);
-        } else if (menuItem.childrenTree && menuItem.childrenTree.length) {
-            this.toggleMenuExpand(menuItem.id);
-        }
-    }
-
-    toggleMenuExpand(menuId) {
-        this.state.expandedMenus[menuId] = !this.state.expandedMenus[menuId];
-    }
-
-    isMenuExpanded(menuId) {
-        return !!this.state.expandedMenus[menuId];
-    }
+    // (Submenu removed — stays in top navbar per OMUX pattern)
 
     // ---- Collapse/Expand ----
 

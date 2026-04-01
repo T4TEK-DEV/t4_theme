@@ -46,6 +46,28 @@
                 </t>
             </div>
 
+            <!-- Recent Items -->
+            <div class="t4_sidebar__recents" t-if="!state.collapsed and state.recentItems.length">
+                <div class="t4_sidebar__recents_header">
+                    <span>Recent</span>
+                    <button class="btn btn-sm border-0 p-0 ms-auto"
+                            t-on-click="clearRecents"
+                            title="Clear recents">
+                        <i class="fa fa-times small text-muted"/>
+                    </button>
+                </div>
+                <t t-foreach="state.recentItems.slice(0, 10)" t-as="item" t-key="item.id">
+                    <div class="t4_sidebar__recent_item"
+                         t-on-click="() => this.onRecentClick(item)">
+                        <i class="fa fa-clock-o t4_sidebar__recent_icon"/>
+                        <div class="t4_sidebar__recent_text">
+                            <span class="t4_sidebar__recent_name" t-esc="item.name"/>
+                            <span class="t4_sidebar__recent_app" t-if="item.appName" t-esc="item.appName"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
             <!-- Collapse toggle -->
             <div class="t4_sidebar__footer">
                 <button class="t4_sidebar__toggle btn btn-sm"

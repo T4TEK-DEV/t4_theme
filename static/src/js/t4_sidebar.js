@@ -6,10 +6,12 @@ import { browser } from "@web/core/browser/browser";
 
 const STORAGE_KEY_COLLAPSED = "t4_sidebar_collapsed";
 const STORAGE_KEY_WIDTH = "t4_sidebar_width";
+const STORAGE_KEY_RECENTS = "t4_sidebar_recents";
 const DEFAULT_WIDTH = 240;
 const COLLAPSED_WIDTH = 52;
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 360;
+const MAX_RECENTS = 30;
 
 /**
  * T4 Sidebar — Persistent vertical navigation sidebar.
@@ -39,11 +41,17 @@ export class T4Sidebar extends Component {
             width: savedWidth,
             resizing: false,
             expandedMenus: {},
+            recentItems: this._loadRecents(),
         });
 
         // Listen for app changes to update submenu
         useBus(this.env.bus, "MENUS:APP-CHANGED", () => {
             this.state.expandedMenus = {};
+        });
+
+        // Track navigation actions for recent items
+        useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", () => {
+            this._trackCurrentAction();
         });
 
         onMounted(() => {
@@ -189,5 +197,57 @@ export class T4Sidebar extends Component {
 
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
+    }
+
+    // ---- Recent Items ----
+
+    _loadRecents() {
+        try {
+            const raw = browser.localStorage.getItem(STORAGE_KEY_RECENTS);
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    _saveRecents() {
+        browser.localStorage.setItem(
+            STORAGE_KEY_RECENTS,
+            JSON.stringify(this.state.recentItems)
+        );
+    }
+
+    _trackCurrentAction() {
+        const controller = this.actionService.currentController;
+        if (!controller || !controller.action) return;
+
+        const action = controller.action;
+        // Only track window actions with a display name
+        if (action.type !== "ir.actions.act_window" || !action.display_name) return;
+
+        const entry = {
+            id: `${action.id || action.xml_id}_${action.res_model || ""}`,
+            name: action.display_name,
+            actionId: action.id || action.xml_id,
+            appName: this.currentApp?.name || "",
+            timestamp: Date.now(),
+        };
+
+        // Deduplicate: remove existing entry with same id
+        const filtered = this.state.recentItems.filter((r) => r.id !== entry.id);
+        // Prepend new entry, trim to max
+        this.state.recentItems = [entry, ...filtered].slice(0, MAX_RECENTS);
+        this._saveRecents();
+    }
+
+    onRecentClick(item) {
+        if (item.actionId) {
+            this.actionService.doAction(item.actionId, { clearBreadcrumbs: true });
+        }
+    }
+
+    clearRecents() {
+        this.state.recentItems = [];
+        this._saveRecents();
     }
 }

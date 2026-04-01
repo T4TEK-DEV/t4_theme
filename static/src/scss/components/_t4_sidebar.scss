@@ -187,6 +187,66 @@
     margin-left: 4px;
 }
 
+// Recent items
+.t4_sidebar__recents {
+    border-top: 1px solid var(--t4-border-color, #dee2e6);
+    padding: 8px 0;
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+.t4_sidebar__recents_header {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--t4-text-secondary, #6c757d);
+}
+
+.t4_sidebar__recent_item {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    cursor: pointer;
+    gap: 8px;
+
+    &:hover {
+        background-color: var(--t4-sidebar-hover-bg, rgba(0, 0, 0, 0.04));
+    }
+}
+
+.t4_sidebar__recent_icon {
+    color: var(--t4-text-muted, #adb5bd);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.t4_sidebar__recent_text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.t4_sidebar__recent_name {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--t4-sidebar-text, var(--t4-text-primary));
+}
+
+.t4_sidebar__recent_app {
+    font-size: 0.6875rem;
+    color: var(--t4-text-muted, #adb5bd);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 // Footer (collapse toggle)
 .t4_sidebar__footer {
     border-top: 1px solid var(--t4-border-color, #dee2e6);

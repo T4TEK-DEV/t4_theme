@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, staging, dev]
+  push:
+    branches: [main, staging, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint & Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 pylint-odoo pycodestyle
+
+      - name: Flake8
+        run: |
+          flake8 . --max-line-length=120 --exclude=__pycache__,.git \
+            --ignore=E501,W503,W504,E303,E302,E305,E261
+
+      - name: Pylint (Odoo)
+        run: |
+          pylint --load-plugins=pylint_odoo \
+            --disable=all \
+            --enable=odoolint \
+            --valid-odoo-versions=19.0 \
+            $(find . -name "*.py" -not -path "./.git/*" -not -path "./__pycache__/*") \
+            || true
+
+  test:
+    name: Odoo Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cache Odoo
+        uses: actions/cache@v4
+        with:
+          path: /opt/odoo
+          key: odoo-19.0-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: odoo-19.0-
+
+      - name: Install Odoo 19
+        run: |
+          if [ ! -d "/opt/odoo" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq libxml2-dev libxslt1-dev libldap2-dev \
+              libsasl2-dev libjpeg-dev zlib1g-dev libpq-dev
+            git clone --depth 1 --branch 19.0 https://github.com/odoo/odoo.git /opt/odoo
+            pip install -r /opt/odoo/requirements.txt
+          fi
+          pip install -e /opt/odoo
+
+      - name: Run module tests
+        env:
+          PGHOST: localhost
+          PGUSER: odoo
+          PGPASSWORD: odoo
+        run: |
+          MODULE_NAME=$(python -c "
+          import ast
+          with open('__manifest__.py') as f:
+              content = f.read()
+              # Remove coding header if present
+              if content.startswith('#'):
+                  content = content[content.index('{'):]
+              manifest = ast.literal_eval(content)
+              print(manifest.get('name', '').replace(' ', '_').lower())
+          " 2>/dev/null || basename $(pwd))
+
+          TECHNICAL_NAME=$(basename $(pwd))
+
+          python /opt/odoo/odoo-bin \
+            --database=test_db \
+            --db_host=localhost \
+            --db_user=odoo \
+            --db_password=odoo \
+            --addons-path=/opt/odoo/addons,$(pwd)/.. \
+            --init=$TECHNICAL_NAME \
+            --test-enable \
+            --stop-after-init \
+            --log-level=test \
+            2>&1 | tee test_output.log
+
+          if grep -q "ERROR" test_output.log; then
+            echo "::error::Tests failed - check log above"
+            exit 1
+          fi
+
+  js-lint:
+    name: JavaScript Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check JS files exist
+        id: check_js
+        run: |
+          if find . -name "*.js" -not -path "./.git/*" | grep -q .; then
+            echo "has_js=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_js=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install ESLint
+        if: steps.check_js.outputs.has_js == 'true'
+        run: npm install -g eslint
+
+      - name: Lint JavaScript
+        if: steps.check_js.outputs.has_js == 'true'
+        run: |
+          eslint $(find . -name "*.js" -not -path "./.git/*" -not -path "./node_modules/*") \
+            --no-eslintrc \
+            --env browser,es2022 \
+            --parser-options=ecmaVersion:2022,sourceType:module \
+            --rule '{"no-unused-vars":"warn","no-undef":"off","semi":"warn"}' \
+            || true

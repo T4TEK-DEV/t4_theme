@@ -19,10 +19,11 @@
     """,
     'author': 'T4Tek',
     'website': 'https://t4tek.co',
-    'depends': ['t4_standard'],
+    'depends': ['t4_standard', 'auth_signup'],
     'data': [
         'security/ir.model.access.csv',
         'data/t4_theme_preset_data.xml',
+        'views/webclient_templates.xml',
         'views/t4_theme_config_views.xml',
         'views/res_config_settings_views.xml',
         'views/menus.xml',

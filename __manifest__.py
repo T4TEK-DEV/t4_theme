@@ -3,9 +3,9 @@
     'summary': 'Odoo Community Backend Theme',
     'description': '''
         This module offers a mobile compatible design for Odoo Community.
-        Furthermore it allows the user to define some design preferences.
-        Includes: AppsBar sidebar, Chatter enhancements, Color customization,
-        Dialog fullscreen, Group expand/collapse, View refresh.
+        Includes: AppsBar sidebar, Chatter enhancements, Per-company colors,
+        Preset themes, Dark mode, Dialog fullscreen, Group expand/collapse,
+        View refresh, Custom branding.
     ''',
     'version': '1.0',
     'category': 'Themes/Backend',
@@ -37,6 +37,12 @@
         # Primary Variables
         # ============================================================
         'web._assets_primary_variables': [
+            # Dark mode base variables (loaded before Odoo's)
+            (
+                'before',
+                'web/static/src/scss/primary_variables.scss',
+                't4_theme/static/src/dark/primary_variables.scss',
+            ),
             # Colors (light mode base)
             ('prepend', 't4_theme/static/src/colors/scss/colors.scss'),
             (
@@ -78,9 +84,54 @@
             't4_theme/static/src/appsbar/scss/mixins.scss',
         ],
         # ============================================================
-        # Dark Mode
+        # Dark Mode Variables
+        # ============================================================
+        'web.assets_variables_dark': [
+            (
+                'before',
+                't4_theme/static/src/dark/primary_variables.scss',
+                't4_theme/static/src/dark/primary_variables.dark.scss',
+            ),
+            (
+                'before',
+                'web/static/src/scss/secondary_variables.scss',
+                't4_theme/static/src/dark/secondary_variables.dark.scss',
+            ),
+            (
+                'before',
+                'web/static/src/**/*.variables.scss',
+                't4_theme/static/src/dark/navbar.variables.dark.scss',
+            ),
+        ],
+        # ============================================================
+        # Dark Mode Helpers
+        # ============================================================
+        'web.assets_backend_helpers_dark': [
+            (
+                'before',
+                'web/static/src/scss/bootstrap_overridden.scss',
+                't4_theme/static/src/dark/bootstrap_overridden.dark.scss',
+            ),
+            (
+                'after',
+                'web/static/lib/bootstrap/scss/_functions.scss',
+                't4_theme/static/src/dark/bs_functions_overrides.dark.scss',
+            ),
+        ],
+        # ============================================================
+        # Dark Mode Lazy Load
+        # ============================================================
+        'web.assets_backend_lazy_dark': [
+            ('include', 'web.assets_variables_dark'),
+            ('include', 'web.assets_backend_helpers_dark'),
+        ],
+        # ============================================================
+        # Dark Mode Web Assets
         # ============================================================
         'web.assets_web_dark': [
+            ('include', 'web.assets_variables_dark'),
+            ('include', 'web.assets_backend_helpers_dark'),
+            # Existing dark overrides
             (
                 'after',
                 't4_theme/static/src/colors/scss/colors.scss',
@@ -91,6 +142,8 @@
                 't4_theme/static/src/appsbar/scss/variables.scss',
                 't4_theme/static/src/appsbar/scss/variables.dark.scss',
             ),
+            # Dark mode custom styles
+            't4_theme/static/src/dark/custom_styles.dark.scss',
         ],
         # ============================================================
         # Backend Assets
@@ -187,9 +240,10 @@
             ),
             't4_theme/static/src/refresh/services/refresh_service.js',
 
-            # --- Theme Color Service (per-company runtime colors) ---
+            # --- Services (per-company colors, dark mode toggle) ---
             't4_theme/static/src/services/theme_color_service.js',
             't4_theme/static/src/services/theme_colors.scss',
+            't4_theme/static/src/services/dark_mode_service.js',
 
             # --- Theme (navbar, appsmenu, form styles) ---
             't4_theme/static/src/webclient/**/*.xml',

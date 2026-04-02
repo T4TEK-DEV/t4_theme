@@ -3,11 +3,26 @@
 
     <template id="layout" inherit_id="web.layout">
 	    <xpath expr="//link[@rel='shortcut icon']" position="before">
-	    	<t 
-		    	t-set="x_icon" 
+	    	<t
+		    	t-set="x_icon"
 		    	t-value="x_icon or '/web/image/res.company/%s/favicon' % request.env.company.id"
 	    	/>
 	    </xpath>
     </template>
-    
+
+    <!-- Override page title with company's custom title -->
+    <template id="t4_layout_title" inherit_id="web.layout" name="T4 Custom Title">
+        <xpath expr="//head/title" position="replace">
+            <title t-out="title or request.env.company.t4_web_title or 'T4 ERP'"/>
+        </xpath>
+    </template>
+
+    <!-- Hide "Powered by Odoo" branding -->
+    <template id="t4_hide_brand_promotion" inherit_id="web.brand_promotion"
+              name="T4 Hide Brand Promotion">
+        <xpath expr="//div[hasclass('o_brand_promotion')]" position="attributes">
+            <attribute name="style">display: none;</attribute>
+        </xpath>
+    </template>
+
 </odoo>

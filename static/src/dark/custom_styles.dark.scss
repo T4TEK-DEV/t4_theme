@@ -1,0 +1,38 @@
+.o_field_image {
+    --ImageField-background-color: #ffffff;
+}
+
+.o_searchview {
+    --SearchBar-background-color: #{$o-gray-100};
+    &:focus-within {
+        $-searchbar-border-color: rgba($input-focus-border-color, 0.5);
+        border-color: $-searchbar-border-color;
+    }
+}
+
+.o_notebook {
+    --notebook-link-border-color: #{$nav-tabs-border-color};
+    --notebook-link-border-color-hover: #{$nav-tabs-border-color};
+    --notebook-link-border-color-active-accent: #{$o-main-link-color};
+}
+
+.o_form_view .o_field_widget .o_list_renderer {
+    --ListRenderer-thead-bg-active-color: #{$o-gray-300};
+}
+
+.o_kanban_renderer {
+    --KanbanColumn__highlight-background: #{mix($o-action, $o-gray-100, 10%)};
+    --KanbanColumn__highlight-border: #{rgba($o-action, 0.5)};
+
+    .o_kanban_record:not(.o_legacy_kanban_record) {
+        .o_attachment_image > img {
+            background-color: #ffffff;
+        }
+    }
+}
+
+.o_field_property_definition_type .o_field_property_dropdown img,
+.o_field_property_definition_type_menu .dropdown-item img {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}

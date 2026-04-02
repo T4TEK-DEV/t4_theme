@@ -6,6 +6,15 @@ class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     #----------------------------------------------------------
+    # Fields - Theme Preset
+    #----------------------------------------------------------
+
+    theme_preset = fields.Selection(
+        related='company_id.theme_preset',
+        readonly=False,
+    )
+
+    #----------------------------------------------------------
     # Fields - Images
     #----------------------------------------------------------
 
@@ -17,6 +26,11 @@ class ResConfigSettings(models.TransientModel):
     theme_favicon = fields.Binary(
         related='company_id.favicon',
         readonly=False
+    )
+
+    t4_web_title = fields.Char(
+        related='company_id.t4_web_title',
+        readonly=False,
     )
 
     theme_background_image = fields.Binary(
@@ -89,6 +103,13 @@ class ResConfigSettings(models.TransientModel):
     #----------------------------------------------------------
     # Action
     #----------------------------------------------------------
+
+    def action_apply_theme_preset(self):
+        self.company_id.action_apply_theme_preset()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     def action_reset_theme_colors(self):
         self.company_id.write({

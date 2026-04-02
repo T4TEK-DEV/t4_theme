@@ -11,6 +11,7 @@
                 <field name="sidebar_type" readonly="0"/>
                 <field name="chatter_position" readonly="0"/>
                 <field name="dialog_size" readonly="0"/>
+                <field name="dark_mode_device_dependent" readonly="0"/>
             </xpath>
         </field>
     </record>

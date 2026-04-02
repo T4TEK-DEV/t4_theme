@@ -15,6 +15,8 @@ class ResUsers(models.Model):
             'sidebar_type',
             'chatter_position',
             'dialog_size',
+            'dark_mode',
+            'dark_mode_device_dependent',
         ]
 
     @property
@@ -23,6 +25,8 @@ class ResUsers(models.Model):
             'sidebar_type',
             'chatter_position',
             'dialog_size',
+            'dark_mode',
+            'dark_mode_device_dependent',
         ]
 
     #----------------------------------------------------------
@@ -58,4 +62,14 @@ class ResUsers(models.Model):
         string="Dialog Size",
         default='minimize',
         required=True,
+    )
+
+    dark_mode = fields.Boolean(
+        string='Dark Mode',
+        default=False,
+    )
+
+    dark_mode_device_dependent = fields.Boolean(
+        string='Device Dependent Dark Mode',
+        default=False,
     )

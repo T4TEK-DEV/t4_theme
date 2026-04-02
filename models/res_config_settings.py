@@ -1,126 +1,18 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class ResConfigSettings(models.TransientModel):
 
     _inherit = 'res.config.settings'
 
-    # ----------------------------------------------------------
-    # Properties
-    # ----------------------------------------------------------
-
-    @property
-    def COLOR_FIELDS(self):
-        return [
-            'color_brand',
-            'color_primary',
-            'color_success',
-            'color_info',
-            'color_warning',
-            'color_danger',
-        ]
-
-    @property
-    def THEME_COLOR_FIELDS(self):
-        return [
-            'color_appsmenu_text',
-            'color_appbar_text',
-            'color_appbar_active',
-            'color_appbar_background',
-        ]
-
-    @property
-    def COLOR_ASSET_LIGHT_URL(self):
-        return '/t4_theme/static/src/colors/scss/colors_light.scss'
-
-    @property
-    def COLOR_BUNDLE_LIGHT_NAME(self):
-        return 'web._assets_primary_variables'
-
-    @property
-    def COLOR_ASSET_DARK_URL(self):
-        return '/t4_theme/static/src/colors/scss/colors_dark.scss'
-
-    @property
-    def COLOR_BUNDLE_DARK_NAME(self):
-        return 'web.assets_web_dark'
-
-    @property
-    def COLOR_ASSET_THEME_URL(self):
-        return '/t4_theme/static/src/scss/colors.scss'
-
-    @property
-    def COLOR_BUNDLE_THEME_NAME(self):
-        return 'web._assets_primary_variables'
-
     #----------------------------------------------------------
-    # Fields - AppsBar
+    # Fields - Images
     #----------------------------------------------------------
 
     appbar_image = fields.Binary(
         related='company_id.appbar_image',
         readonly=False
     )
-
-    #----------------------------------------------------------
-    # Fields - Light Mode Colors
-    #----------------------------------------------------------
-
-    color_brand_light = fields.Char(
-        string='Brand Light Color'
-    )
-
-    color_primary_light = fields.Char(
-        string='Primary Light Color'
-    )
-
-    color_success_light = fields.Char(
-        string='Success Light Color'
-    )
-
-    color_info_light = fields.Char(
-        string='Info Light Color'
-    )
-
-    color_warning_light = fields.Char(
-        string='Warning Light Color'
-    )
-
-    color_danger_light = fields.Char(
-        string='Danger Light Color'
-    )
-
-    #----------------------------------------------------------
-    # Fields - Dark Mode Colors
-    #----------------------------------------------------------
-
-    color_brand_dark = fields.Char(
-        string='Brand Dark Color'
-    )
-
-    color_primary_dark = fields.Char(
-        string='Primary Dark Color'
-    )
-
-    color_success_dark = fields.Char(
-        string='Success Dark Color'
-    )
-
-    color_info_dark = fields.Char(
-        string='Info Dark Color'
-    )
-
-    color_warning_dark = fields.Char(
-        string='Warning Dark Color'
-    )
-
-    color_danger_dark = fields.Char(
-        string='Danger Dark Color'
-    )
-
-    #----------------------------------------------------------
-    # Fields - Theme
-    #----------------------------------------------------------
 
     theme_favicon = fields.Binary(
         related='company_id.favicon',
@@ -132,194 +24,86 @@ class ResConfigSettings(models.TransientModel):
         readonly=False
     )
 
+    #----------------------------------------------------------
+    # Fields - Brand Colors (per-company)
+    #----------------------------------------------------------
+
+    theme_color_brand = fields.Char(
+        related='company_id.theme_color_brand',
+        readonly=False,
+    )
+
+    theme_color_primary = fields.Char(
+        related='company_id.theme_color_primary',
+        readonly=False,
+    )
+
+    #----------------------------------------------------------
+    # Fields - Context Colors (per-company)
+    #----------------------------------------------------------
+
+    theme_color_success = fields.Char(
+        related='company_id.theme_color_success',
+        readonly=False,
+    )
+
+    theme_color_info = fields.Char(
+        related='company_id.theme_color_info',
+        readonly=False,
+    )
+
+    theme_color_warning = fields.Char(
+        related='company_id.theme_color_warning',
+        readonly=False,
+    )
+
+    theme_color_danger = fields.Char(
+        related='company_id.theme_color_danger',
+        readonly=False,
+    )
+
+    #----------------------------------------------------------
+    # Fields - AppsBar Colors (per-company)
+    #----------------------------------------------------------
+
     theme_color_appsmenu_text = fields.Char(
-        string='Apps Menu Text Color'
+        related='company_id.theme_color_appsmenu_text',
+        readonly=False,
     )
 
     theme_color_appbar_text = fields.Char(
-        string='AppsBar Text Color'
+        related='company_id.theme_color_appbar_text',
+        readonly=False,
     )
 
     theme_color_appbar_active = fields.Char(
-        string='AppsBar Active Color'
+        related='company_id.theme_color_appbar_active',
+        readonly=False,
     )
 
     theme_color_appbar_background = fields.Char(
-        string='AppsBar Background Color'
+        related='company_id.theme_color_appbar_background',
+        readonly=False,
     )
-
-    #----------------------------------------------------------
-    # Helper - Light Colors
-    #----------------------------------------------------------
-
-    def _get_light_color_values(self):
-        return self.env['muk_web_colors.color_assets_editor'].get_color_variables_values(
-            self.COLOR_ASSET_LIGHT_URL,
-            self.COLOR_BUNDLE_LIGHT_NAME,
-            self.COLOR_FIELDS
-        )
-
-    def _get_dark_color_values(self):
-        return self.env['muk_web_colors.color_assets_editor'].get_color_variables_values(
-            self.COLOR_ASSET_DARK_URL,
-            self.COLOR_BUNDLE_DARK_NAME,
-            self.COLOR_FIELDS
-        )
-
-    def _set_light_color_values(self, values):
-        colors = self._get_light_color_values()
-        for var, value in colors.items():
-            values[f'{var}_light'] = value
-        return values
-
-    def _set_dark_color_values(self, values):
-        colors = self._get_dark_color_values()
-        for var, value in colors.items():
-            values[f'{var}_dark'] = value
-        return values
-
-    def _detect_light_color_change(self):
-        colors = self._get_light_color_values()
-        return any(
-            self[f'{var}_light'] != val
-            for var, val in colors.items()
-        )
-
-    def _detect_dark_color_change(self):
-        colors = self._get_dark_color_values()
-        return any(
-            self[f'{var}_dark'] != val
-            for var, val in colors.items()
-        )
-
-    def _replace_light_color_values(self):
-        variables = [
-            {
-                'name': field,
-                'value': self[f'{field}_light']
-            }
-            for field in self.COLOR_FIELDS
-        ]
-        return self.env['muk_web_colors.color_assets_editor'].replace_color_variables_values(
-            self.COLOR_ASSET_LIGHT_URL,
-            self.COLOR_BUNDLE_LIGHT_NAME,
-            variables
-        )
-
-    def _replace_dark_color_values(self):
-        variables = [
-            {
-                'name': field,
-                'value': self[f'{field}_dark']
-            }
-            for field in self.COLOR_FIELDS
-        ]
-        return self.env['muk_web_colors.color_assets_editor'].replace_color_variables_values(
-            self.COLOR_ASSET_DARK_URL,
-            self.COLOR_BUNDLE_DARK_NAME,
-            variables
-        )
-
-    def _reset_light_color_assets(self):
-        self.env['muk_web_colors.color_assets_editor'].reset_color_asset(
-            self.COLOR_ASSET_LIGHT_URL,
-            self.COLOR_BUNDLE_LIGHT_NAME,
-        )
-
-    def _reset_dark_color_assets(self):
-        self.env['muk_web_colors.color_assets_editor'].reset_color_asset(
-            self.COLOR_ASSET_DARK_URL,
-            self.COLOR_BUNDLE_DARK_NAME,
-        )
-
-    #----------------------------------------------------------
-    # Helper - Theme Colors
-    #----------------------------------------------------------
-
-    def _get_theme_color_values(self):
-        return self.env['muk_web_colors.color_assets_editor'].get_color_variables_values(
-            self.COLOR_ASSET_THEME_URL,
-            self.COLOR_BUNDLE_THEME_NAME,
-            self.THEME_COLOR_FIELDS
-        )
-
-    def _set_theme_color_values(self, values):
-        colors = self._get_theme_color_values()
-        for var, value in colors.items():
-            values[f'theme_{var}'] = value
-        return values
-
-    def _detect_theme_color_change(self):
-        colors = self._get_theme_color_values()
-        return any(
-            self[f'theme_{var}'] != val
-            for var, val in colors.items()
-        )
-
-    def _replace_theme_color_values(self):
-        variables = [
-            {
-                'name': field,
-                'value': self[f'theme_{field}']
-            }
-            for field in self.THEME_COLOR_FIELDS
-        ]
-        return self.env['muk_web_colors.color_assets_editor'].replace_color_variables_values(
-            self.COLOR_ASSET_THEME_URL,
-            self.COLOR_BUNDLE_THEME_NAME,
-            variables
-        )
-
-    def _reset_theme_color_assets(self):
-        self.env['muk_web_colors.color_assets_editor'].reset_color_asset(
-            self.COLOR_ASSET_THEME_URL,
-            self.COLOR_BUNDLE_THEME_NAME,
-        )
 
     #----------------------------------------------------------
     # Action
     #----------------------------------------------------------
 
-    def action_reset_light_color_assets(self):
-        self._reset_light_color_assets()
+    def action_reset_theme_colors(self):
+        self.company_id.write({
+            'theme_color_brand': '#243742',
+            'theme_color_primary': '#5D8DA8',
+            'theme_color_success': '#28A745',
+            'theme_color_info': '#17A2B8',
+            'theme_color_warning': '#FFAC00',
+            'theme_color_danger': '#DC3545',
+            'theme_color_appsmenu_text': '#F8F9FA',
+            'theme_color_appbar_text': '#DEE2E6',
+            'theme_color_appbar_active': '#5D8DA8',
+            'theme_color_appbar_background': '#111827',
+        })
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
-
-    def action_reset_dark_color_assets(self):
-        self._reset_dark_color_assets()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
-
-    def action_reset_theme_color_assets(self):
-        self._reset_light_color_assets()
-        self._reset_dark_color_assets()
-        self._reset_theme_color_assets()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
-
-    #----------------------------------------------------------
-    # Functions
-    #----------------------------------------------------------
-
-    def get_values(self):
-        res = super().get_values()
-        res = self._set_light_color_values(res)
-        res = self._set_dark_color_values(res)
-        res = self._set_theme_color_values(res)
-        return res
-
-    def set_values(self):
-        res = super().set_values()
-        if self._detect_light_color_change():
-            self._replace_light_color_values()
-        if self._detect_dark_color_change():
-            self._replace_dark_color_values()
-        if self._detect_theme_color_change():
-            self._replace_theme_color_values()
-        return res

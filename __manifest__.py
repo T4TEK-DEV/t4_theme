@@ -187,6 +187,10 @@
             ),
             't4_theme/static/src/refresh/services/refresh_service.js',
 
+            # --- Theme Color Service (per-company runtime colors) ---
+            't4_theme/static/src/services/theme_color_service.js',
+            't4_theme/static/src/services/theme_colors.scss',
+
             # --- Theme (navbar, appsmenu, form styles) ---
             't4_theme/static/src/webclient/**/*.xml',
             't4_theme/static/src/webclient/**/*.scss',

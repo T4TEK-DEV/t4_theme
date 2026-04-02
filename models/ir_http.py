@@ -16,6 +16,18 @@ class IrHttp(models.AbstractModel):
                 result['user_companies']['allowed_companies'][company.id].update({
                     'has_appsbar_image': bool(company.appbar_image),
                     'has_background_image': bool(company.background_image),
+                    'theme_colors': {
+                        'color_brand': company.theme_color_brand or '#243742',
+                        'color_primary': company.theme_color_primary or '#5D8DA8',
+                        'color_success': company.theme_color_success or '#28A745',
+                        'color_info': company.theme_color_info or '#17A2B8',
+                        'color_warning': company.theme_color_warning or '#FFAC00',
+                        'color_danger': company.theme_color_danger or '#DC3545',
+                        'color_appsmenu_text': company.theme_color_appsmenu_text or '#F8F9FA',
+                        'color_appbar_text': company.theme_color_appbar_text or '#DEE2E6',
+                        'color_appbar_active': company.theme_color_appbar_active or '#5D8DA8',
+                        'color_appbar_background': company.theme_color_appbar_background or '#111827',
+                    },
                 })
         result['chatter_position'] = self.env.user.chatter_position
         result['dialog_size'] = self.env.user.dialog_size

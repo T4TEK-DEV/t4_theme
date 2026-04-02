@@ -1,0 +1,124 @@
+// ============================================================
+// Per-company color overrides via CSS custom properties
+// These override compiled SCSS defaults at runtime when
+// CSS variables are set by theme_color_service.js
+// ============================================================
+
+// --- Navbar ---
+.o_main_navbar {
+    background-color: var(--t4-color-brand, $o-brand-odoo) !important;
+
+    .o_menu_brand,
+    .o_menu_toggle {
+        color: var(--t4-color-appsmenu-text) !important;
+    }
+}
+
+// --- AppsBar Sidebar ---
+.mk_apps_sidebar_panel {
+    background-color: var(--t4-color-appbar-background, $mk-appbar-background) !important;
+
+    .mk_apps_sidebar_menu > li > a {
+        color: var(--t4-color-appbar-text, $mk-appbar-color) !important;
+    }
+
+    .mk_apps_sidebar_menu > li.active > a,
+    .mk_apps_sidebar_menu > li:hover > a {
+        background: var(--t4-color-appbar-active, $mk-appbar-active) !important;
+    }
+}
+
+// --- Apps Menu Dropdown ---
+.mk_app_menu.dropdown-menu {
+    .mk_app_name {
+        color: var(--t4-color-appsmenu-text) !important;
+    }
+}
+
+// --- Primary Button ---
+.btn-primary {
+    --bs-btn-bg: var(--t4-color-primary);
+    --bs-btn-border-color: var(--t4-color-primary);
+    --bs-btn-hover-bg: var(--t4-color-primary);
+    --bs-btn-hover-border-color: var(--t4-color-primary);
+    --bs-btn-active-bg: var(--t4-color-primary);
+    --bs-btn-active-border-color: var(--t4-color-primary);
+    --bs-btn-disabled-bg: var(--t4-color-primary);
+    --bs-btn-disabled-border-color: var(--t4-color-primary);
+}
+
+// --- Context Color Buttons ---
+.btn-success {
+    --bs-btn-bg: var(--t4-color-success);
+    --bs-btn-border-color: var(--t4-color-success);
+    --bs-btn-hover-bg: var(--t4-color-success);
+    --bs-btn-hover-border-color: var(--t4-color-success);
+}
+
+.btn-info {
+    --bs-btn-bg: var(--t4-color-info);
+    --bs-btn-border-color: var(--t4-color-info);
+    --bs-btn-hover-bg: var(--t4-color-info);
+    --bs-btn-hover-border-color: var(--t4-color-info);
+}
+
+.btn-warning {
+    --bs-btn-bg: var(--t4-color-warning);
+    --bs-btn-border-color: var(--t4-color-warning);
+    --bs-btn-hover-bg: var(--t4-color-warning);
+    --bs-btn-hover-border-color: var(--t4-color-warning);
+}
+
+.btn-danger {
+    --bs-btn-bg: var(--t4-color-danger);
+    --bs-btn-border-color: var(--t4-color-danger);
+    --bs-btn-hover-bg: var(--t4-color-danger);
+    --bs-btn-hover-border-color: var(--t4-color-danger);
+}
+
+// --- Badge Colors ---
+.badge.text-bg-primary,
+.bg-primary {
+    background-color: var(--t4-color-primary) !important;
+}
+
+.badge.text-bg-success,
+.bg-success {
+    background-color: var(--t4-color-success) !important;
+}
+
+.badge.text-bg-info,
+.bg-info {
+    background-color: var(--t4-color-info) !important;
+}
+
+.badge.text-bg-warning,
+.bg-warning {
+    background-color: var(--t4-color-warning) !important;
+}
+
+.badge.text-bg-danger,
+.bg-danger {
+    background-color: var(--t4-color-danger) !important;
+}
+
+// --- Links & Accents ---
+.o_web_client {
+    a:not(.btn):not(.nav-link):not(.dropdown-item) {
+        color: var(--t4-color-primary);
+    }
+
+    .text-primary {
+        color: var(--t4-color-primary) !important;
+    }
+
+    .o_navbar_badge_bg {
+        background-color: var(--t4-color-primary) !important;
+    }
+}
+
+// --- Checkbox / Switch ---
+.form-check-input:checked {
+    background-color: var(--t4-color-primary);
+    border-color: var(--t4-color-primary);
+}

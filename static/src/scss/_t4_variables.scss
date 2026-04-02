@@ -1,0 +1,48 @@
+// =============================================================================
+// T4 Standard — Shared CSS Custom Properties
+// =============================================================================
+// All t4_* modules should use these variables instead of hardcoded colors.
+// Values are set at runtime by t4_theme module via JS (--t4-* properties).
+// Fallback values here match Odoo defaults for standalone usage.
+
+:root {
+    // -- Brand Colors --
+    --t4-primary: #714B67;
+    --t4-secondary: #8f8f8f;
+    --t4-accent: #00A09D;
+
+    // -- Surfaces --
+    --t4-bg-base: #ffffff;
+    --t4-bg-view: #ffffff;
+    --t4-bg-card: #ffffff;
+    --t4-bg-sidebar: #f8f9fa;
+
+    // -- Text --
+    --t4-text-primary: #212529;
+    --t4-text-secondary: #6c757d;
+    --t4-text-muted: #adb5bd;
+
+    // -- Borders --
+    --t4-border-color: #dee2e6;
+    --t4-border-radius: 4px;
+
+    // -- Status Colors --
+    --t4-success: #28a745;
+    --t4-warning: #ffac00;
+    --t4-danger: #dc3545;
+    --t4-info: #17a2b8;
+
+    // -- Sidebar --
+    --t4-sidebar-width: 250px;
+    --t4-sidebar-collapsed-width: 60px;
+    --t4-sidebar-bg: var(--t4-bg-sidebar);
+    --t4-sidebar-text: var(--t4-text-primary);
+
+    // -- Navbar --
+    --t4-navbar-bg: var(--t4-primary);
+    --t4-navbar-text: #ffffff;
+
+    // -- Font --
+    --t4-font-family: inherit;
+    --t4-font-size-base: 0.875rem;
+}

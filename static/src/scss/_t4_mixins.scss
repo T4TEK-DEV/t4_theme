@@ -1,0 +1,42 @@
+// =============================================================================
+// T4 Standard — Shared SCSS Mixins
+// =============================================================================
+// Reusable mixins for all t4_* modules.
+
+/// Apply t4 card styling with theme-aware colors.
+@mixin t4-card($padding: 1rem) {
+    background-color: var(--t4-bg-card);
+    border: 1px solid var(--t4-border-color);
+    border-radius: var(--t4-border-radius);
+    padding: $padding;
+}
+
+/// Truncate text with ellipsis.
+@mixin t4-truncate($max-width: 100%) {
+    max-width: $max-width;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/// Responsive sidebar transition.
+@mixin t4-sidebar-transition($property: width) {
+    transition: #{$property} 0.2s ease-in-out;
+}
+
+/// Theme-aware focus ring.
+@mixin t4-focus-ring() {
+    outline: 2px solid var(--t4-accent);
+    outline-offset: 2px;
+}
+
+/// Status badge styling.
+@mixin t4-status-badge($bg-var) {
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 1rem;
+    background-color: var(#{$bg-var});
+    color: #ffffff;
+}

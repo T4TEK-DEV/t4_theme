@@ -245,6 +245,10 @@
             't4_theme/static/src/services/theme_colors.scss',
             't4_theme/static/src/services/dark_mode_service.js',
 
+            # --- Shared SCSS variables & mixins ---
+            't4_theme/static/src/scss/_t4_variables.scss',
+            't4_theme/static/src/scss/_t4_mixins.scss',
+
             # --- Theme (navbar, appsmenu, form styles) ---
             't4_theme/static/src/webclient/**/*.xml',
             't4_theme/static/src/webclient/**/*.scss',

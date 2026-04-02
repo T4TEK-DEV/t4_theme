@@ -1,5 +1,5 @@
 {
-    'name': 'T4 Backend Theme',
+    'name': 'Branding',
     'summary': 'Odoo Community Backend Theme',
     'description': '''
         This module offers a mobile compatible design for Odoo Community.

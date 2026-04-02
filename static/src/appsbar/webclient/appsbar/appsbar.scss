@@ -1,14 +1,22 @@
+// =============================================================================
+// AppsBar Sidebar — Content Styles
+// =============================================================================
+// Width is now controlled by ResizablePanel, not CSS variable.
+
 .mk_apps_sidebar_panel {
     @include mk-disable-scrollbar();
     background-color: $mk-appbar-background;
-    width: var(--mk-sidebar-width, 0);
+    width: 100%;
+    height: 100%;
     overflow-y: auto;
+
     .mk_apps_sidebar {
         height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
 	    white-space: nowrap;
+
 	    .mk_apps_sidebar_menu {
 	    	padding: 0;
 		    > li > a {
@@ -20,6 +28,8 @@
 	            text-decoration: none;
 	            color: $mk-appbar-color;
 	            text-overflow: ellipsis;
+	            transition: background-color 0.15s ease;
+
 	            .mk_apps_sidebar_icon {
 				    width: 22px;
 				    height: 22px;
@@ -33,63 +43,5 @@
 			    background: $mk-appbar-active;
 	        }
 	    }
-	}
-}
-
-.mk_sidebar_type_large {
-	--mk-sidebar-width: #{$mk-sidebar-large-width};
-}
-
-.mk_sidebar_type_small {
-	--mk-sidebar-width: #{$mk-sidebar-small-width};
-	.mk_apps_sidebar_name {
-		display: none;
-	}
-	.mk_apps_sidebar_icon {
-		margin-right: 0 !important;
-	}
-   	.mk_apps_sidebar_logo {
-		display: none;
-	}
-}
-
-.mk_sidebar_type_invisible {
-	--mk-sidebar-width: 0;
-}
-
-.editor_has_snippets_hide_backend_navbar,
-.o_home_menu_background,
-.o_fullscreen {
-	--mk-sidebar-width: 0;
-}
-
-.editor_has_snippets_hide_backend_navbar .mk_apps_sidebar_panel {
-    transition: width 300ms;
-}
-
-@include media-breakpoint-only(md) {
-	.mk_sidebar_type_large {
-		--mk-sidebar-width: #{$mk-sidebar-small-width};
-		.mk_apps_sidebar_name {
-			display: none;
-		}
-		.mk_apps_sidebar_icon {
-			margin-right: 0 !important;
-		}
-	   	.mk_apps_sidebar_logo {
-			display: none;
-		}
-	}
-}
-
-@include media-breakpoint-down(md) {
-	.mk_sidebar_type_large, .mk_sidebar_type_small {
-		--mk-sidebar-width: 0;
-	}
-}
-
-@media print {
-	.mk_sidebar_type_large, .mk_sidebar_type_small {
-		--mk-sidebar-width: 0;
 	}
 }

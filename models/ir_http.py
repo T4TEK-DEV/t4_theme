@@ -38,6 +38,7 @@ class IrHttp(models.AbstractModel):
                 result['user_companies']['allowed_companies'][company.id].update({
                     'has_appsbar_image': bool(company.appbar_image),
                     'has_background_image': bool(company.background_image),
+                    'theme_preset': company.theme_preset or 'default',
                     'theme_colors': {
                         'color_brand': company.theme_color_brand or '#243742',
                         'color_primary': company.theme_color_primary or '#5D8DA8',

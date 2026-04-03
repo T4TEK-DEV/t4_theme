@@ -132,12 +132,23 @@ class ResCompany(models.Model):
     )
 
     def write(self, vals):
+        if 't4_url_prefix' in vals:
+            # Save old prefix BEFORE write so execute() can detect change
+            old = self.env['ir.config_parameter'].sudo().get_param(
+                't4_theme.url_prefix', ''
+            )
+            self.env['ir.config_parameter'].sudo().set_param(
+                't4_theme.url_prefix_old', old
+            )
         res = super().write(vals)
         if 't4_url_prefix' in vals:
+            from ..controllers.url_rewrite import url_prefix
             prefix = (vals['t4_url_prefix'] or '').strip().strip('/')
             self.env['ir.config_parameter'].sudo().set_param(
                 't4_theme.url_prefix', prefix
             )
+            # Update global cache
+            url_prefix[0] = prefix
             # Clear routing cache + regenerate assets
             self.env['ir.http'].env.registry.clear_cache('routing')
             self.env['ir.attachment'].sudo().regenerate_assets_bundles()

@@ -2,16 +2,16 @@
 URL prefix rewrite: replaces /odoo/ with custom prefix across the system.
 
 Approach (adapted from web_replace_url by ArefinShawon):
-1. Override routing_map() — replace 'odoo' in all route URLs
+1. Override routing_map() — add alias routes with custom prefix
 2. Monkey-patch JavascriptAsset.content — replace 'odoo' in router.js/navbar.js
-3. Monkey-patch http.Request.__init__ — rewrite path back on incoming requests
+3. Redirect /odoo → /{prefix} via controller
 """
 
 import re
 import logging
 
 from odoo import http
-from odoo.addons.base.models.assetsbundle import JavascriptAsset
+from odoo.addons.base.models.assetsbundle import JavascriptAsset, WebAsset
 from odoo.tools.js_transpiler import transpile_javascript
 
 _logger = logging.getLogger(__name__)
@@ -19,25 +19,42 @@ _logger = logging.getLogger(__name__)
 # Global prefix cache — set by routing_map() override in ir_http.py
 url_prefix = ['']
 
+# Files where "/odoo" URL paths need replacement
+_URL_PATH_FILES = frozenset((
+    "/web/static/src/core/browser/router.js",
+    "/web/static/src/webclient/navbar/navbar.js",
+    "/web/static/src/webclient/menus/menu_helpers.js",
+    "/web/static/src/core/pwa/pwa_service.js",
+    "/web/static/src/service_worker.js",
+    "/web/static/src/views/fields/many2one/many2one.js",
+))
+
+# Regex: match "/odoo" in URL paths (not preceded by @odoo or word char)
+_RE_SLASH_ODOO = re.compile(r'(?<!@)(?<!\w)/odoo(?=/|"|\'|`)')
+
+# Regex: match bare "odoo" as a standalone string value in JS
+# e.g. "odoo" or 'odoo' (like in startUrl() or array checks)
+# Negative lookbehind: not @, not /, not word char (avoids @odoo, /odoo, odoo.define)
+# Negative lookahead: not word char (avoids odooModule etc)
+_RE_BARE_ODOO = re.compile(r'(?<=["\'`])odoo(?=["\'`])')
+
 
 def _patch_js_assets():
     """Monkey-patch JavascriptAsset to replace 'odoo' in key JS files."""
-    _original_content = JavascriptAsset.content.fget
+    _original_raw_content = WebAsset.content.fget
 
     @property
     def patched_content(self):
-        content = _original_content(self)
+        # Get RAW content from WebAsset (skip JavascriptAsset transpilation)
+        content = _original_raw_content(self)
         prefix = url_prefix[0]
-        if prefix and prefix != 'odoo':
-            if self.name in (
-                "/web/static/src/core/browser/router.js",
-                "/web/static/src/webclient/navbar/navbar.js",
-                "/web/static/src/webclient/menus/menu_helpers.js",
-                "/web/static/src/core/pwa/pwa_service.js",
-                "/web/static/src/service_worker.js",
-                "/web/static/src/views/fields/many2one/many2one.js",
-            ):
-                content = re.sub(r'(?<!@)(?<!\w)/odoo(?=/|"|\`|\')', f'/{prefix}', content)
+        if prefix and prefix != 'odoo' and self.name in _URL_PATH_FILES:
+            # Replace "/odoo" paths → "/{prefix}"
+            content = _RE_SLASH_ODOO.sub(f'/{prefix}', content)
+            # Replace bare "odoo" string values → "{prefix}"
+            # (e.g. startUrl() returns "odoo", array ["odoo", "scoped_app"])
+            content = _RE_BARE_ODOO.sub(prefix, content)
+        # Handle transpilation (same as original JavascriptAsset.content)
         if self.is_transpiled:
             if not self._converted_content:
                 self._converted_content = transpile_javascript(self.url, content)

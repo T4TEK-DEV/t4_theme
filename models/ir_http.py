@@ -25,17 +25,22 @@ class IrHttp(models.AbstractModel):
     @tools.ormcache('key', cache='routing')
     def routing_map(self, key=None):
         # Read prefix from DB and cache globally
+        icp = self.env['ir.config_parameter'].sudo()
         try:
-            prefix = self.env['ir.config_parameter'].sudo().get_param(
-                't4_theme.url_prefix', ''
-            )
+            prefix = icp.get_param('t4_theme.url_prefix', '')
             if prefix:
                 prefix = prefix.strip().strip('/')
             url_prefix[0] = prefix or ''
         except Exception:
             url_prefix[0] = ''
 
-        _logger.warning("T4 ROUTING MAP CALLED key=%s prefix=%s", key, url_prefix[0])
+        # Also read old prefix — keep routes alive for graceful redirect
+        try:
+            old_prefix = (icp.get_param('t4_theme.url_prefix_old', '') or '').strip().strip('/')
+        except Exception:
+            old_prefix = ''
+
+        _logger.info("T4 routing_map key=%s prefix=%s old=%s", key, url_prefix[0], old_prefix)
 
         registry = Registry(threading.current_thread().dbname)
         installed = registry._init_modules.union(
@@ -54,12 +59,21 @@ class IrHttp(models.AbstractModel):
             rule = FasterRule(url, endpoint=endpoint, **routing)
             rule.merge_slashes = False
             routing_map.add(rule)
-            # Add aliased route with custom prefix
-            if url_prefix[0] and url_prefix[0] != 'odoo' and '/odoo' in url:
-                alias_url = url.replace('/odoo', f'/{url_prefix[0]}')
-                alias_rule = FasterRule(alias_url, endpoint=endpoint, **routing)
-                alias_rule.merge_slashes = False
-                routing_map.add(alias_rule)
+
+            if '/odoo' in url:
+                # Add alias route for current prefix
+                if url_prefix[0] and url_prefix[0] != 'odoo':
+                    alias_url = url.replace('/odoo', f'/{url_prefix[0]}')
+                    alias_rule = FasterRule(alias_url, endpoint=endpoint, **routing)
+                    alias_rule.merge_slashes = False
+                    routing_map.add(alias_rule)
+                # Keep old prefix routes alive (so they don't 404)
+                if (old_prefix and old_prefix != 'odoo'
+                        and old_prefix != url_prefix[0]):
+                    old_url = url.replace('/odoo', f'/{old_prefix}')
+                    old_rule = FasterRule(old_url, endpoint=endpoint, **routing)
+                    old_rule.merge_slashes = False
+                    routing_map.add(old_rule)
         return routing_map
 
     #----------------------------------------------------------

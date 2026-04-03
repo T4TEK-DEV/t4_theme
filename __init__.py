@@ -3,8 +3,18 @@ from . import models
 from . import tests
 
 import base64
+import logging
 
 from odoo.tools import file_open
+
+_logger = logging.getLogger(__name__)
+
+# Install WSGI middleware on every server start (module import time)
+try:
+    from .controllers.url_rewrite import install_middleware
+    install_middleware()
+except Exception as e:
+    _logger.debug("T4 Theme: deferred middleware install: %s", e)
 
 
 def _setup_module(env):
@@ -22,7 +32,7 @@ def _setup_module(env):
                 'appbar_image': base64.b64encode(file.read())
             })
 
-    # Install WSGI middleware for URL rewriting
+    # Retry middleware install (http.root may be ready now)
     try:
         from .controllers.url_rewrite import install_middleware
         install_middleware()

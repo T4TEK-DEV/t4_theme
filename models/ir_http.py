@@ -1,5 +1,17 @@
-from odoo import models
-from odoo.http import request
+import logging
+import threading
+
+import odoo
+import werkzeug
+from odoo import models, tools
+from odoo.http import request, ROUTING_KEYS
+from odoo.tools.misc import submap
+from odoo.modules.registry import Registry
+from odoo.addons.base.models.ir_http import _logger, FasterRule
+
+from ..controllers.url_rewrite import url_prefix
+
+_logger = logging.getLogger(__name__)
 
 
 class IrHttp(models.AbstractModel):
@@ -7,11 +19,50 @@ class IrHttp(models.AbstractModel):
     _inherit = "ir.http"
 
     #----------------------------------------------------------
-    # Functions
+    # URL Prefix: override routing_map to replace /odoo/ routes
+    #----------------------------------------------------------
+
+    @tools.ormcache('key', cache='routing')
+    def routing_map(self, key=None):
+        # Read prefix from DB and cache globally
+        try:
+            prefix = self.env['ir.config_parameter'].sudo().get_param(
+                't4_theme.url_prefix', ''
+            )
+            if prefix:
+                prefix = prefix.strip().strip('/')
+            url_prefix[0] = prefix or ''
+        except Exception:
+            url_prefix[0] = ''
+
+        _logger.warning("T4 ROUTING MAP CALLED key=%s prefix=%s", key, url_prefix[0])
+
+        registry = Registry(threading.current_thread().dbname)
+        installed = registry._init_modules.union(
+            odoo.tools.config['server_wide_modules']
+        )
+        mods = sorted(installed)
+        routing_map = werkzeug.routing.Map(
+            strict_slashes=False,
+            converters=self._get_converters(),
+        )
+        for url, endpoint in self._generate_routing_rules(mods, converters=self._get_converters()):
+            # Replace /odoo with /prefix in route URLs
+            if url_prefix[0] and url_prefix[0] != 'odoo' and '/odoo' in url:
+                url = url.replace('/odoo', f'/{url_prefix[0]}')
+            routing = submap(endpoint.routing, ROUTING_KEYS)
+            if routing['methods'] is not None and 'OPTIONS' not in routing['methods']:
+                routing['methods'] = [*routing['methods'], 'OPTIONS']
+            rule = FasterRule(url, endpoint=endpoint, **routing)
+            rule.merge_slashes = False
+            routing_map.add(rule)
+        return routing_map
+
+    #----------------------------------------------------------
+    # Color Scheme
     #----------------------------------------------------------
 
     def color_scheme(self):
-        """Read color scheme from cookie (set by dark_mode_service.js)."""
         scheme = request.httprequest.cookies.get("color_scheme")
         if scheme in ("dark", "light"):
             return scheme
@@ -31,9 +82,13 @@ class IrHttp(models.AbstractModel):
         cls._set_color_scheme(response)
         return super()._post_dispatch(response)
 
+    #----------------------------------------------------------
+    # Session Info
+    #----------------------------------------------------------
+
     def session_info(self):
         result = super().session_info()
-        # URL prefix — always set, outside _is_internal block
+        result['t4_theme_loaded'] = True
         try:
             result['t4_url_prefix'] = self.env['ir.config_parameter'].sudo().get_param(
                 't4_theme.url_prefix', ''

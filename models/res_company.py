@@ -138,12 +138,9 @@ class ResCompany(models.Model):
             self.env['ir.config_parameter'].sudo().set_param(
                 't4_theme.url_prefix', prefix
             )
-            # Invalidate WSGI middleware cache
-            try:
-                from ..controllers.url_rewrite import invalidate_prefix_cache
-                invalidate_prefix_cache()
-            except Exception:
-                pass
+            # Clear routing cache + regenerate assets
+            self.env['ir.http'].env.registry.clear_cache('routing')
+            self.env['ir.attachment'].sudo().regenerate_assets_bundles()
         return res
 
     background_image = fields.Binary(

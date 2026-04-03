@@ -9,12 +9,12 @@ from odoo.tools import file_open
 
 _logger = logging.getLogger(__name__)
 
-# Install WSGI middleware on every server start (module import time)
+# Install URL rewrite patches at module import time
 try:
-    from .controllers.url_rewrite import install_middleware
-    install_middleware()
+    from .controllers.url_rewrite import install_url_rewrite
+    install_url_rewrite()
 except Exception as e:
-    _logger.debug("T4 Theme: deferred middleware install: %s", e)
+    _logger.debug("T4 Theme: deferred URL rewrite: %s", e)
 
 
 def _setup_module(env):
@@ -31,13 +31,6 @@ def _setup_module(env):
             env.ref('base.main_company').write({
                 'appbar_image': base64.b64encode(file.read())
             })
-
-    # Retry middleware install (http.root may be ready now)
-    try:
-        from .controllers.url_rewrite import install_middleware
-        install_middleware()
-    except Exception:
-        pass
 
 
 def _uninstall_cleanup(env):

@@ -22,6 +22,13 @@ def _setup_module(env):
                 'appbar_image': base64.b64encode(file.read())
             })
 
+    # Install WSGI middleware for URL rewriting
+    try:
+        from .controllers.url_rewrite import install_middleware
+        install_middleware()
+    except Exception:
+        pass
+
 
 def _uninstall_cleanup(env):
     pass

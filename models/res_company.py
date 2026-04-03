@@ -134,11 +134,16 @@ class ResCompany(models.Model):
     def write(self, vals):
         res = super().write(vals)
         if 't4_url_prefix' in vals:
-            # Sync to system parameter so _match can read it early
             prefix = (vals['t4_url_prefix'] or '').strip().strip('/')
             self.env['ir.config_parameter'].sudo().set_param(
                 't4_theme.url_prefix', prefix
             )
+            # Invalidate WSGI middleware cache
+            try:
+                from ..controllers.url_rewrite import invalidate_prefix_cache
+                invalidate_prefix_cache()
+            except Exception:
+                pass
         return res
 
     background_image = fields.Binary(

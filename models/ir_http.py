@@ -6,31 +6,6 @@ class IrHttp(models.AbstractModel):
 
     _inherit = "ir.http"
 
-    @classmethod
-    def _get_url_prefix(cls):
-        """Read custom URL prefix from system parameter."""
-        try:
-            prefix = request.env['ir.config_parameter'].sudo().get_param(
-                't4_theme.url_prefix', ''
-            )
-            if prefix:
-                prefix = prefix.strip().strip('/')
-                if prefix:
-                    return f'/{prefix}'
-        except Exception:
-            pass
-        return ''
-
-    @classmethod
-    def _match(cls, path_info):
-        """Rewrite custom URL prefix to /odoo/ for the standard router."""
-        prefix = cls._get_url_prefix()
-        if prefix and path_info.startswith(prefix):
-            rest = path_info[len(prefix):]
-            new_path = '/odoo' + rest if rest else '/odoo'
-            return super()._match(new_path)
-        return super()._match(path_info)
-
     #----------------------------------------------------------
     # Functions
     #----------------------------------------------------------

@@ -5,26 +5,32 @@
 	<t t-name="muk_web_appsbar.AppsBar">
 		<div class="mk_apps_sidebar_panel">
 			<div class="mk_apps_sidebar">
+				<div t-if="sidebarImageUrl" class="mk_apps_sidebar_logo">
+					<img class="img-fluid" t-att-src="sidebarImageUrl" alt="Logo"/>
+				</div>
+				<div class="mk_apps_sidebar_header">
+					<span>Apps</span>
+				</div>
 				<ul class="mk_apps_sidebar_menu">
 				    <t t-foreach="this.appMenuService.getAppsMenuItems()" t-as="app" t-key="app.id">
 			            <li t-attf-class="nav-item {{ app.id === this.appMenuService.getCurrentApp()?.id ? 'active' : '' }}">
-			            	<a 
+			            	<a
 			            		t-att-href="app.href"
-		            			t-att-data-menu-id="app.id" 
-		            			t-att-data-menu-xmlid="app.xmlid" 
+		            			t-att-data-menu-id="app.id"
+		            			t-att-data-menu-xmlid="app.xmlid"
 		            			t-att-data-action-id="app.actionID"
 								t-on-click.prevent="() => this._onAppClick(app)"
-		            			class="nav-link" 
+		            			class="nav-link"
 		            			role="menuitem"
 		            		>
-			                	<img 
-			                		t-if="app.webIconData" 
-			                		class="mk_apps_sidebar_icon" 
+			                	<img
+			                		t-if="app.webIconData"
+			                		class="mk_apps_sidebar_icon"
 			                		t-att-src="app.webIconData"
 			                	/>
-			                	<img  
-			                		t-else="" 
-			                		class="mk_apps_sidebar_icon" 
+			                	<img
+			                		t-else=""
+			                		class="mk_apps_sidebar_icon"
 			                		src="/base/static/description/icon.png"
 			                	/>
 						        <span class="mk_apps_sidebar_name">
@@ -34,11 +40,9 @@
 			            </li>
 			    	</t>
 				</ul>
-				<div t-if="sidebarImageUrl" class="mk_apps_sidebar_logo p-2">
-					<img class="img-fluid mx-auto" t-att-src="sidebarImageUrl" alt="Logo"/>
-				</div>
+				<div class="mk_apps_sidebar_spacer"/>
 			</div>
 		</div>
 	</t>
-	
+
 </templates>

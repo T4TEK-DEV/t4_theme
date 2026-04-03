@@ -1,11 +1,11 @@
 // =============================================================================
-// AppsBar Sidebar — Content Styles
+// AppsBar Sidebar — OM UX Style
 // =============================================================================
 // Width is now controlled by ResizablePanel, not CSS variable.
 
 .mk_apps_sidebar_panel {
     @include mk-disable-scrollbar();
-    background-color: $mk-appbar-background;
+    background-color: #fff;
     width: 100%;
     height: 100%;
     overflow-y: auto;
@@ -14,34 +14,111 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
 	    white-space: nowrap;
 
-	    .mk_apps_sidebar_menu {
-	    	padding: 0;
-		    > li > a {
-		        cursor: pointer;
-	            font-size: 13px;
-	            font-weight: 300;
-	            overflow: hidden;
-	            padding: 8px 11px;
-	            text-decoration: none;
-	            color: $mk-appbar-color;
-	            text-overflow: ellipsis;
-	            transition: background-color 0.15s ease;
+        // Logo area
+        .mk_apps_sidebar_logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            border-bottom: 1px solid var(--bs-border-color, #dee2e6);
 
-	            .mk_apps_sidebar_icon {
-				    width: 22px;
-				    height: 22px;
-	    			margin-right: 5px;
-				}
-		    }
+            img {
+                object-fit: contain;
+                max-height: 110px;
+                height: 110%;
+                width: 100%;
+            }
+        }
+
+        // Section header
+        .mk_apps_sidebar_header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 14px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--bs-secondary-color, #6c757d);
+        }
+
+        // App list
+	    .mk_apps_sidebar_menu {
+	    	padding: 4px 8px;
+            list-style: none;
+
+		    > li {
+                margin-bottom: 1px;
+
+                > a {
+			        cursor: pointer;
+		            font-size: 14px;
+		            font-weight: 500;
+		            overflow: hidden;
+		            padding: 8px 10px;
+		            text-decoration: none;
+		            color: var(--bs-body-color, #212529);
+		            text-overflow: ellipsis;
+		            transition: background-color 0.15s ease;
+		            display: flex;
+		            align-items: center;
+                    border-radius: 8px;
+
+		            .mk_apps_sidebar_icon {
+					    width: 32px;
+					    height: 32px;
+					    min-width: 32px;
+		    			margin-right: 10px;
+                        border-radius: 8px;
+                        object-fit: contain;
+					}
+			    }
+            }
+
 	        > li.active > a {
-			    background: $mk-appbar-active;
+                background: rgba($o-brand-primary, 0.12);
+                color: $o-brand-primary;
 	        }
-	        > li:hover > a {
-			    background: $mk-appbar-active;
+
+	        > li:not(.active):hover > a {
+                background: var(--bs-tertiary-bg, #f8f9fa);
 	        }
 	    }
+
+        // Spacer pushes logo to bottom if present
+        .mk_apps_sidebar_spacer {
+            flex: 1;
+        }
 	}
+}
+
+// Compact mode (ResizablePanel narrow)
+.t4_sidebar_panel.sm {
+    .mk_apps_sidebar_name {
+        display: none;
+    }
+    .mk_apps_sidebar_icon {
+        margin-right: 0 !important;
+    }
+    .mk_apps_sidebar_logo {
+        display: none;
+    }
+    .mk_apps_sidebar_header {
+        justify-content: center;
+
+        span {
+            display: none;
+        }
+    }
+    .mk_apps_sidebar_menu {
+        padding: 4px !important;
+
+        > li > a {
+            justify-content: center;
+            padding: 10px 6px !important;
+        }
+    }
 }

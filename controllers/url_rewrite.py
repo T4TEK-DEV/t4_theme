@@ -96,6 +96,9 @@ def _patch_session_info():
                         't4_brand_name': company.t4_brand_name or 'T4 ERP',
                         't4_url_prefix': company.t4_url_prefix or '',
                         'theme_preset': company.theme_preset or 'default',
+                        'theme_font_family': company.theme_font_family or 'system',
+                        'theme_font_size': company.theme_font_size or '14',
+                        'theme_home_menu_overlay': company.theme_home_menu_overlay if company.theme_home_menu_overlay is not None else True,
                         'theme_colors': {
                             'color_brand': company.theme_color_brand or '#243742',
                             'color_primary': company.theme_color_primary or '#5D8DA8',
@@ -109,6 +112,7 @@ def _patch_session_info():
                             'color_appbar_background': company.theme_color_appbar_background or '#111827',
                         },
                     })
+            result['sidebar_type'] = self.env.user.sidebar_type
             result['chatter_position'] = self.env.user.chatter_position
             result['dialog_size'] = self.env.user.dialog_size
             result['pager_autoload_interval'] = int(

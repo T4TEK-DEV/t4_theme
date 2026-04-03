@@ -19,7 +19,8 @@
 		            			t-att-data-menu-id="app.id"
 		            			t-att-data-menu-xmlid="app.xmlid"
 		            			t-att-data-action-id="app.actionID"
-								t-on-click.prevent="() => this._onAppClick(app)"
+								t-on-click.prevent="(ev) => this._onAppClickFlyout(app, ev)"
+								t-on-mouseenter="(ev) => this._onAppMouseEnter(app, ev)"
 		            			class="nav-link"
 		            			role="menuitem"
 		            		>
@@ -38,9 +39,39 @@
 						        </span>
 			            	 </a>
 			            </li>
-			    	</t>
+				    </t>
 				</ul>
 				<div class="mk_apps_sidebar_spacer"/>
+			</div>
+
+			<!-- Flyout sub-menu (small mode) -->
+			<div t-if="flyout.visible"
+				class="t4_flyout"
+				t-att-style="flyoutStyle"
+				t-on-mouseleave="_onFlyoutMouseLeave">
+				<t t-foreach="flyout.sections" t-as="section" t-key="section.id">
+					<!-- Section with children = group header -->
+					<t t-if="section.childrenTree and section.childrenTree.length">
+						<div class="t4_flyout_group_label">
+							<t t-out="section.label || section.name"/>
+						</div>
+						<t t-foreach="section.childrenTree" t-as="child" t-key="child.id">
+							<a class="t4_flyout_item"
+								t-att-href="child.href"
+								t-on-click.prevent="() => this._onFlyoutMenuClick(child)">
+								<t t-out="child.label || child.name"/>
+							</a>
+						</t>
+					</t>
+					<!-- Section without children = direct menu item -->
+					<t t-else="">
+						<a class="t4_flyout_item"
+							t-att-href="section.href"
+							t-on-click.prevent="() => this._onFlyoutMenuClick(section)">
+							<t t-out="section.label || section.name"/>
+						</a>
+					</t>
+				</t>
 			</div>
 		</div>
 	</t>

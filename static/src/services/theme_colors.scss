@@ -1,16 +1,64 @@
 // ============================================================
-// Per-company color overrides via CSS custom properties
+// Per-company color & typography overrides via CSS custom properties
 // These override compiled SCSS defaults at runtime when
 // CSS variables are set by theme_color_service.js
 // ============================================================
+
+// --- Typography ---
+.o_web_client {
+    font-family: var(--t4-font-family, inherit) !important;
+    font-size: var(--t4-font-size, 14px) !important;
+}
+
+body {
+    font-family: var(--t4-font-family, inherit);
+    font-size: var(--t4-font-size, 14px);
+}
 
 // --- Navbar ---
 .o_main_navbar {
     background-color: var(--t4-color-brand, $o-brand-odoo) !important;
 
+    // Top-level labels & toggle
     .o_menu_brand,
     .o_menu_toggle {
         color: var(--t4-color-appsmenu-text) !important;
+    }
+
+    // Navigation entries (Discuss, Calendar, etc.)
+    .o_nav_entry,
+    .o-dropdown-item.dropdown-item,
+    .dropdown-item.o_nav_entry {
+        color: var(--t4-color-appsmenu-text) !important;
+
+        &:hover, &:focus {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: var(--t4-color-appsmenu-text) !important;
+        }
+    }
+
+    // Systray icons
+    .o_menu_systray .dropdown-toggle,
+    .o_menu_systray .btn {
+        color: var(--t4-color-appsmenu-text) !important;
+    }
+
+    // Dropdown menus opened from navbar
+    .dropdown-menu {
+        background-color: var(--t4-color-brand) !important;
+        border-color: rgba(255, 255, 255, 0.15);
+
+        .dropdown-item {
+            color: var(--t4-color-appsmenu-text) !important;
+
+            &:hover, &:focus {
+                background-color: rgba(255, 255, 255, 0.15) !important;
+            }
+        }
+
+        .dropdown-divider {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
     }
 }
 

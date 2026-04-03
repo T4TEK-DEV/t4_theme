@@ -153,6 +153,25 @@ body.pe-none {
 // (Home Menu overlay covers sidebar via position:fixed in appsmenu.scss)
 
 // -----------------------------------------------------------------------------
+// Hidden mode: sidebar completely removed, full-width content
+// CSS-based so live preview works without re-render
+// -----------------------------------------------------------------------------
+
+.t4_sidebar_removed {
+    display: none !important;
+    width: 0 !important;
+}
+
+.t4_sidebar_mode_hidden .o_web_client {
+    grid-template-areas:
+        "banner"
+        "navbar"
+        "content"
+        "components";
+    grid-template-columns: 1fr;
+}
+
+// -----------------------------------------------------------------------------
 // Hide sidebar in special modes
 // -----------------------------------------------------------------------------
 

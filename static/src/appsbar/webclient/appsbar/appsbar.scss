@@ -1,7 +1,6 @@
 // =============================================================================
-// AppsBar Sidebar — OM UX Style
+// AppsBar Sidebar
 // =============================================================================
-// Width is now controlled by ResizablePanel, not CSS variable.
 
 .mk_apps_sidebar_panel {
     @include mk-disable-scrollbar();
@@ -9,6 +8,7 @@
     width: 100%;
     height: 100%;
     overflow-y: auto;
+    position: relative;
 
     .mk_apps_sidebar {
         height: 100%;
@@ -68,11 +68,11 @@
                     border-radius: 8px;
 
 		            .mk_apps_sidebar_icon {
-					    width: 32px;
-					    height: 32px;
-					    min-width: 32px;
-		    			margin-right: 10px;
-                        border-radius: 8px;
+					    width: 40px;
+					    height: 40px;
+					    min-width: 40px;
+		    			margin-right: 12px;
+                        border-radius: 10px;
                         object-fit: contain;
 					}
 			    }
@@ -88,37 +88,124 @@
 	        }
 	    }
 
-        // Spacer pushes logo to bottom if present
         .mk_apps_sidebar_spacer {
             flex: 1;
         }
 	}
 }
 
-// Compact mode (ResizablePanel narrow)
-.t4_sidebar_panel.sm {
-    .mk_apps_sidebar_name {
-        display: none;
-    }
-    .mk_apps_sidebar_icon {
-        margin-right: 0 !important;
-    }
-    .mk_apps_sidebar_logo {
-        display: none;
-    }
-    .mk_apps_sidebar_header {
-        justify-content: center;
+// =============================================================================
+// Small mode (compact with truncated names + flyout)
+// =============================================================================
 
-        span {
-            display: none;
+.t4_sidebar_panel.sm {
+    // Logo: smaller, square
+    .mk_apps_sidebar_logo {
+        height: 56px;
+        padding: 6px;
+
+        img {
+            max-height: 44px;
         }
     }
+
+    // Header: compact
+    .mk_apps_sidebar_header {
+        padding: 8px 6px 4px;
+        justify-content: center;
+        font-size: 9px;
+    }
+
+    // Menu items: icon centered + name below (truncated)
     .mk_apps_sidebar_menu {
         padding: 4px !important;
 
         > li > a {
-            justify-content: center;
-            padding: 10px 6px !important;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 8px 4px !important;
+            gap: 2px;
+
+            .mk_apps_sidebar_icon {
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+                margin-right: 0 !important;
+            }
         }
+    }
+
+    .mk_apps_sidebar_name {
+        font-size: 10px !important;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+// =============================================================================
+// Flyout sub-menu (appears next to sidebar in small mode)
+// =============================================================================
+
+.t4_flyout {
+    position: fixed;
+    left: 68px; // sidebar small width
+    z-index: 1060;
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 8px;
+    box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
+    max-width: 280px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 6px 0;
+    animation: t4FlyoutIn 0.12s ease;
+}
+
+@keyframes t4FlyoutIn {
+    from {
+        opacity: 0;
+        transform: translateX(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.t4_flyout_group_label {
+    padding: 8px 14px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--bs-secondary-color, #6c757d);
+
+    &:not(:first-child) {
+        margin-top: 4px;
+        border-top: 1px solid var(--bs-border-color, #dee2e6);
+        padding-top: 8px;
+    }
+}
+
+.t4_flyout_item {
+    display: block;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--bs-body-color, #212529);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+        background: var(--bs-tertiary-bg, #f0f0f0);
+        color: var(--t4-color-primary, $o-brand-primary);
     }
 }

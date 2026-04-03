@@ -10,12 +10,9 @@
             </button>
         </div>
 
-        <!-- Portal to body — escapes navbar CSS inheritance -->
+        <!-- Portal to body -->
         <t t-portal="'body'">
-            <!-- Backdrop -->
-            <div t-if="state.open" class="t4_theme_backdrop" t-on-click="onClickBackdrop"/>
-
-            <!-- Right Sidebar Panel -->
+            <!-- Right Sidebar Panel (no backdrop, page stays interactive) -->
             <div t-ref="panel" class="t4_theme_panel" t-att-class="{ open: state.open }">
 
             <!-- Header -->
@@ -60,6 +57,69 @@
                     </div>
                 </div>
 
+                <!-- ====== Typography ====== -->
+                <div class="t4_section">
+                    <span class="t4_section_label d-block mb-2">
+                        <i class="fa fa-font me-2"/>Typography
+                    </span>
+
+                    <!-- Font Family - Custom searchable dropdown -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Font Family</small>
+                        <div class="t4_font_dropdown">
+                            <button class="t4_font_dropdown_toggle"
+                                t-att-style="selectedFontStyle"
+                                t-on-click="toggleFontDropdown">
+                                <span t-out="selectedFontLabel"/>
+                                <i class="fa fa-chevron-down"/>
+                            </button>
+                            <div t-if="state.fontDropdownOpen" class="t4_font_dropdown_menu">
+                                <input type="text" class="t4_font_search"
+                                    placeholder="Search fonts..."
+                                    t-on-input="(ev) => this.state.fontSearch = ev.target.value"
+                                    t-ref="fontSearch"/>
+                                <div class="t4_font_list">
+                                    <t t-foreach="fontOptions" t-as="opt" t-key="opt.key">
+                                        <t t-if="!state.fontSearch || opt.label.toLowerCase().includes((state.fontSearch || '').toLowerCase())">
+                                            <button class="t4_font_option"
+                                                t-attf-class="{{ state.fontFamily === opt.key ? 'active' : '' }}"
+                                                t-att-style="this.fontStyle(opt.key)"
+                                                t-on-click="() => this.onSelectFont(opt.key)">
+                                                <span class="t4_font_option_label" t-out="opt.label"/>
+                                                <span class="t4_font_option_preview" t-att-style="this.fontStyle(opt.key)">
+                                                    Aa Bb Cc 123
+                                                </span>
+                                                <i t-if="state.fontFamily === opt.key" class="fa fa-check"/>
+                                            </button>
+                                        </t>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Size - Input with +/- buttons -->
+                    <div>
+                        <small class="text-muted d-block mb-1">Font Size</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                t-on-click="() => this.onFontSizeStep(-1)">
+                                <i class="fa fa-minus"/>
+                            </button>
+                            <input type="number" class="form-control form-control-sm text-center"
+                                style="width: 70px"
+                                min="10" max="24"
+                                t-att-value="state.fontSize"
+                                t-on-change="onChangeFontSize"/>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                t-on-click="() => this.onFontSizeStep(1)">
+                                <i class="fa fa-plus"/>
+                            </button>
+                            <small class="text-muted">px</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ====== Layout Options ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
@@ -74,6 +134,7 @@
                                 <button type="button" class="btn btn-sm"
                                     t-attf-class="{{ state.sidebarType === opt.key ? 'btn-primary' : 'btn-outline-secondary' }}"
                                     t-on-click="() => this.onSelectSidebar(opt.key)">
+                                    <i t-attf-class="fa {{ opt.icon }} me-1"/>
                                     <t t-out="opt.label"/>
                                 </button>
                             </t>
@@ -95,7 +156,7 @@
                     </div>
 
                     <!-- Dialog -->
-                    <div>
+                    <div class="mb-2">
                         <small class="text-muted d-block mb-1">Dialog</small>
                         <div class="btn-group w-100" role="group">
                             <t t-foreach="dialogOptions" t-as="opt" t-key="opt.key">
@@ -105,6 +166,22 @@
                                     <t t-out="opt.label"/>
                                 </button>
                             </t>
+                        </div>
+                    </div>
+
+                    <!-- Home Menu Overlay -->
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <small class="text-muted">
+                                Home Menu Overlay
+                                <i class="fa fa-info-circle ms-1" style="font-size:11px; cursor:help;"
+                                    title="Bật/tắt màn hình Home Menu toàn trang khi bấm ESC"/>
+                            </small>
+                            <div class="form-check form-switch mb-0">
+                                <input type="checkbox" class="form-check-input"
+                                    t-att-checked="state.homeMenuOverlay"
+                                    t-on-change="onToggleHomeMenuOverlay"/>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -117,12 +194,12 @@
                     <div class="t4_color_row">
                         <label>Brand</label>
                         <input type="color" t-att-value="state.colorBrand"
-                            t-on-change="(ev) => this.onColorChange('brand', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorBrand', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Primary</label>
                         <input type="color" t-att-value="state.colorPrimary"
-                            t-on-change="(ev) => this.onColorChange('primary', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorPrimary', ev)"/>
                     </div>
                 </div>
 
@@ -134,22 +211,22 @@
                     <div class="t4_color_row">
                         <label>Success</label>
                         <input type="color" t-att-value="state.colorSuccess"
-                            t-on-change="(ev) => this.onColorChange('success', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorSuccess', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Info</label>
                         <input type="color" t-att-value="state.colorInfo"
-                            t-on-change="(ev) => this.onColorChange('info', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorInfo', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Warning</label>
                         <input type="color" t-att-value="state.colorWarning"
-                            t-on-change="(ev) => this.onColorChange('warning', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorWarning', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Danger</label>
                         <input type="color" t-att-value="state.colorDanger"
-                            t-on-change="(ev) => this.onColorChange('danger', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorDanger', ev)"/>
                     </div>
                 </div>
 
@@ -161,22 +238,22 @@
                     <div class="t4_color_row">
                         <label>Background</label>
                         <input type="color" t-att-value="state.colorAppbarBg"
-                            t-on-change="(ev) => this.onColorChange('appbar_background', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorAppbarBg', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Text</label>
                         <input type="color" t-att-value="state.colorAppbarText"
-                            t-on-change="(ev) => this.onColorChange('appbar_text', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorAppbarText', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Active</label>
                         <input type="color" t-att-value="state.colorAppbarActive"
-                            t-on-change="(ev) => this.onColorChange('appbar_active', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorAppbarActive', ev)"/>
                     </div>
                     <div class="t4_color_row">
                         <label>Menu Text</label>
                         <input type="color" t-att-value="state.colorAppsmenuText"
-                            t-on-change="(ev) => this.onColorChange('appsmenu_text', ev)"/>
+                            t-on-input="(ev) => this.onColorChange('colorAppsmenuText', ev)"/>
                     </div>
                 </div>
 
@@ -203,8 +280,6 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-1 mb-1">
                             <small class="text-muted">Brand Name</small>
-                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
-                                title="Thay 'Odoo' trong: tiêu đề tab, trang login, dialog lỗi, email footer, report."/>
                         </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.brandName"
@@ -216,8 +291,6 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-1 mb-1">
                             <small class="text-muted">Browser Title</small>
-                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
-                                title="Tiêu đề hiện trên tab trình duyệt, thay 'Odoo' mặc định."/>
                         </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.webTitle"
@@ -237,6 +310,11 @@
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('appbar_image', ev)"/>
                             </label>
+                            <button t-if="state.hasLogo"
+                                class="btn btn-sm btn-outline-danger mb-0"
+                                t-on-click="() => this.onRemoveImage('appbar_image')">
+                                <i class="fa fa-trash"/>
+                            </button>
                         </div>
                     </div>
 
@@ -252,6 +330,11 @@
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('background_image', ev)"/>
                             </label>
+                            <button t-if="state.hasBackground"
+                                class="btn btn-sm btn-outline-danger mb-0"
+                                t-on-click="() => this.onRemoveImage('background_image')">
+                                <i class="fa fa-trash"/>
+                            </button>
                         </div>
                     </div>
 
@@ -267,11 +350,41 @@
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('favicon', ev)"/>
                             </label>
+                            <button t-if="state.hasFavicon"
+                                class="btn btn-sm btn-outline-danger mb-0"
+                                t-on-click="() => this.onRemoveImage('favicon')">
+                                <i class="fa fa-trash"/>
+                            </button>
                         </div>
                     </div>
                 </div>
 
+                <!-- ====== Reset to Odoo ====== -->
+                <div class="t4_section">
+                    <button class="btn btn-sm btn-outline-danger w-100"
+                        t-on-click="onResetToOdoo">
+                        <i class="fa fa-refresh me-1"/>Reset to Odoo Default
+                    </button>
+                </div>
+
             </div>
+
+            <!-- ====== Sticky Footer: Save / Reset ====== -->
+            <div class="t4_theme_panel_footer" t-att-class="{ visible: state.dirty }">
+                <button class="btn btn-sm btn-outline-secondary flex-fill"
+                    t-att-disabled="state.saving"
+                    t-on-click="onClickReset">
+                    <i class="fa fa-undo me-1"/>Reset
+                </button>
+                <button class="btn btn-sm btn-primary flex-fill"
+                    t-att-disabled="state.saving"
+                    t-on-click="onClickSave">
+                    <i t-if="state.saving" class="fa fa-spinner fa-spin me-1"/>
+                    <i t-else="" class="fa fa-check me-1"/>
+                    Save
+                </button>
+            </div>
+
         </div>
         </t>
     </t>

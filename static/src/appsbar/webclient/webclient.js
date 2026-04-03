@@ -52,8 +52,8 @@ patch(WebClient.prototype, {
             width: initial.width || DEFAULT_WIDTH,
         });
 
-        // ESC key to toggle sidebar
-        useHotkey('escape', () => this._toggleSidebar(), {
+        // Ctrl+Shift+Left to toggle sidebar (ESC is reserved for Home Menu)
+        useHotkey('control+shift+arrowleft', () => this._toggleSidebar(), {
             bypassEditableProtection: true,
             global: true,
         });

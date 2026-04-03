@@ -15,9 +15,11 @@ class T4Home(Home):
 
     @classmethod
     def _get_url_prefix(cls):
-        """Get custom URL prefix from company settings."""
+        """Get custom URL prefix from system parameter."""
         try:
-            prefix = request.env.company.sudo().t4_url_prefix
+            prefix = request.env['ir.config_parameter'].sudo().get_param(
+                't4_theme.url_prefix', ''
+            )
             if prefix:
                 prefix = prefix.strip().strip('/')
                 if prefix:

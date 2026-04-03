@@ -9,8 +9,9 @@ class T4Session(Session):
     def logout(self, redirect=None):
         if not redirect:
             try:
-                company = request.env.company
-                prefix = company.t4_url_prefix
+                prefix = request.env['ir.config_parameter'].sudo().get_param(
+                    't4_theme.url_prefix', ''
+                )
                 if prefix:
                     prefix = prefix.strip().strip('/')
                     if prefix:

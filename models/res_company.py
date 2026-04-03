@@ -131,6 +131,16 @@ class ResCompany(models.Model):
              'Leave empty to keep /odoo/. Example: "app" → /app/settings',
     )
 
+    def write(self, vals):
+        res = super().write(vals)
+        if 't4_url_prefix' in vals:
+            # Sync to system parameter so _match can read it early
+            prefix = (vals['t4_url_prefix'] or '').strip().strip('/')
+            self.env['ir.config_parameter'].sudo().set_param(
+                't4_theme.url_prefix', prefix
+            )
+        return res
+
     background_image = fields.Binary(
         string='Apps Menu Background Image',
         attachment=True

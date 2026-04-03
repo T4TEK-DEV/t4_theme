@@ -1,8 +1,5 @@
-import re
-
 from odoo import models
 from odoo.http import request
-from werkzeug.exceptions import NotFound
 
 
 class IrHttp(models.AbstractModel):
@@ -10,22 +7,28 @@ class IrHttp(models.AbstractModel):
     _inherit = "ir.http"
 
     @classmethod
-    def _match(cls, path_info):
-        """Rewrite custom URL prefix to /odoo/ so the standard router handles it."""
+    def _get_url_prefix(cls):
+        """Read custom URL prefix from system parameter."""
         try:
-            prefix = request.env['res.company'].sudo().browse(
-                request.env.company.id
-            ).t4_url_prefix
+            prefix = request.env['ir.config_parameter'].sudo().get_param(
+                't4_theme.url_prefix', ''
+            )
             if prefix:
                 prefix = prefix.strip().strip('/')
-                if prefix and path_info.startswith(f'/{prefix}'):
-                    # Rewrite: /custom/... → /odoo/...
-                    new_path = '/odoo' + path_info[len(f'/{prefix}'):]
-                    if not new_path.startswith('/odoo'):
-                        new_path = '/odoo'
-                    return super()._match(new_path)
+                if prefix:
+                    return f'/{prefix}'
         except Exception:
             pass
+        return ''
+
+    @classmethod
+    def _match(cls, path_info):
+        """Rewrite custom URL prefix to /odoo/ for the standard router."""
+        prefix = cls._get_url_prefix()
+        if prefix and path_info.startswith(prefix):
+            rest = path_info[len(prefix):]
+            new_path = '/odoo' + rest if rest else '/odoo'
+            return super()._match(new_path)
         return super()._match(path_info)
 
     #----------------------------------------------------------
@@ -56,6 +59,10 @@ class IrHttp(models.AbstractModel):
     def session_info(self):
         result = super().session_info()
         if self.env.user._is_internal():
+            # URL prefix from system parameter
+            result['t4_url_prefix'] = self.env['ir.config_parameter'].sudo().get_param(
+                't4_theme.url_prefix', ''
+            )
             for company in self.env.user.company_ids.with_context(bin_size=True):
                 result['user_companies']['allowed_companies'][company.id].update({
                     'has_appsbar_image': bool(company.appbar_image),

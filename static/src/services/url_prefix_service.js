@@ -1,16 +1,15 @@
 import { patch } from "@web/core/utils/patch";
 import { registry } from "@web/core/registry";
-import { user } from "@web/core/user";
+import { session } from "@web/session";
 import { NavBar } from "@web/webclient/navbar/navbar";
-import { computeAppsAndMenuItems } from "@web/webclient/menus/menu_helpers";
 
 /**
  * URL Prefix Service: replaces /odoo/ with custom prefix in generated URLs.
- * The /odoo/ routes still work (server handles both), but the UI shows the custom prefix.
+ * /odoo/ routes still work (server rewrites custom→odoo), but UI shows custom prefix.
  */
 
 function getUrlPrefix() {
-    const prefix = user.activeCompany?.t4_url_prefix;
+    const prefix = session.t4_url_prefix;
     if (prefix) {
         const clean = prefix.replace(/^\/|\/$/g, '');
         if (clean) {
@@ -20,43 +19,43 @@ function getUrlPrefix() {
     return '/odoo';
 }
 
-// Patch NavBar.getMenuItemHref to use custom prefix
-patch(NavBar.prototype, {
-    getMenuItemHref(payload) {
-        const prefix = getUrlPrefix();
-        return `${prefix}/${payload.actionPath || "action-" + payload.actionID}`;
-    },
-});
+const URL_PREFIX = getUrlPrefix();
 
-// Patch menu_helpers.computeAppsAndMenuItems result
-// The href is generated in menu_helpers.js — we patch it via a service
-// that rewrites hrefs after computation
-export const urlPrefixService = {
-    dependencies: ["menu"],
-    start(env, { menu }) {
-        const prefix = getUrlPrefix();
-        if (prefix === '/odoo') {
-            return; // No custom prefix, skip patching
-        }
-
-        // Intercept MENUS:APP-CHANGED to rewrite hrefs
-        env.bus.addEventListener('MENUS:APP-CHANGED', () => {
-            rewriteMenuLinks(prefix);
-        });
-
-        // Initial rewrite after page load
-        queueMicrotask(() => rewriteMenuLinks(prefix));
-    },
-};
-
-function rewriteMenuLinks(prefix) {
-    // Rewrite all /odoo/ links in the DOM to use custom prefix
-    document.querySelectorAll('a[href^="/odoo/"]').forEach(el => {
-        el.href = el.href.replace(/\/odoo\//, `${prefix}/`);
-    });
-    document.querySelectorAll('a[href="/odoo"]').forEach(el => {
-        el.href = prefix;
+if (URL_PREFIX !== '/odoo') {
+    // Patch NavBar.getMenuItemHref to use custom prefix
+    patch(NavBar.prototype, {
+        getMenuItemHref(payload) {
+            return `${URL_PREFIX}/${payload.actionPath || "action-" + payload.actionID}`;
+        },
     });
 }
+
+export const urlPrefixService = {
+    dependencies: [],
+    start(env) {
+        if (URL_PREFIX === '/odoo') {
+            return;
+        }
+
+        // Rewrite /odoo/ links in DOM continuously
+        const rewrite = () => {
+            document.querySelectorAll('a[href^="/odoo/"]').forEach(el => {
+                el.setAttribute('href', el.getAttribute('href').replace(/^\/odoo\//, `${URL_PREFIX}/`));
+            });
+            document.querySelectorAll('a[href="/odoo"]').forEach(el => {
+                el.setAttribute('href', URL_PREFIX);
+            });
+        };
+
+        // Observe DOM changes for new links
+        const observer = new MutationObserver(rewrite);
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Also rewrite on navigation
+        env.bus.addEventListener('MENUS:APP-CHANGED', rewrite);
+
+        return { prefix: URL_PREFIX };
+    },
+};
 
 registry.category("services").add("t4_url_prefix", urlPrefixService);

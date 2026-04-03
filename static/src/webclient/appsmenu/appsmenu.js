@@ -2,6 +2,7 @@ import { useEffect } from "@odoo/owl";
 import { user } from "@web/core/user";
 import { url } from "@web/core/utils/urls";
 import { useBus, useService } from "@web/core/utils/hooks";
+import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 
 import { Dropdown } from "@web/core/dropdown/dropdown";
 
@@ -19,18 +20,25 @@ export class AppsMenu extends Dropdown {
     	} else {
     		this.imageUrl = '/t4_theme/static/src/img/background.png';
     	}
+        useHotkey("escape", () => {
+            if (this.state.isOpen) {
+                this.state.close();
+            } else {
+                this.state.open();
+            }
+        }, { global: true });
         useEffect(
             (isOpen) => {
             	if (isOpen) {
             		const openMainPalette = (ev) => {
             	    	if (
-            	    		!this.commandServiceOpen && 
+            	    		!this.commandPaletteOpen &&
             	    		ev.key.length === 1 &&
             	    		!ev.ctrlKey &&
             	    		!ev.altKey
             	    	) {
 	            	        this.commandService.openMainPalette(
-            	        		{ searchValue: `/${ev.key}` }, 
+            	        		{ searchValue: `/${ev.key}` },
             	        		() => { this.commandPaletteOpen = false; }
             	        	);
 	            	    	this.commandPaletteOpen = true;

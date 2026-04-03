@@ -5,10 +5,10 @@
 .o_web_client {
 	display: grid !important;
     grid-template-areas:
-        "banner banner"
-        "navbar navbar"
+        "sidebar banner"
+        "sidebar navbar"
         "sidebar content"
-        "components components";
+        "sidebar components";
     grid-template-rows: auto auto 1fr auto;
     grid-template-columns: auto 1fr;
 
@@ -34,13 +34,25 @@
 }
 
 // -----------------------------------------------------------------------------
-// Sidebar Area (wrapper for ResizablePanel + toggle)
+// Sidebar Area — flex container, NO position:relative
+// (position:relative would make it the offsetParent for ResizablePanel,
+//  causing getLimitWidth() to cap at current width → can never grow)
 // -----------------------------------------------------------------------------
 
 .t4_sidebar_area {
-    position: relative;
+    display: flex;
     overflow: visible;
     height: 100%;
+}
+
+// Keep col-resize cursor during resize (ResizablePanel adds pe-none to body)
+body.pe-none {
+    pointer-events: auto !important;
+    cursor: col-resize !important;
+
+    * {
+        cursor: col-resize !important;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -69,49 +81,76 @@
 }
 
 // -----------------------------------------------------------------------------
-// Toggle Button (curved tab shape like OM_UX)
+// Toggle Button Anchor — zero-width positioned wrapper
+// -----------------------------------------------------------------------------
+
+.t4_sidebar_toggle_anchor {
+    position: relative;
+    width: 0;
+    flex-shrink: 0;
+    overflow: visible;
+    height: 100%;
+}
+
+// -----------------------------------------------------------------------------
+// Toggle Button (curved tab shape)
 // -----------------------------------------------------------------------------
 
 .t4_sidebar_toggle {
-    --t4-toggle-bg: transparent;
-
     position: absolute;
-    left: calc(100% - 1px);
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 1060;
+    z-index: 999;
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--bs-border-color, #dee2e6);
-    opacity: 0;
-    transition: opacity 0.15s ease, left 0.15s ease, width 0.15s ease;
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 130px;
+    width: 20px;
+    height: 56px;
     pointer-events: all;
+    filter: drop-shadow(1px 0 4px rgba(0, 0, 0, 0.15));
+    transition: filter 0.15s ease;
+
+    // SVG — solid curved tab
+    .t4_toggle_svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .t4_toggle_shape {
+        fill: $o-brand-primary;
+        transition: fill 0.15s ease;
+    }
+
+    // Arrow icon — centered
+    .t4_toggle_icon {
+        position: absolute;
+        left: 0;
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: center;
+        font-size: 16px;
+        color: #fff;
+        z-index: 1;
+    }
 
     &:hover {
-        --t4-toggle-bg: var(--bs-body-bg, #fff);
-        opacity: 1;
-        left: calc(100% - 13px);
-        width: 38px;
+        filter: drop-shadow(2px 0 8px rgba(0, 0, 0, 0.3));
 
-        i {
-            color: var(--t4-primary, #714B67);
+        .t4_toggle_shape {
+            fill: darken($o-brand-primary, 10%);
         }
     }
-
-    i {
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 14px;
-        margin-left: 5px;
-    }
 }
+
+// (Home Menu overlay covers sidebar via position:fixed in appsmenu.scss)
 
 // -----------------------------------------------------------------------------
 // Hide sidebar in special modes

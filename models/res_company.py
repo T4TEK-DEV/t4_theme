@@ -118,6 +118,12 @@ class ResCompany(models.Model):
         help='Custom browser tab title per company.',
     )
 
+    t4_brand_name = fields.Char(
+        string='Brand Name',
+        default='T4 ERP',
+        help='Replace "Odoo" with your brand name across the system.',
+    )
+
     background_image = fields.Binary(
         string='Apps Menu Background Image',
         attachment=True

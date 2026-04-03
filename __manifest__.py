@@ -24,6 +24,7 @@
     'data': [
         'templates/web_layout.xml',
         'templates/webclient.xml',
+        'templates/debranding.xml',
         'views/res_config_settings.xml',
         'views/res_users.xml',
         'views/ir_actions_server_views.xml',
@@ -244,6 +245,7 @@
             't4_theme/static/src/services/theme_color_service.js',
             't4_theme/static/src/services/theme_colors.scss',
             't4_theme/static/src/services/dark_mode_service.js',
+            't4_theme/static/src/services/debranding_service.js',
 
             # --- Shared SCSS variables & mixins ---
             't4_theme/static/src/scss/_t4_variables.scss',

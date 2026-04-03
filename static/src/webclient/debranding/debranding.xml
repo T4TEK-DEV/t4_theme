@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+
+    <!-- Session Expired Dialog — replace "Odoo" -->
+    <t t-name="t4_theme.SessionExpiredDialog"
+       t-inherit="web.SessionExpiredDialog"
+       t-inherit-mode="extension">
+        <xpath expr="//Dialog" position="attributes">
+            <attribute name="title">Session Expired</attribute>
+        </xpath>
+        <xpath expr="//p[contains(text(),'Odoo')]" position="replace">
+            <p class="text-prewrap">Your session expired. The current page is about to be refreshed.</p>
+        </xpath>
+    </t>
+
+    <!-- Push Notification alert — replace "Odoo" -->
+    <t t-name="t4_theme.NotificationAlert"
+       t-inherit="web.NotificationAlert"
+       t-inherit-mode="extension">
+        <xpath expr="//div[contains(@class,'alert')]" position="replace">
+            <div t-if="isNotificationBlocked" class="alert alert-primary text-center">
+                Push notifications have been blocked. Please enable them in your browser settings.
+            </div>
+        </xpath>
+    </t>
+
+    <!-- Upgrade Dialog — replace "Odoo Enterprise" -->
+    <t t-name="t4_theme.UpgradeDialog"
+       t-inherit="web.UpgradeDialog"
+       t-inherit-mode="extension">
+        <xpath expr="//Dialog" position="attributes">
+            <attribute name="title">Enterprise Features</attribute>
+        </xpath>
+    </t>
+
+</templates>

@@ -62,6 +62,7 @@ export class ThemeSystray extends Component {
             colorAppbarActive: colors.color_appbar_active || "#5D8DA8",
             colorAppsmenuText: colors.color_appsmenu_text || "#F8F9FA",
             // Branding
+            brandName: company.t4_brand_name || "T4 ERP",
             webTitle: company.t4_web_title || "",
             hasLogo: Boolean(company.has_appsbar_image),
             hasBackground: Boolean(company.has_background_image),
@@ -161,6 +162,16 @@ export class ThemeSystray extends Component {
         if (cssVarMap[field]) {
             document.documentElement.style.setProperty(cssVarMap[field], value);
         }
+    }
+
+    // --- Brand Name ---
+    async onChangeBrandName(ev) {
+        const value = ev.target.value;
+        const companyId = this.state.companyId;
+        await this.orm.call("res.company", "write", [[companyId], {
+            t4_brand_name: value,
+        }]);
+        this.state.brandName = value;
     }
 
     // --- Web Title ---

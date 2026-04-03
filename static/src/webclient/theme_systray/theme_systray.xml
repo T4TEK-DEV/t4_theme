@@ -180,6 +180,67 @@
                     </div>
                 </div>
 
+                <!-- ====== Branding ====== -->
+                <div class="t4_section">
+                    <span class="t4_section_label d-block mb-2">
+                        <i class="fa fa-building-o me-2"/>Branding
+                    </span>
+
+                    <!-- Browser Title -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Browser Title</small>
+                        <input type="text" class="form-control form-control-sm"
+                            t-att-value="state.webTitle"
+                            t-on-change="onChangeWebTitle"
+                            placeholder="My Company"/>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Sidebar Logo</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <img t-if="state.hasLogo" class="t4_branding_preview"
+                                t-attf-src="/web/image?model=res.company&amp;field=appbar_image&amp;id={{ state.companyId }}"/>
+                            <span t-else="" class="text-muted small">No logo</span>
+                            <label class="btn btn-sm btn-outline-secondary mb-0">
+                                <i class="fa fa-upload me-1"/>Upload
+                                <input type="file" class="d-none" accept="image/*"
+                                    t-on-change="(ev) => this.onUploadImage('appbar_image', ev)"/>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Background Image -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Apps Menu Background</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <img t-if="state.hasBackground" class="t4_branding_preview"
+                                t-attf-src="/web/image?model=res.company&amp;field=background_image&amp;id={{ state.companyId }}"/>
+                            <span t-else="" class="text-muted small">No image</span>
+                            <label class="btn btn-sm btn-outline-secondary mb-0">
+                                <i class="fa fa-upload me-1"/>Upload
+                                <input type="file" class="d-none" accept="image/*"
+                                    t-on-change="(ev) => this.onUploadImage('background_image', ev)"/>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Favicon -->
+                    <div>
+                        <small class="text-muted d-block mb-1">Favicon</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <img t-if="state.hasFavicon" class="t4_favicon_preview"
+                                t-attf-src="/web/image?model=res.company&amp;field=favicon&amp;id={{ state.companyId }}"/>
+                            <span t-else="" class="text-muted small">Default</span>
+                            <label class="btn btn-sm btn-outline-secondary mb-0">
+                                <i class="fa fa-upload me-1"/>Upload
+                                <input type="file" class="d-none" accept="image/*"
+                                    t-on-change="(ev) => this.onUploadImage('favicon', ev)"/>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         </t>

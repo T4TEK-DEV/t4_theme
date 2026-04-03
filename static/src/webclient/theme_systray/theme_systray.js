@@ -40,24 +40,32 @@ export class ThemeSystray extends Component {
         this.orm = useService("orm");
         this.ui = useService("ui");
         this.panelRef = useRef("panel");
+        const company = user.activeCompany || {};
+        const colors = company.theme_colors || {};
         this.state = useState({
             open: false,
+            companyId: company.id,
             darkMode: cookie.get("color_scheme") === "dark",
             chatterPosition: session.chatter_position || "side",
             dialogSize: session.dialog_size || "minimize",
             sidebarType: "large",
-            currentPreset: user.activeCompany?.theme_preset || "default",
+            currentPreset: company.theme_preset || "default",
             // Colors
-            colorBrand: user.activeCompany?.theme_colors?.color_brand || "#243742",
-            colorPrimary: user.activeCompany?.theme_colors?.color_primary || "#5D8DA8",
-            colorSuccess: user.activeCompany?.theme_colors?.color_success || "#28A745",
-            colorInfo: user.activeCompany?.theme_colors?.color_info || "#17A2B8",
-            colorWarning: user.activeCompany?.theme_colors?.color_warning || "#FFAC00",
-            colorDanger: user.activeCompany?.theme_colors?.color_danger || "#DC3545",
-            colorAppbarBg: user.activeCompany?.theme_colors?.color_appbar_background || "#111827",
-            colorAppbarText: user.activeCompany?.theme_colors?.color_appbar_text || "#DEE2E6",
-            colorAppbarActive: user.activeCompany?.theme_colors?.color_appbar_active || "#5D8DA8",
-            colorAppsmenuText: user.activeCompany?.theme_colors?.color_appsmenu_text || "#F8F9FA",
+            colorBrand: colors.color_brand || "#243742",
+            colorPrimary: colors.color_primary || "#5D8DA8",
+            colorSuccess: colors.color_success || "#28A745",
+            colorInfo: colors.color_info || "#17A2B8",
+            colorWarning: colors.color_warning || "#FFAC00",
+            colorDanger: colors.color_danger || "#DC3545",
+            colorAppbarBg: colors.color_appbar_background || "#111827",
+            colorAppbarText: colors.color_appbar_text || "#DEE2E6",
+            colorAppbarActive: colors.color_appbar_active || "#5D8DA8",
+            colorAppsmenuText: colors.color_appsmenu_text || "#F8F9FA",
+            // Branding
+            webTitle: company.t4_web_title || "",
+            hasLogo: Boolean(company.has_appsbar_image),
+            hasBackground: Boolean(company.has_background_image),
+            hasFavicon: Boolean(company.has_favicon),
         });
     }
 
@@ -153,6 +161,43 @@ export class ThemeSystray extends Component {
         if (cssVarMap[field]) {
             document.documentElement.style.setProperty(cssVarMap[field], value);
         }
+    }
+
+    // --- Web Title ---
+    async onChangeWebTitle(ev) {
+        const value = ev.target.value;
+        const companyId = this.state.companyId;
+        await this.orm.call("res.company", "write", [[companyId], {
+            t4_web_title: value,
+        }]);
+        this.state.webTitle = value;
+        document.title = value || "Odoo";
+    }
+
+    // --- Image Upload ---
+    async onUploadImage(field, ev) {
+        const file = ev.target.files[0];
+        if (!file) {
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(",")[1];
+            const companyId = this.state.companyId;
+            await this.orm.call("res.company", "write", [[companyId], {
+                [field]: base64,
+            }]);
+            if (field === "appbar_image") {
+                this.state.hasLogo = true;
+            } else if (field === "background_image") {
+                this.state.hasBackground = true;
+            } else if (field === "favicon") {
+                this.state.hasFavicon = true;
+            }
+            this.ui.block();
+            browser.location.reload();
+        };
+        reader.readAsDataURL(file);
     }
 }
 

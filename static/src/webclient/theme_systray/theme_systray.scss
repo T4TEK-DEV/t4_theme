@@ -192,3 +192,22 @@
         }
     }
 }
+
+// =============================================================================
+// Branding Image Previews
+// =============================================================================
+
+.t4_branding_preview {
+    width: 60px;
+    height: 40px;
+    object-fit: contain;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.t4_favicon_preview {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}

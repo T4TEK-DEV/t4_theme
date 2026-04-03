@@ -198,6 +198,72 @@ class ResCompany(models.Model):
     )
 
     #----------------------------------------------------------
+    # Fields - Typography
+    #----------------------------------------------------------
+
+    theme_font_family = fields.Selection(
+        selection=[
+            ('system', 'System Default'),
+            # Sans-serif
+            ('inter', 'Inter'),
+            ('roboto', 'Roboto'),
+            ('open_sans', 'Open Sans'),
+            ('lato', 'Lato'),
+            ('nunito', 'Nunito'),
+            ('poppins', 'Poppins'),
+            ('source_sans', 'Source Sans 3'),
+            ('montserrat', 'Montserrat'),
+            ('raleway', 'Raleway'),
+            ('ubuntu', 'Ubuntu'),
+            ('work_sans', 'Work Sans'),
+            ('dm_sans', 'DM Sans'),
+            ('quicksand', 'Quicksand'),
+            ('josefin_sans', 'Josefin Sans'),
+            ('cabin', 'Cabin'),
+            ('karla', 'Karla'),
+            ('fira_sans', 'Fira Sans'),
+            ('barlow', 'Barlow'),
+            ('mulish', 'Mulish'),
+            ('pt_sans', 'PT Sans'),
+            ('noto_sans', 'Noto Sans'),
+            ('ibm_plex', 'IBM Plex Sans'),
+            ('manrope', 'Manrope'),
+            ('space_grotesk', 'Space Grotesk'),
+            ('plus_jakarta', 'Plus Jakarta Sans'),
+            ('lexend', 'Lexend'),
+            ('geist', 'Geist'),
+            # Vietnamese popular
+            ('be_vietnam_pro', 'Be Vietnam Pro'),
+            ('sarabun', 'Sarabun'),
+            # Serif
+            ('times_new_roman', 'Times New Roman'),
+            ('georgia', 'Georgia'),
+            ('merriweather', 'Merriweather'),
+            ('playfair', 'Playfair Display'),
+            ('lora', 'Lora'),
+            ('libre_baskerville', 'Libre Baskerville'),
+            # Monospace
+            ('courier_new', 'Courier New'),
+            ('jetbrains_mono', 'JetBrains Mono'),
+            ('fira_code', 'Fira Code'),
+        ],
+        string='Font Family',
+        default='system',
+    )
+
+    theme_font_size = fields.Char(
+        string='Font Size',
+        default='14',
+        help='Base font size in pixels (10-24).',
+    )
+
+    theme_home_menu_overlay = fields.Boolean(
+        string='Home Menu Overlay',
+        default=True,
+        help='Enable the full-screen home menu overlay (ESC key).',
+    )
+
+    #----------------------------------------------------------
     # Fields - AppsBar / Menu Colors
     #----------------------------------------------------------
 

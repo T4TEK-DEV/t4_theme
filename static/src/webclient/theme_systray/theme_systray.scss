@@ -24,18 +24,7 @@
 }
 
 // =============================================================================
-// Backdrop
-// =============================================================================
-
-.t4_theme_backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1070;
-}
-
-// =============================================================================
-// Right Sidebar Panel (Offcanvas)
+// Right Sidebar Panel (floating, no backdrop)
 // =============================================================================
 
 .t4_theme_panel {
@@ -43,24 +32,26 @@
     top: 0;
     right: 0;
     bottom: 0;
-    width: 320px;
+    width: 300px;
     max-width: 90vw;
-    background: #fff;
-    color: #212529;
-    z-index: 1080;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.12);
     transform: translateX(100%);
     transition: transform 0.25s ease;
     display: flex;
     flex-direction: column;
-    // Force light mode regardless of dark theme
+    pointer-events: auto;
+
+    // Light mode (default)
+    background: #fff;
+    color: #212529;
     color-scheme: light;
 
     &.open {
         transform: translateX(0);
     }
 
-    // Override any inherited dark mode variables
+    // Light mode variables
     * {
         --bs-body-bg: #fff;
         --bs-body-color: #212529;
@@ -87,6 +78,47 @@
         background-color: #fff;
         border-color: #dee2e6;
     }
+
+    // Dark mode support
+    html[data-color-scheme="dark"] & {
+        background: #1e1e2e;
+        color: #cdd6f4;
+        color-scheme: dark;
+        box-shadow: -2px 0 12px rgba(0, 0, 0, 0.4);
+
+        * {
+            --bs-body-bg: #1e1e2e;
+            --bs-body-color: #cdd6f4;
+            --bs-border-color: #45475a;
+            --bs-secondary-color: #a6adc8;
+            --bs-tertiary-bg: #313244;
+            --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-outline-secondary {
+            --bs-btn-color: #a6adc8;
+            --bs-btn-border-color: #45475a;
+            --bs-btn-hover-bg: #45475a;
+            --bs-btn-hover-color: #cdd6f4;
+        }
+
+        .form-check-input {
+            background-color: #313244;
+            border-color: #45475a;
+        }
+
+        .form-control, .form-select {
+            background-color: #313244;
+            border-color: #45475a;
+            color: #cdd6f4;
+        }
+
+        input[type="number"] {
+            background-color: #313244;
+            border-color: #45475a;
+            color: #cdd6f4;
+        }
+    }
 }
 
 // Header
@@ -95,9 +127,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
     flex-shrink: 0;
-    color: #212529;
+    color: var(--bs-body-color, #212529);
 }
 
 // Scrollable body
@@ -113,8 +145,8 @@
 
 .t4_section {
     padding: 12px 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    color: #212529;
+    border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.08));
+    color: var(--bs-body-color, #212529);
 
     &:last-child {
         border-bottom: none;
@@ -124,7 +156,7 @@
 .t4_section_label {
     font-size: 13px;
     font-weight: 600;
-    color: #212529;
+    color: var(--bs-body-color, #212529);
 }
 
 // =============================================================================
@@ -210,4 +242,140 @@
     width: 24px;
     height: 24px;
     object-fit: contain;
+}
+
+// =============================================================================
+// Font Dropdown (searchable with preview)
+// =============================================================================
+
+.t4_font_dropdown {
+    position: relative;
+}
+
+.t4_font_dropdown_toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 4px 10px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    font-size: 13px;
+    cursor: pointer;
+    min-height: 32px;
+
+    i {
+        font-size: 10px;
+        color: var(--bs-secondary-color, #6c757d);
+        transition: transform 0.15s ease;
+    }
+
+    &:hover {
+        border-color: var(--bs-secondary-color, #adb5bd);
+    }
+}
+
+.t4_font_dropdown_menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.t4_font_search {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    font-size: 13px;
+    outline: none;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    color: var(--bs-body-color, #212529);
+
+    &::placeholder {
+        color: var(--bs-secondary-color, #adb5bd);
+    }
+}
+
+.t4_font_list {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.t4_font_option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    color: var(--bs-body-color, #212529);
+    gap: 8px;
+    font-size: 13px;
+
+    &:hover {
+        background: var(--bs-tertiary-bg, #f0f0f0);
+    }
+
+    &.active {
+        background: rgba(13, 110, 253, 0.1);
+        font-weight: 600;
+    }
+
+    .t4_font_option_label {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .t4_font_option_preview {
+        flex-shrink: 0;
+        font-size: 11px;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .fa-check {
+        flex-shrink: 0;
+        color: #0d6efd;
+        font-size: 11px;
+    }
+}
+
+// =============================================================================
+// Sticky Footer (Save / Reset)
+// =============================================================================
+
+.t4_theme_panel_footer {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--bs-body-bg, #fff);
+    flex-shrink: 0;
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-height 0.2s ease, padding 0.2s ease;
+
+    &.visible {
+        opacity: 1;
+        max-height: 60px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
 }

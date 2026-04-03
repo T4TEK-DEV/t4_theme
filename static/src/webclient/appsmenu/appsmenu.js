@@ -11,22 +11,32 @@ export class AppsMenu extends Dropdown {
     	super.setup();
     	this.commandPaletteOpen = false;
         this.commandService = useService("command");
-    	if (user.activeCompany.has_background_image) {
+
+        // Check if home menu overlay is enabled for active company
+        const company = user.activeCompany || {};
+        this.homeMenuEnabled = company.theme_home_menu_overlay !== false;
+
+    	if (company.has_background_image) {
             this.imageUrl = url('/web/image', {
                 model: 'res.company',
                 field: 'background_image',
-                id: user.activeCompany.id,
+                id: company.id,
             });
     	} else {
     		this.imageUrl = '/t4_theme/static/src/img/background.png';
     	}
-        useHotkey("escape", () => {
-            if (this.state.isOpen) {
-                this.state.close();
-            } else {
-                this.state.open();
-            }
-        }, { global: true });
+
+        // Only bind ESC if home menu overlay is enabled
+        if (this.homeMenuEnabled) {
+            useHotkey("escape", () => {
+                if (this.state.isOpen) {
+                    this.state.close();
+                } else {
+                    this.state.open();
+                }
+            }, { global: true });
+        }
+
         useEffect(
             (isOpen) => {
             	if (isOpen) {

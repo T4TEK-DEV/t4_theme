@@ -8,7 +8,7 @@
 		t-inherit-mode="extension"
 	>
 	    <xpath expr="//NavBar" position="after">
-	    	<div class="t4_sidebar_area">
+	    	<div class="t4_sidebar_area" t-att-class="{ 't4_sidebar_removed': sidebarState.mode === 'hidden' }">
 	    		<t t-if="sidebarState.visible">
 		    		<ResizablePanel
 		    			handleSide="'end'"
@@ -19,7 +19,7 @@
 		    			<AppsBar/>
 		    		</ResizablePanel>
 	    		</t>
-	    		<div class="t4_sidebar_toggle_anchor">
+	    		<div class="t4_sidebar_toggle_anchor" t-if="sidebarState.mode !== 'hidden'">
 		    		<button t-on-click="_toggleSidebar"
 		    				class="t4_sidebar_toggle d-none d-lg-flex"
 		    				title="Toggle Sidebar (Ctrl+Shift+Left)">

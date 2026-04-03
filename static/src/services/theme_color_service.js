@@ -14,6 +14,90 @@ const CSS_VAR_MAP = {
     color_appbar_background: '--t4-color-appbar-background',
 };
 
+const FONT_FAMILY_MAP = {
+    system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    inter: '"Inter", sans-serif',
+    roboto: '"Roboto", sans-serif',
+    open_sans: '"Open Sans", sans-serif',
+    lato: '"Lato", sans-serif',
+    nunito: '"Nunito", sans-serif',
+    poppins: '"Poppins", sans-serif',
+    source_sans: '"Source Sans 3", sans-serif',
+    montserrat: '"Montserrat", sans-serif',
+    raleway: '"Raleway", sans-serif',
+    ubuntu: '"Ubuntu", sans-serif',
+    work_sans: '"Work Sans", sans-serif',
+    dm_sans: '"DM Sans", sans-serif',
+    quicksand: '"Quicksand", sans-serif',
+    josefin_sans: '"Josefin Sans", sans-serif',
+    cabin: '"Cabin", sans-serif',
+    karla: '"Karla", sans-serif',
+    fira_sans: '"Fira Sans", sans-serif',
+    barlow: '"Barlow", sans-serif',
+    mulish: '"Mulish", sans-serif',
+    pt_sans: '"PT Sans", sans-serif',
+    noto_sans: '"Noto Sans", sans-serif',
+    ibm_plex: '"IBM Plex Sans", sans-serif',
+    manrope: '"Manrope", sans-serif',
+    space_grotesk: '"Space Grotesk", sans-serif',
+    plus_jakarta: '"Plus Jakarta Sans", sans-serif',
+    lexend: '"Lexend", sans-serif',
+    geist: '"Geist", sans-serif',
+    // Vietnamese popular
+    be_vietnam_pro: '"Be Vietnam Pro", sans-serif',
+    sarabun: '"Sarabun", sans-serif',
+    // Serif
+    times_new_roman: '"Times New Roman", Times, serif',
+    georgia: 'Georgia, serif',
+    merriweather: '"Merriweather", serif',
+    playfair: '"Playfair Display", serif',
+    lora: '"Lora", serif',
+    libre_baskerville: '"Libre Baskerville", serif',
+    // Monospace
+    courier_new: '"Courier New", Courier, monospace',
+    jetbrains_mono: '"JetBrains Mono", monospace',
+    fira_code: '"Fira Code", monospace',
+};
+
+const GOOGLE_FONT_MAP = {
+    inter: 'Inter:wght@300;400;500;600;700',
+    roboto: 'Roboto:wght@300;400;500;700',
+    open_sans: 'Open+Sans:wght@300;400;500;600;700',
+    lato: 'Lato:wght@300;400;700',
+    nunito: 'Nunito:wght@300;400;500;600;700',
+    poppins: 'Poppins:wght@300;400;500;600;700',
+    source_sans: 'Source+Sans+3:wght@300;400;500;600;700',
+    montserrat: 'Montserrat:wght@300;400;500;600;700',
+    raleway: 'Raleway:wght@300;400;500;600;700',
+    ubuntu: 'Ubuntu:wght@300;400;500;700',
+    work_sans: 'Work+Sans:wght@300;400;500;600;700',
+    dm_sans: 'DM+Sans:wght@300;400;500;600;700',
+    quicksand: 'Quicksand:wght@300;400;500;600;700',
+    josefin_sans: 'Josefin+Sans:wght@300;400;500;600;700',
+    cabin: 'Cabin:wght@400;500;600;700',
+    karla: 'Karla:wght@300;400;500;600;700',
+    fira_sans: 'Fira+Sans:wght@300;400;500;600;700',
+    barlow: 'Barlow:wght@300;400;500;600;700',
+    mulish: 'Mulish:wght@300;400;500;600;700',
+    pt_sans: 'PT+Sans:wght@400;700',
+    noto_sans: 'Noto+Sans:wght@300;400;500;600;700',
+    ibm_plex: 'IBM+Plex+Sans:wght@300;400;500;600;700',
+    manrope: 'Manrope:wght@300;400;500;600;700',
+    space_grotesk: 'Space+Grotesk:wght@300;400;500;600;700',
+    plus_jakarta: 'Plus+Jakarta+Sans:wght@300;400;500;600;700',
+    lexend: 'Lexend:wght@300;400;500;600;700',
+    geist: 'Geist:wght@300;400;500;600;700',
+    be_vietnam_pro: 'Be+Vietnam+Pro:wght@300;400;500;600;700',
+    sarabun: 'Sarabun:wght@300;400;500;600;700',
+    merriweather: 'Merriweather:wght@300;400;700',
+    playfair: 'Playfair+Display:wght@400;500;600;700',
+    lora: 'Lora:wght@400;500;600;700',
+    libre_baskerville: 'Libre+Baskerville:wght@400;700',
+    // times_new_roman, georgia, courier_new are system fonts — no Google Font needed
+    jetbrains_mono: 'JetBrains+Mono:wght@300;400;500;600;700',
+    fira_code: 'Fira+Code:wght@300;400;500;600;700',
+};
+
 function applyThemeColors(colors) {
     const root = document.documentElement;
     if (!colors) {
@@ -27,17 +111,52 @@ function applyThemeColors(colors) {
     }
 }
 
+function loadGoogleFont(fontKey) {
+    const spec = GOOGLE_FONT_MAP[fontKey];
+    if (!spec) {
+        return;
+    }
+    const linkId = `t4-google-font-${fontKey}`;
+    if (document.getElementById(linkId)) {
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${spec}&display=swap`;
+    document.head.appendChild(link);
+}
+
+function applyThemeFont(company) {
+    const root = document.documentElement;
+    const fontKey = company?.theme_font_family || 'system';
+    const fontSize = company?.theme_font_size || '14';
+
+    if (fontKey !== 'system') {
+        loadGoogleFont(fontKey);
+    }
+    const fontStack = FONT_FAMILY_MAP[fontKey] || FONT_FAMILY_MAP.system;
+    root.style.setProperty('--t4-font-family', fontStack);
+    root.style.setProperty('--t4-font-size', `${fontSize}px`);
+}
+
 function getActiveCompanyColors() {
     const activeCompany = user.activeCompany;
     return activeCompany?.theme_colors || null;
 }
 
+export const FONT_FAMILY_MAP_EXPORT = FONT_FAMILY_MAP;
+export const GOOGLE_FONT_MAP_EXPORT = GOOGLE_FONT_MAP;
+
 export const themeColorService = {
     dependencies: [],
     start(env) {
+        const company = user.activeCompany;
         applyThemeColors(getActiveCompanyColors());
+        applyThemeFont(company);
         env.bus.addEventListener('MENUS:APP-CHANGED', () => {
             applyThemeColors(getActiveCompanyColors());
+            applyThemeFont(user.activeCompany);
         });
     },
 };

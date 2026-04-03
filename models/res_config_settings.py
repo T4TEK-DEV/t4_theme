@@ -91,6 +91,25 @@ class ResConfigSettings(models.TransientModel):
     )
 
     #----------------------------------------------------------
+    # Fields - Typography (per-company)
+    #----------------------------------------------------------
+
+    theme_font_family = fields.Selection(
+        related='company_id.theme_font_family',
+        readonly=False,
+    )
+
+    theme_font_size = fields.Char(
+        related='company_id.theme_font_size',
+        readonly=False,
+    )
+
+    theme_home_menu_overlay = fields.Boolean(
+        related='company_id.theme_home_menu_overlay',
+        readonly=False,
+    )
+
+    #----------------------------------------------------------
     # Fields - AppsBar Colors (per-company)
     #----------------------------------------------------------
 

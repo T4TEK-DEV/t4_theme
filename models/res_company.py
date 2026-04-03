@@ -124,6 +124,13 @@ class ResCompany(models.Model):
         help='Replace "Odoo" with your brand name across the system.',
     )
 
+    t4_url_prefix = fields.Char(
+        string='URL Prefix',
+        default='',
+        help='Custom URL prefix to replace /odoo/ in the address bar. '
+             'Leave empty to keep /odoo/. Example: "app" → /app/settings',
+    )
+
     background_image = fields.Binary(
         string='Apps Menu Background Image',
         attachment=True

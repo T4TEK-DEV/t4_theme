@@ -114,6 +114,10 @@
 	                        <label for="t4_web_title" string="Browser Title" class="o_light_label mb-1"/>
 	                        <field name="t4_web_title" class="w-75" placeholder="My ERP"/>
 	                        <div class="w-100 mt-1"/>
+	                        <label for="t4_url_prefix" string="URL Prefix" class="o_light_label mb-1"/>
+	                        <field name="t4_url_prefix" class="w-75" placeholder="app"/>
+	                        <div class="text-muted small mt-1 mb-2">Replace /odoo/ in URLs. E.g. "app" → /app/settings. Leave empty for default /odoo/.</div>
+	                        <div class="w-100 mt-1"/>
 	                    	<label for="appbar_image" string="Logo" class="o_light_label mb-1"/>
 	                        <field name="appbar_image" widget="image" class="ml-4 oe_avatar"/>
 	                        <div class="w-100 mt-1"/>

@@ -33,11 +33,14 @@ class IrHttp(models.AbstractModel):
 
     def session_info(self):
         result = super().session_info()
-        if self.env.user._is_internal():
-            # URL prefix from system parameter
+        # URL prefix — always set, outside _is_internal block
+        try:
             result['t4_url_prefix'] = self.env['ir.config_parameter'].sudo().get_param(
                 't4_theme.url_prefix', ''
             )
+        except Exception:
+            result['t4_url_prefix'] = ''
+        if self.env.user._is_internal():
             for company in self.env.user.company_ids.with_context(bin_size=True):
                 result['user_companies']['allowed_companies'][company.id].update({
                     'has_appsbar_image': bool(company.appbar_image),

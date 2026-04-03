@@ -33,6 +33,11 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
 
+    t4_brand_name = fields.Char(
+        related='company_id.t4_brand_name',
+        readonly=False,
+    )
+
     theme_background_image = fields.Binary(
         related='company_id.background_image',
         readonly=False

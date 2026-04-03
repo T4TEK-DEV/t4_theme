@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================================================================
+         DEBRANDING: Replace "Odoo" with company brand name
+         ================================================================ -->
+
+    <t t-set="t4_brand" t-value="request.env.company.t4_brand_name or 'T4 ERP'"/>
+
+    <!-- 1. Login Page — "Powered by Odoo" footer -->
+    <template id="t4_login_debrand" inherit_id="web.login_layout" name="T4 Debrand Login">
+        <xpath expr="//div[hasclass('text-center')]//a[contains(@href,'odoo.com')]" position="replace">
+            <span t-out="request.env.company.t4_brand_name or 'T4 ERP'"/>
+        </xpath>
+    </template>
+
+    <!-- 2. Session Expired Dialog (JS template override via assets) -->
+
+    <!-- 3. Offline Page — replace Odoo references -->
+    <template id="t4_offline_debrand" inherit_id="web.webclient_offline" name="T4 Debrand Offline">
+        <xpath expr="//p[contains(text(),'Odoo')]" position="replace">
+            <p>Check your network connection and come back here. The application will load as soon as you're back online.</p>
+        </xpath>
+    </template>
+
+    <!-- 4. Report Title — replace "Odoo Report" default -->
+    <template id="t4_report_debrand" inherit_id="web.report_layout" name="T4 Debrand Report Title">
+        <xpath expr="//title" position="replace">
+            <title><t t-esc="title or (request.env.company.t4_brand_name or 'T4 ERP') + ' Report'"/></title>
+        </xpath>
+    </template>
+
+    <!-- 5. Settings About — "Odoo (Community Edition)" -->
+    <template id="t4_settings_edition" inherit_id="web.res_config_edition"
+              name="T4 Debrand Settings Edition">
+        <xpath expr="//h3[contains(text(),'Odoo')]" position="replace">
+            <h3 class="px-0"><t t-esc="request.env.company.t4_brand_name or 'T4 ERP'"/> <t t-esc="serverVersion"/> (Community Edition)</h3>
+        </xpath>
+    </template>
+
+    <!-- 6. Email Layout (text) — "Powered by Odoo" -->
+    <template id="t4_mail_debrand_text" inherit_id="mail.mail_notification_layout"
+              name="T4 Debrand Email Text">
+        <xpath expr="//a[contains(@href,'odoo.com')][contains(text(),'Odoo')]" position="replace">
+            <t t-out="object.company_id.t4_brand_name or 'T4 ERP'" />
+        </xpath>
+    </template>
+
+</odoo>

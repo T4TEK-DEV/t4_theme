@@ -40,6 +40,7 @@ class IrHttp(models.AbstractModel):
                     'has_background_image': bool(company.background_image),
                     'has_favicon': bool(company.favicon),
                     't4_web_title': company.t4_web_title or '',
+                    't4_brand_name': company.t4_brand_name or 'T4 ERP',
                     'theme_preset': company.theme_preset or 'default',
                     'theme_colors': {
                         'color_brand': company.theme_color_brand or '#243742',

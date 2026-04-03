@@ -186,13 +186,22 @@
                         <i class="fa fa-building-o me-2"/>Branding
                     </span>
 
+                    <!-- Brand Name -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Brand Name <span class="text-muted">(replaces "Odoo")</span></small>
+                        <input type="text" class="form-control form-control-sm"
+                            t-att-value="state.brandName"
+                            t-on-change="onChangeBrandName"
+                            placeholder="My Company"/>
+                    </div>
+
                     <!-- Browser Title -->
                     <div class="mb-3">
                         <small class="text-muted d-block mb-1">Browser Title</small>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.webTitle"
                             t-on-change="onChangeWebTitle"
-                            placeholder="My Company"/>
+                            placeholder="My ERP"/>
                     </div>
 
                     <!-- Logo -->

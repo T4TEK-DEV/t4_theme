@@ -186,9 +186,26 @@
                         <i class="fa fa-building-o me-2"/>Branding
                     </span>
 
+                    <!-- URL Prefix -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <small class="text-muted">URL Prefix</small>
+                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
+                                title="Thay /odoo/ trong URL. VD: nhập 'app' → /app/settings. Để trống = /odoo/ mặc định. Cần reload sau khi thay đổi."/>
+                        </div>
+                        <input type="text" class="form-control form-control-sm"
+                            t-att-value="state.urlPrefix"
+                            t-on-change="onChangeUrlPrefix"
+                            placeholder="app"/>
+                    </div>
+
                     <!-- Brand Name -->
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">Brand Name <span class="text-muted">(replaces "Odoo")</span></small>
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <small class="text-muted">Brand Name</small>
+                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
+                                title="Thay 'Odoo' trong: tiêu đề tab, trang login, dialog lỗi, email footer, report."/>
+                        </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.brandName"
                             t-on-change="onChangeBrandName"
@@ -197,7 +214,11 @@
 
                     <!-- Browser Title -->
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">Browser Title</small>
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <small class="text-muted">Browser Title</small>
+                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
+                                title="Tiêu đề hiện trên tab trình duyệt, thay 'Odoo' mặc định."/>
+                        </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.webTitle"
                             t-on-change="onChangeWebTitle"

@@ -38,6 +38,11 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
 
+    t4_url_prefix = fields.Char(
+        related='company_id.t4_url_prefix',
+        readonly=False,
+    )
+
     theme_background_image = fields.Binary(
         related='company_id.background_image',
         readonly=False

@@ -1,10 +1,32 @@
+import re
+
 from odoo import models
 from odoo.http import request
+from werkzeug.exceptions import NotFound
 
 
 class IrHttp(models.AbstractModel):
 
     _inherit = "ir.http"
+
+    @classmethod
+    def _match(cls, path_info):
+        """Rewrite custom URL prefix to /odoo/ so the standard router handles it."""
+        try:
+            prefix = request.env['res.company'].sudo().browse(
+                request.env.company.id
+            ).t4_url_prefix
+            if prefix:
+                prefix = prefix.strip().strip('/')
+                if prefix and path_info.startswith(f'/{prefix}'):
+                    # Rewrite: /custom/... → /odoo/...
+                    new_path = '/odoo' + path_info[len(f'/{prefix}'):]
+                    if not new_path.startswith('/odoo'):
+                        new_path = '/odoo'
+                    return super()._match(new_path)
+        except Exception:
+            pass
+        return super()._match(path_info)
 
     #----------------------------------------------------------
     # Functions
@@ -41,6 +63,7 @@ class IrHttp(models.AbstractModel):
                     'has_favicon': bool(company.favicon),
                     't4_web_title': company.t4_web_title or '',
                     't4_brand_name': company.t4_brand_name or 'T4 ERP',
+                    't4_url_prefix': company.t4_url_prefix or '',
                     'theme_preset': company.theme_preset or 'default',
                     'theme_colors': {
                         'color_brand': company.theme_color_brand or '#243742',

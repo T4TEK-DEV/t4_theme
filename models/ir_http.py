@@ -10,6 +10,13 @@ class IrHttp(models.AbstractModel):
     # Functions
     #----------------------------------------------------------
 
+    def color_scheme(self):
+        """Read color scheme from cookie (set by dark_mode_service.js)."""
+        scheme = request.httprequest.cookies.get("color_scheme")
+        if scheme in ("dark", "light"):
+            return scheme
+        return super().color_scheme()
+
     @classmethod
     def _set_color_scheme(cls, response):
         scheme = request.httprequest.cookies.get("color_scheme")

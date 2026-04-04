@@ -592,7 +592,7 @@ export class ThemeSystray extends Component {
 
     onOpenThemeSettings() {
         this.state.open = false;
-        this.actionService.doAction('t4_theme.action_t4_theme_settings');
+        document.dispatchEvent(new CustomEvent('t4:toggle-design-mode'));
     }
 }
 

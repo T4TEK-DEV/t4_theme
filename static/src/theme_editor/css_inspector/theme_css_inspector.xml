@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.ThemeCssInspector">
+
+        <!-- Collapsed badge -->
+        <div t-if="state.collapsed" class="t4_css_inspector t4_design_badge" t-on-click="toggleCollapse">
+            <i class="fa fa-paint-brush"/>
+            <span t-if="state.dirty" class="t4_design_badge_dot"/>
+        </div>
+
+        <!-- Design toolbar -->
+        <div t-if="!state.collapsed" class="t4_css_inspector t4_inspector_toolbar">
+            <button class="btn btn-sm t4_toolbar_collapse" t-on-click="toggleCollapse" title="Collapse">
+                <i class="fa fa-chevron-up"/>
+            </button>
+
+            <!-- Mode switcher -->
+            <div class="t4_mode_switcher">
+                <button t-attf-class="btn btn-sm {{ state.mode === 'visual' ? 't4_mode_active' : 't4_mode_btn' }}"
+                        t-on-click="() => this.switchMode('visual')">
+                    <i class="fa fa-sliders me-1"/>Visual
+                </button>
+                <button t-attf-class="btn btn-sm {{ state.mode === 'advanced' ? 't4_mode_active' : 't4_mode_btn' }}"
+                        t-on-click="() => this.switchMode('advanced')">
+                    <i class="fa fa-code me-1"/>CSS
+                </button>
+            </div>
+
+            <!-- Save status -->
+            <span t-if="state.saveStatus === 'saving'" class="t4_toolbar_status text-warning">
+                <i class="fa fa-circle-o-notch fa-spin me-1"/>Saving...
+            </span>
+            <span t-if="state.saveStatus === 'saved'" class="t4_toolbar_status text-success">
+                <i class="fa fa-check me-1"/>Saved
+            </span>
+            <span t-if="state.saveStatus === 'error'" class="t4_toolbar_status text-danger">
+                <i class="fa fa-exclamation-triangle me-1"/>Error
+            </span>
+            <button t-if="state.dirty" class="btn btn-sm btn-success" t-on-click="onSave">
+                <i class="fa fa-save me-1"/>Save
+            </button>
+            <button class="btn btn-sm btn-light" t-on-click="close">
+                <i class="fa fa-times me-1"/>Exit
+            </button>
+        </div>
+
+        <!-- Element Highlighter -->
+        <t t-if="state.hoveredElement and state.inspecting">
+            <div class="t4_css_inspector t4_element_highlight" t-att-style="highlightStyle"/>
+            <div class="t4_css_inspector t4_element_highlight_label" t-att-style="highlightLabelStyle">
+                <t t-esc="state.hoveredElement.label"/>
+            </div>
+        </t>
+
+        <!-- ═══════ VISUAL MODE: Right Sidebar ═══════ -->
+        <t t-if="state.mode === 'visual'">
+            <div class="t4_builder_sidebar" t-att-class="{ 't4_sidebar_has_selection': state.selectedInfo }">
+
+                <!-- No selection -->
+                <div t-if="!state.selectedInfo" class="t4_sidebar_empty">
+                    <i class="fa fa-mouse-pointer fa-2x mb-2"/>
+                    <p>Click any element to customize</p>
+                </div>
+
+                <!-- Element selected -->
+                <t t-if="state.selectedInfo">
+                    <!-- Sidebar Header -->
+                    <div class="t4_sidebar_header">
+                        <div class="t4_sidebar_header_top">
+                            <i t-attf-class="fa {{ state.selectedInfo.icon }} me-2"/>
+                            <span class="t4_sidebar_title" t-esc="state.selectedInfo.label"/>
+                            <button class="btn-close btn-close-sm ms-auto" t-on-click="deselectElement"/>
+                        </div>
+                        <div class="t4_sidebar_selector" t-esc="state.selectedInfo.selector"/>
+                    </div>
+
+                    <!-- Sidebar Body — Option Sections -->
+                    <div class="t4_sidebar_body">
+                        <t t-foreach="state.selectedSections" t-as="section" t-key="section.key">
+                            <t t-if="section.relevant">
+                                <BuilderSidebar
+                                    section="section"
+                                    overrides="state.sidebarOverrides"
+                                    onPropertyChange.bind="onSidebarPropertyChange"
+                                    getSidebarValue.bind="getSidebarValue"
+                                    isSidebarOverridden.bind="isSidebarOverridden"/>
+                            </t>
+                        </t>
+                    </div>
+
+                    <!-- Sidebar Footer -->
+                    <div class="t4_sidebar_footer">
+                        <button class="btn btn-sm btn-outline-secondary" t-on-click="onSidebarReset">
+                            <i class="fa fa-undo me-1"/>Reset
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary"
+                                t-on-click="() => this.switchMode('advanced')">
+                            <i class="fa fa-code me-1"/>Advanced CSS
+                        </button>
+                    </div>
+                </t>
+            </div>
+        </t>
+
+        <!-- ═══════ ADVANCED MODE: Floating CSS Panels ═══════ -->
+        <t t-if="state.mode === 'advanced'">
+            <t t-foreach="state.panels" t-as="panel" t-key="panel.id">
+                <CssPanel
+                    panel="panel"
+                    panelIndex="panel_index"
+                    onPropertyChange.bind="onPropertyChange"
+                    onResetPanel.bind="onResetPanel"
+                    onClose.bind="closePanel"/>
+            </t>
+        </t>
+
+    </t>
+</templates>

@@ -1,0 +1,200 @@
+// ── Option Section ──
+.t4_option_section {
+    border-bottom: 1px solid #eee;
+    &:last-child { border-bottom: none; }
+    .o_dark & { border-color: #333; }
+}
+
+.t4_option_header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #495057;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    &:hover { background: #f8f9fa; }
+    .o_dark & {
+        color: #bbb;
+        &:hover { background: #2a2a2a; }
+    }
+}
+
+.t4_chevron {
+    font-size: 9px;
+    width: 12px;
+    color: #adb5bd;
+}
+
+.t4_section_icon {
+    font-size: 12px;
+    color: #714B67;
+    width: 16px;
+    text-align: center;
+}
+
+.t4_option_body {
+    padding: 4px 16px 12px;
+}
+
+.t4_option_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    min-height: 30px;
+    &:last-child { margin-bottom: 0; }
+
+    &.t4_prop_overridden {
+        .t4_option_label { color: #714B67; font-weight: 600; }
+    }
+}
+
+.t4_option_label {
+    flex: 0 0 auto;
+    width: 90px;
+    font-size: 12px;
+    color: #495057;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .o_dark & { color: #9da5b4; }
+}
+
+.t4_option_control {
+    flex: 1;
+    min-width: 0;
+}
+
+// ── Slider Control ──
+.t4_control_slider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type='range'] {
+        flex: 1;
+        height: 4px;
+        accent-color: #714B67;
+        min-width: 60px;
+    }
+
+    input[type='number'] {
+        width: 52px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 3px 4px;
+        font-size: 12px;
+        .o_dark & {
+            background: #2d2d2d;
+            border-color: #3e3e3e;
+            color: #d4d4d4;
+        }
+    }
+
+    .t4_unit_label {
+        font-size: 10px;
+        color: #6c757d;
+        min-width: 16px;
+    }
+}
+
+// ── Color Control ──
+.t4_control_color {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type='color'] {
+        width: 32px;
+        height: 28px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 2px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .t4_color_text {
+        flex: 1;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-family: monospace;
+        min-width: 0;
+        .o_dark & {
+            background: #2d2d2d;
+            border-color: #3e3e3e;
+            color: #d4d4d4;
+        }
+    }
+}
+
+// ── Alignment Control ──
+.t4_control_align {
+    display: flex;
+    gap: 4px;
+
+    .btn {
+        padding: 3px 8px;
+        font-size: 12px;
+    }
+}
+
+// ── Shadow Preset Control ──
+.t4_control_shadow {
+    display: flex;
+    gap: 8px;
+}
+
+.t4_shadow_btn {
+    width: 40px;
+    height: 32px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: border-color 0.15s;
+
+    &:hover { border-color: #714B67; }
+
+    &.t4_shadow_active {
+        border-color: #714B67;
+        border-width: 2px;
+    }
+
+    .o_dark & {
+        background: #2d2d2d;
+        border-color: #3e3e3e;
+    }
+}
+
+.t4_shadow_preview {
+    width: 24px;
+    height: 18px;
+    border-radius: 3px;
+    background: #f0f0f0;
+    .o_dark & { background: #444; }
+}
+
+// ── Select Control ──
+.t4_option_control select {
+    font-size: 12px;
+    padding: 3px 8px;
+    height: auto;
+    .o_dark & {
+        background: #2d2d2d;
+        border-color: #3e3e3e;
+        color: #d4d4d4;
+    }
+}

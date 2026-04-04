@@ -87,8 +87,17 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" icon="fa-clock-o" name="t4_theme.t4_theme_demo_action" type="action">
-                            <field string="Hours" name="amount" widget="statinfo"/>
+                        <button class="oe_stat_button" icon="fa-clock-o">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="amount"/></span>
+                                <span class="o_stat_text">Amount</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-tasks">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="progress"/>%</span>
+                                <span class="o_stat_text">Progress</span>
+                            </div>
                         </button>
                     </div>
                     <div class="oe_title">

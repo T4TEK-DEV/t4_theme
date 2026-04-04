@@ -418,18 +418,6 @@ export function findComponentForElement(el) {
     return null;
 }
 
-/**
- * Build property key → cssTarget selector map.
- * For CSS vars: use cssTarget from component
- * For direct CSS (css: true): use cssTarget directly as the rule selector
- */
-export function buildTargetMap() {
-    const map = {};
-    for (const [, config] of Object.entries(THEME_COMPONENTS)) {
-        const target = config.cssTarget || ':root';
-        for (const prop of config.properties) {
-            map[prop.key] = { target, isDirect: !!prop.css };
-        }
-    }
-    return map;
-}
+// Note: buildTargetMap removed — overlay now reads cssTarget directly from
+// the active panel's config to avoid property key collisions
+// (e.g. 'font-size' appears in 8+ components with different targets)

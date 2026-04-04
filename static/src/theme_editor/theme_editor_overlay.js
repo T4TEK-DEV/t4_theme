@@ -107,7 +107,7 @@ export class ThemeEditorOverlay extends Component {
     // ── Mouse Handlers ──
 
     _onMouseMove(ev) {
-        if (!this.state.active || this.state.panel || this.state.collapsed) return;
+        if (!this.state.active || this.state.panel) return;
         const el = ev.target;
         if (el.closest('.t4_theme_highlight, .t4_theme_highlight_label, .t4_style_panel, .t4_design_toolbar, .t4_design_badge')) return;
 

@@ -76,7 +76,10 @@ export class ThemeEditorOverlay extends Component {
             const target = compoundKey.slice(0, sep);
             const propKey = compoundKey.slice(sep + 3);
             if (!groups[target]) groups[target] = [];
-            groups[target].push(`${propKey}: ${value} !important`);
+            // CSS vars need !important to override Odoo declarations
+            // Direct CSS properties should NOT use !important to avoid cascade pollution
+            const isVar = propKey.startsWith('--');
+            groups[target].push(`${propKey}: ${value}${isVar ? ' !important' : ''}`);
         }
 
         let css = '/* T4 Theme Editor Overrides */\n';

@@ -155,12 +155,13 @@ function applyViewOverrides(company) {
         const [target, propKey] = compoundKey.split('|||');
         if (!target || !propKey) continue;
         if (!groups[target]) groups[target] = [];
-        groups[target].push(`${propKey}: ${value}`);
+        const isVar = propKey.startsWith('--');
+        groups[target].push(`${propKey}: ${value}${isVar ? ' !important' : ''}`);
     }
 
     let css = '/* T4 View Overrides */\n';
     for (const [selector, props] of Object.entries(groups)) {
-        css += `${selector} { ${props.join(' !important; ')} !important }\n`;
+        css += `${selector} { ${props.join('; ')} }\n`;
     }
     styleEl.textContent = css;
 }

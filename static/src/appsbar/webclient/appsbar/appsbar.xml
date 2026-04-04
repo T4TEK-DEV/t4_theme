@@ -2,78 +2,108 @@
 
 <templates xml:space="preserve">
 
-	<t t-name="muk_web_appsbar.AppsBar">
-		<div class="mk_apps_sidebar_panel">
-			<div class="mk_apps_sidebar">
-				<div t-if="sidebarImageUrl" class="mk_apps_sidebar_logo">
-					<img class="img-fluid" t-att-src="sidebarImageUrl" alt="Logo"/>
-				</div>
-				<div class="mk_apps_sidebar_header">
-					<span>Apps</span>
-				</div>
-				<ul class="mk_apps_sidebar_menu">
-				    <t t-foreach="this.appMenuService.getAppsMenuItems()" t-as="app" t-key="app.id">
-			            <li t-attf-class="nav-item {{ app.id === this.appMenuService.getCurrentApp()?.id ? 'active' : '' }}">
-			            	<a
-			            		t-att-href="app.href"
-		            			t-att-data-menu-id="app.id"
-		            			t-att-data-menu-xmlid="app.xmlid"
-		            			t-att-data-action-id="app.actionID"
-								t-on-click.prevent="(ev) => this._onAppClickFlyout(app, ev)"
-								t-on-mouseenter="(ev) => this._onAppMouseEnter(app, ev)"
-		            			class="nav-link"
-		            			role="menuitem"
-		            		>
-			                	<img
-			                		t-if="app.webIconData"
-			                		class="mk_apps_sidebar_icon"
-			                		t-att-src="app.webIconData"
-			                	/>
-			                	<img
-			                		t-else=""
-			                		class="mk_apps_sidebar_icon"
-			                		src="/base/static/description/icon.png"
-			                	/>
-						        <span class="mk_apps_sidebar_name">
-						            <t t-out="app.label"/>
-						        </span>
-			            	 </a>
-			            </li>
-				    </t>
-				</ul>
-				<div class="mk_apps_sidebar_spacer"/>
-			</div>
+    <t t-name="muk_web_appsbar.AppsBar">
+        <div class="mk_apps_sidebar_panel">
+            <div class="mk_apps_sidebar">
+                <div t-if="sidebarImageUrl" class="mk_apps_sidebar_logo">
+                    <img class="img-fluid" t-att-src="sidebarImageUrl" alt="Logo"/>
+                </div>
+                <div class="mk_apps_sidebar_header">
+                    <span>Apps</span>
+                </div>
+                <ul class="mk_apps_sidebar_menu">
+                    <t t-foreach="this.appMenuService.getAppsMenuItems()" t-as="app" t-key="app.id">
+                        <li t-attf-class="nav-item {{ app.id === this.appMenuService.getCurrentApp()?.id ? 'active' : '' }}">
+                            <a
+                                t-att-href="app.href"
+                                t-att-data-menu-id="app.id"
+                                t-att-data-menu-xmlid="app.xmlid"
+                                t-att-data-action-id="app.actionID"
+                                t-on-click.prevent="(ev) => this._onAppClick(app, ev)"
+                                class="nav-link"
+                                role="menuitem"
+                            >
+                                <img
+                                    t-if="app.webIconData"
+                                    class="mk_apps_sidebar_icon"
+                                    t-att-src="app.webIconData"
+                                />
+                                <img
+                                    t-else=""
+                                    class="mk_apps_sidebar_icon"
+                                    src="/base/static/description/icon.png"
+                                />
+                                <span class="mk_apps_sidebar_name">
+                                    <t t-out="app.label"/>
+                                </span>
+                                <span
+                                    t-if="this._getAppSections(app).length"
+                                    t-on-click.stop.prevent="(ev) => this._onShowSubnav(app, ev)"
+                                    class="t4_nav_arrow"/>
+                            </a>
+                        </li>
+                    </t>
+                </ul>
+                <div class="mk_apps_sidebar_spacer"/>
+            </div>
 
-			<!-- Flyout sub-menu (small mode) -->
-			<div t-if="flyout.visible"
-				class="t4_flyout"
-				t-att-style="flyoutStyle"
-				t-on-mouseleave="_onFlyoutMouseLeave">
-				<t t-foreach="flyout.sections" t-as="section" t-key="section.id">
-					<!-- Section with children = group header -->
-					<t t-if="section.childrenTree and section.childrenTree.length">
-						<div class="t4_flyout_group_label">
-							<t t-out="section.label || section.name"/>
-						</div>
-						<t t-foreach="section.childrenTree" t-as="child" t-key="child.id">
-							<a class="t4_flyout_item"
-								t-att-href="child.href"
-								t-on-click.prevent="() => this._onFlyoutMenuClick(child)">
-								<t t-out="child.label || child.name"/>
-							</a>
-						</t>
-					</t>
-					<!-- Section without children = direct menu item -->
-					<t t-else="">
-						<a class="t4_flyout_item"
-							t-att-href="section.href"
-							t-on-click.prevent="() => this._onFlyoutMenuClick(section)">
-							<t t-out="section.label || section.name"/>
-						</a>
-					</t>
-				</t>
-			</div>
-		</div>
-	</t>
+            <!-- Subnav popup (OM UX style with collapsible sections) -->
+            <div t-if="subnav.visible"
+                class="t4_subnav"
+                t-att-style="subnavStyle"
+                t-on-mouseleave="_onSubnavMouseLeave">
+                <t t-foreach="subnav.sections" t-as="section" t-key="section.id">
+                    <!-- Section header (collapsible) -->
+                    <div class="t4_subnav_section_header"
+                        t-on-click="() => this._toggleSection(section.id)">
+                        <span><t t-out="section.label || section.name"/></span>
+                        <i class="t4_collapse_icon fa"
+                            t-att-class="{ 'fa-minus-circle': !this._isSectionCollapsed(section.id), 'fa-plus-circle': this._isSectionCollapsed(section.id) }"/>
+                    </div>
+
+                    <!-- Collapsible content -->
+                    <div class="t4_subnav_collapse"
+                        t-att-class="{ 'collapsed': this._isSectionCollapsed(section.id) }">
+                        <t t-if="section.childrenTree and section.childrenTree.length">
+                            <t t-foreach="section.childrenTree" t-as="child" t-key="child.id">
+                                <!-- Sub-items with children = group header -->
+                                <t t-if="child.childrenTree and child.childrenTree.length">
+                                    <div class="t4_subnav_group_label">
+                                        <t t-out="child.label || child.name"/>
+                                    </div>
+                                    <t t-foreach="child.childrenTree" t-as="grandchild" t-key="grandchild.id">
+                                        <a class="t4_subnav_item"
+                                            t-att-href="grandchild.href"
+                                            t-on-click.prevent="() => this._onSubnavMenuClick(grandchild)">
+                                            <span class="t4_indicator_pill"/>
+                                            <span><t t-out="grandchild.label || grandchild.name"/></span>
+                                        </a>
+                                    </t>
+                                </t>
+                                <!-- Sub-items without children = direct entry -->
+                                <t t-else="">
+                                    <a class="t4_subnav_item"
+                                        t-att-href="child.href"
+                                        t-on-click.prevent="() => this._onSubnavMenuClick(child)">
+                                        <span class="t4_indicator_pill"/>
+                                        <span><t t-out="child.label || child.name"/></span>
+                                    </a>
+                                </t>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <!-- Section itself is a direct menu item -->
+                            <a class="t4_subnav_item"
+                                t-att-href="section.href"
+                                t-on-click.prevent="() => this._onSubnavMenuClick(section)">
+                                <span class="t4_indicator_pill"/>
+                                <span><t t-out="section.label || section.name"/></span>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
 
 </templates>

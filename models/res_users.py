@@ -35,9 +35,8 @@ class ResUsers(models.Model):
 
     sidebar_type = fields.Selection(
         selection=[
-            ('invisible', 'Invisible'),
-            ('small', 'Small'),
-            ('large', 'Large')
+            ('invisible', 'Hidden'),
+            ('large', 'Visible'),
         ],
         string="Sidebar Type",
         default='large',

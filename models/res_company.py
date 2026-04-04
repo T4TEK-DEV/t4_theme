@@ -1,4 +1,7 @@
-from odoo import models, fields
+import re
+
+from odoo import _, api, models, fields
+from odoo.exceptions import ValidationError
 
 
 THEME_PRESETS = {
@@ -77,6 +80,23 @@ THEME_PRESETS = {
 }
 
 
+_RE_HEX_COLOR = re.compile(r'^#[0-9A-Fa-f]{6}$')
+_RE_URL_PREFIX = re.compile(r'^[a-zA-Z0-9_-]*$')
+
+_THEME_COLOR_FIELDS = [
+    'theme_color_brand',
+    'theme_color_primary',
+    'theme_color_success',
+    'theme_color_info',
+    'theme_color_warning',
+    'theme_color_danger',
+    'theme_color_appsmenu_text',
+    'theme_color_appbar_text',
+    'theme_color_appbar_active',
+    'theme_color_appbar_background',
+]
+
+
 class ResCompany(models.Model):
 
     _inherit = 'res.company'
@@ -131,26 +151,53 @@ class ResCompany(models.Model):
              'Leave empty to keep /odoo/. Example: "app" → /app/settings',
     )
 
+    #----------------------------------------------------------
+    # Constraints
+    #----------------------------------------------------------
+
+    @api.constrains(*_THEME_COLOR_FIELDS)
+    def _check_theme_colors(self):
+        for company in self:
+            for fname in _THEME_COLOR_FIELDS:
+                value = company[fname]
+                if value and not _RE_HEX_COLOR.match(value):
+                    raise ValidationError(
+                        _('Invalid color format for %s: "%s". Use hex format like #FF0000.')
+                        % (fname, value)
+                    )
+
+    @api.constrains('t4_url_prefix')
+    def _check_url_prefix(self):
+        for company in self:
+            prefix = company.t4_url_prefix or ''
+            if prefix and not _RE_URL_PREFIX.match(prefix):
+                raise ValidationError(
+                    _('URL Prefix may only contain letters, numbers, hyphens and underscores.')
+                )
+
+    #----------------------------------------------------------
+    # CRUD
+    #----------------------------------------------------------
+
     def write(self, vals):
         if 't4_url_prefix' in vals:
-            # Save old prefix BEFORE write so execute() can detect change
-            old = self.env['ir.config_parameter'].sudo().get_param(
-                't4_theme.url_prefix', ''
-            )
-            self.env['ir.config_parameter'].sudo().set_param(
-                't4_theme.url_prefix_old', old
-            )
+            # sudo: read/write system parameters for URL routing config
+            icp = self.env['ir.config_parameter'].sudo()
+            # Save old prefix BEFORE write so routing_map() can keep old routes alive
+            old = icp.get_param('t4_theme.url_prefix', '')
+            icp.set_param('t4_theme.url_prefix_old', old)
         res = super().write(vals)
         if 't4_url_prefix' in vals:
             from ..controllers.url_rewrite import url_prefix
+            # sudo: write system parameter for URL routing config
+            icp = self.env['ir.config_parameter'].sudo()
             prefix = (vals['t4_url_prefix'] or '').strip().strip('/')
-            self.env['ir.config_parameter'].sudo().set_param(
-                't4_theme.url_prefix', prefix
-            )
+            icp.set_param('t4_theme.url_prefix', prefix)
             # Update global cache
             url_prefix[0] = prefix
             # Clear routing cache + regenerate assets
             self.env['ir.http'].env.registry.clear_cache('routing')
+            # sudo: regenerate assets requires admin access
             self.env['ir.attachment'].sudo().regenerate_assets_bundles()
         return res
 

@@ -70,8 +70,7 @@ const PRESET_OPTIONS = [
 ];
 
 const SIDEBAR_OPTIONS = [
-    { key: "large", label: _t("Large"), icon: "fa-bars" },
-    { key: "small", label: _t("Small"), icon: "fa-ellipsis-v" },
+    { key: "large", label: _t("Visible"), icon: "fa-bars" },
     { key: "invisible", label: _t("Hidden"), icon: "fa-times" },
 ];
 
@@ -373,7 +372,6 @@ export class ThemeSystray extends Component {
         this._markDirty("sidebarType");
         const sidebarMap = {
             large: { mode: "large", visible: true, width: 200 },
-            small: { mode: "small", visible: true, width: 68 },
             invisible: { mode: "hidden", visible: false, width: 200 },
         };
         try {

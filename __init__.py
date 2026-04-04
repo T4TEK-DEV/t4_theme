@@ -13,8 +13,8 @@ _logger = logging.getLogger(__name__)
 try:
     from .controllers.url_rewrite import install_url_rewrite
     install_url_rewrite()
-except Exception as e:
-    _logger.debug("T4 Theme: deferred URL rewrite: %s", e)
+except ImportError:
+    _logger.debug("T4 Theme: deferred URL rewrite (import not ready)")
 
 
 def _setup_module(env):
@@ -34,4 +34,8 @@ def _setup_module(env):
 
 
 def _uninstall_cleanup(env):
-    pass
+    # sudo: cleanup system parameters created by this module
+    icp = env['ir.config_parameter'].sudo()
+    icp.search([
+        ('key', 'in', ['t4_theme.url_prefix', 't4_theme.url_prefix_old']),
+    ]).unlink()

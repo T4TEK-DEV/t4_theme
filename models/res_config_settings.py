@@ -145,18 +145,8 @@ class ResConfigSettings(models.TransientModel):
         }
 
     def action_reset_theme_colors(self):
-        self.company_id.write({
-            'theme_color_brand': '#243742',
-            'theme_color_primary': '#5D8DA8',
-            'theme_color_success': '#28A745',
-            'theme_color_info': '#17A2B8',
-            'theme_color_warning': '#FFAC00',
-            'theme_color_danger': '#DC3545',
-            'theme_color_appsmenu_text': '#F8F9FA',
-            'theme_color_appbar_text': '#DEE2E6',
-            'theme_color_appbar_active': '#5D8DA8',
-            'theme_color_appbar_background': '#111827',
-        })
+        from .res_company import THEME_PRESETS
+        self.company_id.write(THEME_PRESETS['default'])
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',

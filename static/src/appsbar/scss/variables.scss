@@ -1,6 +1,41 @@
+// =============================================================================
+// AppsBar / Sidebar Variables
+// =============================================================================
+
+// --- Legacy appbar colors (used by theme_color_service.js) ---
 $mk-appbar-color: #dee2e6 !default;
 $mk-appbar-active: $o-brand-primary !default;
 $mk-appbar-background: #111827 !default;
 
-$mk-sidebar-large-width: 146px !default;
-$mk-sidebar-small-width: 46px !default;
+// --- Sidebar layout ---
+$mk-sidebar-large-width: 200px !default;
+$mk-sidebar-sm-threshold: 142px !default;
+
+// --- Sidebar colors (OM UX inspired) ---
+$t4-sidenav-text: $o-gray-700 !default;
+$t4-sidenav-bg: #fff !default;
+$t4-sidenav-border: #dee2e6 !default;
+$t4-sidenav-muted: $o-gray-600 !default;
+
+// --- Active item ---
+$t4-sidenav-item-active: #05869C !default;
+$t4-sidenav-item-active-bg: #EAF6F9 !default;
+
+// --- Hover ---
+$t4-sidenav-item-hover-bg: rgba(black, 0.04) !default;
+
+// --- Nav-arrow ---
+$t4-sidenav-item-arrow: $o-gray-400 !default;
+$t4-sidenav-item-arrow-bg: $o-brand-primary !default;
+
+// --- App icon ---
+$t4-sidenav-app-icon-bg: linear-gradient(315deg, #fbfbfb, #fbfbfb) !default;
+$t4-sidenav-app-icon-shadow: 0 .3125rem .625rem 0 #e1e1e1 !default;
+
+// --- Subnav popup ---
+$t4-subnav-bg: $t4-sidenav-bg !default;
+$t4-subnav-blur: 37px !default;
+$t4-subnav-header: $t4-sidenav-muted !default;
+
+// --- Line height ---
+$t4-sidenav-lh: 1.77 !default;

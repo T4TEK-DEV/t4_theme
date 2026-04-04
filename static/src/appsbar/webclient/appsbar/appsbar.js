@@ -5,100 +5,104 @@ import { user } from "@web/core/user";
 import { Component, onWillUnmount, useState } from '@odoo/owl';
 
 export class AppsBar extends Component {
-	static template = 'muk_web_appsbar.AppsBar';
+    static template = 'muk_web_appsbar.AppsBar';
     static props = {};
 
-	setup() {
+    setup() {
         this.appMenuService = useService('app_menu');
         this.menuService = useService('menu');
 
-    	if (user.activeCompany.has_appsbar_image) {
+        if (user.activeCompany.has_appsbar_image) {
             this.sidebarImageUrl = url('/web/image', {
                 model: 'res.company',
                 field: 'appbar_image',
                 id: user.activeCompany.id,
             });
-    	}
+        }
 
-        this.flyout = useState({
+        this.subnav = useState({
             visible: false,
             appId: null,
             sections: [],
             top: 0,
         });
 
-    	const renderAfterMenuChange = () => {
-            this.flyout.visible = false;
+        // Track collapsed sections
+        this.collapsedSections = useState({});
+
+        const renderAfterMenuChange = () => {
+            this.subnav.visible = false;
+            this._sectionsCache = {}; // invalidate cache on menu change
             this.render();
         };
         this.env.bus.addEventListener(
-        	'MENUS:APP-CHANGED', renderAfterMenuChange
+            'MENUS:APP-CHANGED', renderAfterMenuChange
         );
         onWillUnmount(() => {
             this.env.bus.removeEventListener(
-            	'MENUS:APP-CHANGED', renderAfterMenuChange
+                'MENUS:APP-CHANGED', renderAfterMenuChange
             );
         });
     }
 
-    get isSmallMode() {
-        const panel = document.querySelector('.t4_sidebar_panel');
-        return panel && panel.classList.contains('sm');
+    _getAppSections(app) {
+        // Cache sections per app to avoid repeated tree lookups during render
+        if (!this._sectionsCache) {
+            this._sectionsCache = {};
+        }
+        if (!this._sectionsCache[app.id]) {
+            const tree = this.menuService.getMenuAsTree(app.id);
+            this._sectionsCache[app.id] = tree.childrenTree || [];
+        }
+        return this._sectionsCache[app.id];
     }
 
-    _onAppClick(app) {
-        this.flyout.visible = false;
+    _onAppClick(app, ev) {
+        this.subnav.visible = false;
         return this.appMenuService.selectApp(app);
     }
 
-    _onAppMouseEnter(app, ev) {
-        // Show flyout in small mode when hovering active app
-        if (!this.isSmallMode) {
-            return;
-        }
-        this._showFlyout(app, ev.currentTarget);
-    }
+    _onShowSubnav(app, ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
 
-    _onAppClickFlyout(app, ev) {
-        // In small mode, clicking active app toggles flyout instead of navigating
-        if (this.isSmallMode && app.id === this.appMenuService.getCurrentApp()?.id) {
-            ev.preventDefault();
-            if (this.flyout.visible && this.flyout.appId === app.id) {
-                this.flyout.visible = false;
-            } else {
-                this._showFlyout(app, ev.currentTarget);
-            }
-            return;
-        }
-        this.flyout.visible = false;
-        return this.appMenuService.selectApp(app);
-    }
-
-    _showFlyout(app, targetEl) {
-        const tree = this.menuService.getMenuAsTree(app.id);
-        const sections = tree.childrenTree || [];
+        const sections = this._getAppSections(app);
         if (!sections.length) {
-            this.flyout.visible = false;
+            this.subnav.visible = false;
             return;
         }
-        // Position flyout next to the clicked item
-        const rect = targetEl.getBoundingClientRect();
-        this.flyout.appId = app.id;
-        this.flyout.sections = sections;
-        this.flyout.top = rect.top;
-        this.flyout.visible = true;
+
+        // Toggle if same app
+        if (this.subnav.visible && this.subnav.appId === app.id) {
+            this.subnav.visible = false;
+            return;
+        }
+
+        const rect = ev.currentTarget.closest('.nav-item').getBoundingClientRect();
+        this.subnav.appId = app.id;
+        this.subnav.sections = sections;
+        this.subnav.top = rect.top;
+        this.subnav.visible = true;
     }
 
-    _onFlyoutMenuClick(menuItem) {
-        this.flyout.visible = false;
+    _toggleSection(sectionId) {
+        this.collapsedSections[sectionId] = !this.collapsedSections[sectionId];
+    }
+
+    _isSectionCollapsed(sectionId) {
+        return !!this.collapsedSections[sectionId];
+    }
+
+    _onSubnavMenuClick(menuItem) {
+        this.subnav.visible = false;
         this.menuService.selectMenu(menuItem);
     }
 
-    _onFlyoutMouseLeave() {
-        this.flyout.visible = false;
+    _onSubnavMouseLeave() {
+        this.subnav.visible = false;
     }
 
-    get flyoutStyle() {
-        return `top: ${this.flyout.top}px`;
+    get subnavStyle() {
+        return `top: ${this.subnav.top}px`;
     }
 }

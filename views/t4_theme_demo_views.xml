@@ -83,14 +83,11 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_confirm" string="Confirm" type="object" invisible="stage != 'draft'" class="btn-primary"/>
-                    <button name="action_done" string="Mark Done" type="object" invisible="stage != 'review'" class="btn-primary"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="stage in ('done', 'cancel')"/>
                     <field name="stage" widget="statusbar" statusbar_visible="draft,progress,review,done"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" icon="fa-clock-o" type="object" name="action_view_hours">
+                        <button class="oe_stat_button" icon="fa-clock-o" name="t4_theme.t4_theme_demo_action" type="action">
                             <field string="Hours" name="amount" widget="statinfo"/>
                         </button>
                     </div>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.BuilderSidebar">
+        <div class="t4_option_section">
+            <!-- Section Header -->
+            <div class="t4_option_header" t-on-click="toggleCollapse">
+                <i t-attf-class="fa fa-chevron-{{ state.collapsed ? 'right' : 'down' }} me-2 t4_chevron"/>
+                <i t-attf-class="fa {{ props.section.icon }} me-2 t4_section_icon"/>
+                <span t-esc="props.section.label"/>
+            </div>
+
+            <!-- Section Body -->
+            <div t-if="!state.collapsed" class="t4_option_body">
+                <t t-foreach="props.section.props" t-as="prop" t-key="prop.css">
+
+                    <!-- ── Color Control ── -->
+                    <div t-if="prop.type === 'color'" class="t4_option_row">
+                        <label class="t4_option_label" t-esc="prop.label"/>
+                        <div class="t4_option_control t4_control_color">
+                            <input type="color"
+                                   t-att-value="props.getSidebarValue(prop.css) or '#ffffff'"
+                                   t-on-input="(ev) => this.onColorInput(prop.css, ev)"/>
+                            <input type="text"
+                                   t-att-value="props.getSidebarValue(prop.css)"
+                                   class="t4_color_text"
+                                   t-on-change="(ev) => this.onColorInput(prop.css, ev)"/>
+                        </div>
+                    </div>
+
+                    <!-- ── Select Control ── -->
+                    <div t-if="prop.type === 'select'" class="t4_option_row">
+                        <label class="t4_option_label" t-esc="prop.label"/>
+                        <div class="t4_option_control">
+                            <select class="form-select form-select-sm"
+                                    t-on-change="(ev) => this.onSelectInput(prop.css, ev)">
+                                <t t-foreach="prop.options" t-as="opt" t-key="opt.value">
+                                    <option t-att-value="opt.value"
+                                            t-att-selected="props.getSidebarValue(prop.css) === opt.value">
+                                        <t t-esc="opt.label"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ── Alignment Control (text-align) ── -->
+                    <div t-if="prop.type === 'align'" class="t4_option_row">
+                        <label class="t4_option_label" t-esc="prop.label"/>
+                        <div class="t4_option_control t4_control_align">
+                            <button t-attf-class="btn btn-sm {{ props.getSidebarValue(prop.css) === 'left' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    t-on-click="() => this.onAlignClick(prop.css, 'left')">
+                                <i class="fa fa-align-left"/>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ props.getSidebarValue(prop.css) === 'center' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    t-on-click="() => this.onAlignClick(prop.css, 'center')">
+                                <i class="fa fa-align-center"/>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ props.getSidebarValue(prop.css) === 'right' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    t-on-click="() => this.onAlignClick(prop.css, 'right')">
+                                <i class="fa fa-align-right"/>
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ props.getSidebarValue(prop.css) === 'justify' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    t-on-click="() => this.onAlignClick(prop.css, 'justify')">
+                                <i class="fa fa-align-justify"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ── Shadow Preset Control ── -->
+                    <div t-if="prop.type === 'shadow-preset'" class="t4_option_row">
+                        <label class="t4_option_label" t-esc="prop.label"/>
+                        <div class="t4_option_control t4_control_shadow">
+                            <t t-foreach="shadowPresets" t-as="preset" t-key="preset.key">
+                                <button t-attf-class="t4_shadow_btn {{ props.getSidebarValue('box-shadow') === preset.value ? 't4_shadow_active' : '' }}"
+                                        t-att-title="preset.label"
+                                        t-on-click="() => this.onShadowPreset(preset.value)">
+                                    <div class="t4_shadow_preview" t-att-style="'box-shadow:' + preset.value"/>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- ── Slider Control (default for size props) ── -->
+                    <div t-if="!prop.type" class="t4_option_row" t-att-class="{ 't4_prop_overridden': props.isSidebarOverridden(prop.css) }">
+                        <label class="t4_option_label" t-esc="prop.label"/>
+                        <div class="t4_option_control t4_control_slider">
+                            <input type="range"
+                                   t-att-min="prop.min"
+                                   t-att-max="prop.max"
+                                   t-att-step="prop.step"
+                                   t-att-value="getNumericValue(prop.css)"
+                                   t-on-input="(ev) => this.onSliderInput(prop.css, prop.unit, ev)"/>
+                            <input type="number"
+                                   t-att-min="prop.min"
+                                   t-att-max="prop.max"
+                                   t-att-step="prop.step"
+                                   t-att-value="getNumericValue(prop.css)"
+                                   t-on-change="(ev) => this.onNumberInput(prop.css, prop.unit, ev)"/>
+                            <span t-if="prop.unit" class="t4_unit_label" t-esc="prop.unit"/>
+                        </div>
+                    </div>
+
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

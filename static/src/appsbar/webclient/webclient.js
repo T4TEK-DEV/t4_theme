@@ -4,7 +4,7 @@ import { useHotkey } from '@web/core/hotkeys/hotkey_hook';
 import { WebClient } from '@web/webclient/webclient';
 import { ResizablePanel } from '@web/core/resizable_panel/resizable_panel';
 import { AppsBar } from '@t4_theme/appsbar/webclient/appsbar/appsbar';
-import { ThemeEditorOverlay } from '@t4_theme/theme_editor/theme_editor_overlay';
+import { ThemeCssInspector } from '@t4_theme/theme_editor/css_inspector/theme_css_inspector';
 import { onMounted, onWillUnmount, useState } from '@odoo/owl';
 
 const SIDEBAR_KEY = 't4_sidebar';
@@ -83,6 +83,7 @@ patch(WebClient.prototype, {
         onWillUnmount(() => {
             this._uninstallFastResize();
             document.removeEventListener('t4:toggle-design-mode', this._onToggleDesignMode);
+            document.removeEventListener('t4:sidebar-preview', this._onSidebarPreview);
         });
 
         this._onSidebarPreview = (ev) => {
@@ -230,4 +231,4 @@ patch(WebClient.prototype, {
     },
 });
 
-WebClient.components = { ...WebClient.components, AppsBar, ResizablePanel, ThemeEditorOverlay };
+WebClient.components = { ...WebClient.components, AppsBar, ResizablePanel, ThemeCssInspector };

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.CssPanel">
+        <div class="t4_css_inspector t4_css_panel"
+             t-att-style="'position:fixed;top:' + state.position.top + 'px;left:' + state.position.left + 'px'">
+
+            <!-- Header (draggable) -->
+            <div class="t4_css_panel_header" t-ref="header" t-on-mousedown="onDragStart">
+                <div class="t4_css_panel_title">
+                    <span class="t4_css_panel_selector" t-esc="props.panel.selector"/>
+                </div>
+                <button class="btn-close btn-close-sm" t-on-click="onCloseClick"/>
+            </div>
+
+            <!-- Breadcrumb -->
+            <div class="t4_css_panel_breadcrumb">
+                <t t-foreach="props.panel.breadcrumb" t-as="seg" t-key="seg_index">
+                    <span t-if="seg_index > 0" class="t4_breadcrumb_sep"> &gt; </span>
+                    <span class="t4_breadcrumb_seg" t-esc="seg"/>
+                </t>
+            </div>
+
+            <!-- Property Groups -->
+            <div class="t4_css_panel_body">
+                <t t-foreach="props.panel.groups" t-as="group" t-key="group.key">
+                    <t t-if="group.properties.length > 0">
+                        <PropertyGroup
+                            group="group"
+                            collapsed="state.collapsedGroups[group.key] or false"
+                            panelOverrides="props.panel.overrides"
+                            onToggle="() => this.toggleGroup(group.key)"
+                            onValueChange="(propName, value) => this.onValueChange(propName, value)"/>
+                    </t>
+                </t>
+            </div>
+
+            <!-- Add Property -->
+            <div class="t4_css_panel_add">
+                <t t-if="!state.addingProperty">
+                    <button class="btn btn-sm btn-link t4_add_prop_btn" t-on-click="showAddProperty">
+                        + Add property...
+                    </button>
+                </t>
+                <t t-else="">
+                    <input class="form-control form-control-sm t4_add_prop_input"
+                           type="text"
+                           placeholder="Type CSS property..."
+                           t-att-value="state.addPropertyFilter"
+                           t-on-input="onAddPropertyFilter"
+                           t-on-keydown="onAddPropertyKeydown"/>
+                    <div t-if="filteredProperties.length > 0" class="t4_add_prop_dropdown">
+                        <t t-foreach="filteredProperties.slice(0, 10)" t-as="prop" t-key="prop">
+                            <div class="t4_add_prop_option" t-on-click="() => this.addProperty(prop)">
+                                <t t-esc="prop"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer -->
+            <div class="t4_css_panel_footer">
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onReset">
+                    <i class="fa fa-undo me-1"/>Reset
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

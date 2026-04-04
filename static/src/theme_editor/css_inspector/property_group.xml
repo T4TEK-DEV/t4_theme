@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="t4_theme.PropertyGroup">
+        <div class="t4_prop_group">
+            <!-- Group header (collapsible) -->
+            <div class="t4_prop_group_header" t-on-click="props.onToggle">
+                <i t-attf-class="fa fa-chevron-{{ props.collapsed ? 'right' : 'down' }} me-1"/>
+                <span t-esc="props.group.name"/>
+                <span class="t4_prop_group_count" t-esc="props.group.properties.length"/>
+            </div>
+
+            <!-- Properties (if not collapsed) -->
+            <div t-if="!props.collapsed" class="t4_prop_group_body">
+                <t t-foreach="props.group.properties" t-as="prop" t-key="prop.name">
+                    <div t-attf-class="t4_prop_row {{ isOverridden(prop) ? 't4_prop_overridden' : '' }}">
+                        <label class="t4_prop_name" t-esc="prop.name"/>
+
+                        <!-- Color Editor -->
+                        <div t-if="prop.editorType === 'color'" class="t4_prop_editor t4_editor_color">
+                            <input type="color"
+                                   t-att-value="getDisplayValue(prop)"
+                                   t-on-input="(ev) => this.onColorInput(prop.name, ev)"/>
+                            <input type="text"
+                                   t-att-value="getDisplayValue(prop)"
+                                   placeholder="#hex or rgb()"
+                                   t-on-change="(ev) => this.onColorInput(prop.name, ev)"/>
+                        </div>
+
+                        <!-- Size Editor (slider + input + unit) -->
+                        <div t-if="prop.editorType === 'size'" class="t4_prop_editor t4_editor_size">
+                            <input type="range"
+                                   t-att-min="getSliderRange(prop.name, getDisplayValue(prop)).min"
+                                   t-att-max="getSliderRange(prop.name, getDisplayValue(prop)).max"
+                                   t-att-step="getSliderRange(prop.name, getDisplayValue(prop)).step"
+                                   t-att-value="parseNumericValue(getDisplayValue(prop))"
+                                   t-att-data-unit="parseUnit(getDisplayValue(prop))"
+                                   t-on-input="(ev) => this.onSliderInput(prop.name, ev)"/>
+                            <input type="number"
+                                   t-att-value="parseNumericValue(getDisplayValue(prop))"
+                                   t-att-data-unit="parseUnit(getDisplayValue(prop))"
+                                   t-on-change="(ev) => this.onSizeInput(prop.name, ev)"/>
+                            <span class="t4_prop_unit" t-esc="parseUnit(getDisplayValue(prop))"/>
+                        </div>
+
+                        <!-- Enum Editor (dropdown) -->
+                        <div t-if="prop.editorType === 'enum'" class="t4_prop_editor t4_editor_enum">
+                            <select class="form-select form-select-sm"
+                                    t-on-change="(ev) => this.onEnumInput(prop.name, ev)">
+                                <t t-foreach="getEnumOptions(prop.name)" t-as="opt" t-key="opt">
+                                    <option t-att-value="opt"
+                                            t-att-selected="getDisplayValue(prop) === opt">
+                                        <t t-esc="opt"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <!-- Text Editor (fallback) -->
+                        <div t-if="prop.editorType === 'text'" class="t4_prop_editor t4_editor_text">
+                            <input type="text"
+                                   t-att-value="getDisplayValue(prop)"
+                                   t-on-change="(ev) => this.onTextInput(prop.name, ev)"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

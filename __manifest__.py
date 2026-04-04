@@ -252,14 +252,22 @@
             't4_theme/static/src/services/debranding_service.js',
             't4_theme/static/src/services/url_prefix_service.js',
 
-            # --- Theme Editor ---
-            't4_theme/static/src/theme_editor/views_theme.scss',
+            # --- Theme Editor (CSS Inspector + Builder Sidebar) ---
             't4_theme/static/src/theme_editor/component_registry.js',
-            't4_theme/static/src/theme_editor/theme_editor_overlay.js',
-            't4_theme/static/src/theme_editor/theme_editor_overlay.xml',
-            't4_theme/static/src/theme_editor/theme_settings_action.js',
-            't4_theme/static/src/theme_editor/theme_settings_action.xml',
-            't4_theme/static/src/theme_editor/theme_settings_action.scss',
+            't4_theme/static/src/theme_editor/css_inspector/css_utils.js',
+            't4_theme/static/src/theme_editor/css_inspector/option_utils.js',
+            't4_theme/static/src/theme_editor/css_inspector/property_group.js',
+            't4_theme/static/src/theme_editor/css_inspector/property_group.xml',
+            't4_theme/static/src/theme_editor/css_inspector/property_group.scss',
+            't4_theme/static/src/theme_editor/css_inspector/css_panel.js',
+            't4_theme/static/src/theme_editor/css_inspector/css_panel.xml',
+            't4_theme/static/src/theme_editor/css_inspector/css_panel.scss',
+            't4_theme/static/src/theme_editor/css_inspector/builder_sidebar.js',
+            't4_theme/static/src/theme_editor/css_inspector/builder_sidebar.xml',
+            't4_theme/static/src/theme_editor/css_inspector/builder_sidebar.scss',
+            't4_theme/static/src/theme_editor/css_inspector/theme_css_inspector.js',
+            't4_theme/static/src/theme_editor/css_inspector/theme_css_inspector.xml',
+            't4_theme/static/src/theme_editor/css_inspector/theme_css_inspector.scss',
 
             # --- Shared SCSS variables & mixins ---
             't4_theme/static/src/scss/_t4_variables.scss',

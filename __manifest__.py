@@ -32,6 +32,7 @@
         'views/t4_theme_demo_views.xml',
         'views/theme_settings_action.xml',
         'data/theme_demo_data.xml',
+        'data/theme_preset_data.xml',
     ],
     'demo': [
         'demo/base_automation.xml',

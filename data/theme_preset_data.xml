@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="preset_default" model="t4_theme.preset">
+        <field name="name">Default</field>
+        <field name="sequence">1</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#243742</field>
+        <field name="color_primary">#5D8DA8</field>
+        <field name="color_success">#28A745</field>
+        <field name="color_info">#17A2B8</field>
+        <field name="color_warning">#FFAC00</field>
+        <field name="color_danger">#DC3545</field>
+        <field name="color_appsmenu_text">#F8F9FA</field>
+        <field name="color_appbar_text">#DEE2E6</field>
+        <field name="color_appbar_active">#5D8DA8</field>
+        <field name="color_appbar_background">#111827</field>
+        <field name="font_family">system</field>
+    </record>
+
+    <record id="preset_hqg" model="t4_theme.preset">
+        <field name="name">HQG Blue</field>
+        <field name="sequence">2</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#173b77</field>
+        <field name="color_primary">#007ad1</field>
+        <field name="color_success">#62ab00</field>
+        <field name="color_info">#00aff2</field>
+        <field name="color_warning">#febd00</field>
+        <field name="color_danger">#e53935</field>
+        <field name="color_appsmenu_text">#FFFFFF</field>
+        <field name="color_appbar_text">#DEE2E6</field>
+        <field name="color_appbar_active">#007ad1</field>
+        <field name="color_appbar_background">#173b77</field>
+        <field name="font_family">system</field>
+    </record>
+
+    <record id="preset_ocean" model="t4_theme.preset">
+        <field name="name">Ocean</field>
+        <field name="sequence">3</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#0D4F8B</field>
+        <field name="color_primary">#0EA5E9</field>
+        <field name="color_success">#10B981</field>
+        <field name="color_info">#06B6D4</field>
+        <field name="color_warning">#F59E0B</field>
+        <field name="color_danger">#EF4444</field>
+        <field name="color_appsmenu_text">#F0F9FF</field>
+        <field name="color_appbar_text">#BAE6FD</field>
+        <field name="color_appbar_active">#0EA5E9</field>
+        <field name="color_appbar_background">#0C4A6E</field>
+        <field name="font_family">system</field>
+    </record>
+
+    <record id="preset_forest" model="t4_theme.preset">
+        <field name="name">Forest</field>
+        <field name="sequence">4</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#14532D</field>
+        <field name="color_primary">#16A34A</field>
+        <field name="color_success">#22C55E</field>
+        <field name="color_info">#0891B2</field>
+        <field name="color_warning">#EAB308</field>
+        <field name="color_danger">#DC2626</field>
+        <field name="color_appsmenu_text">#F0FDF4</field>
+        <field name="color_appbar_text">#BBF7D0</field>
+        <field name="color_appbar_active">#16A34A</field>
+        <field name="color_appbar_background">#1A3A2A</field>
+        <field name="font_family">system</field>
+    </record>
+
+    <record id="preset_sunset" model="t4_theme.preset">
+        <field name="name">Sunset</field>
+        <field name="sequence">5</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#7C2D12</field>
+        <field name="color_primary">#EA580C</field>
+        <field name="color_success">#16A34A</field>
+        <field name="color_info">#0284C7</field>
+        <field name="color_warning">#F59E0B</field>
+        <field name="color_danger">#DC2626</field>
+        <field name="color_appsmenu_text">#FFF7ED</field>
+        <field name="color_appbar_text">#FED7AA</field>
+        <field name="color_appbar_active">#EA580C</field>
+        <field name="color_appbar_background">#431407</field>
+        <field name="font_family">system</field>
+    </record>
+
+    <record id="preset_slate" model="t4_theme.preset">
+        <field name="name">Slate</field>
+        <field name="sequence">6</field>
+        <field name="is_default" eval="True"/>
+        <field name="color_brand">#1E293B</field>
+        <field name="color_primary">#6366F1</field>
+        <field name="color_success">#22C55E</field>
+        <field name="color_info">#3B82F6</field>
+        <field name="color_warning">#F59E0B</field>
+        <field name="color_danger">#EF4444</field>
+        <field name="color_appsmenu_text">#F8FAFC</field>
+        <field name="color_appbar_text">#CBD5E1</field>
+        <field name="color_appbar_active">#6366F1</field>
+        <field name="color_appbar_background">#0F172A</field>
+        <field name="font_family">system</field>
+    </record>
+
+</odoo>

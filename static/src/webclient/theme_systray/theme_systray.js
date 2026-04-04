@@ -1,6 +1,7 @@
 import { Component, useState, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from '@web/core/network/rpc';
 import { cookie } from "@web/core/browser/cookie";
 import { browser } from "@web/core/browser/browser";
 import { user } from "@web/core/user";
@@ -10,64 +11,6 @@ import {
     FONT_FAMILY_MAP_EXPORT as FONT_FAMILY_MAP,
     GOOGLE_FONT_MAP_EXPORT as GOOGLE_FONT_MAP,
 } from "@t4_theme/services/theme_color_service";
-
-// =========================================================================
-// Constants
-// =========================================================================
-
-const THEME_PRESETS = {
-    default: {
-        colorBrand: "#243742", colorPrimary: "#5D8DA8",
-        colorSuccess: "#28A745", colorInfo: "#17A2B8",
-        colorWarning: "#FFAC00", colorDanger: "#DC3545",
-        colorAppsmenuText: "#F8F9FA", colorAppbarText: "#DEE2E6",
-        colorAppbarActive: "#5D8DA8", colorAppbarBg: "#111827",
-    },
-    hqg: {
-        colorBrand: "#173b77", colorPrimary: "#007ad1",
-        colorSuccess: "#62ab00", colorInfo: "#00aff2",
-        colorWarning: "#febd00", colorDanger: "#e53935",
-        colorAppsmenuText: "#FFFFFF", colorAppbarText: "#DEE2E6",
-        colorAppbarActive: "#007ad1", colorAppbarBg: "#173b77",
-    },
-    ocean: {
-        colorBrand: "#0D4F8B", colorPrimary: "#0EA5E9",
-        colorSuccess: "#10B981", colorInfo: "#06B6D4",
-        colorWarning: "#F59E0B", colorDanger: "#EF4444",
-        colorAppsmenuText: "#F0F9FF", colorAppbarText: "#BAE6FD",
-        colorAppbarActive: "#0EA5E9", colorAppbarBg: "#0C4A6E",
-    },
-    forest: {
-        colorBrand: "#14532D", colorPrimary: "#16A34A",
-        colorSuccess: "#22C55E", colorInfo: "#0891B2",
-        colorWarning: "#EAB308", colorDanger: "#DC2626",
-        colorAppsmenuText: "#F0FDF4", colorAppbarText: "#BBF7D0",
-        colorAppbarActive: "#16A34A", colorAppbarBg: "#1A3A2A",
-    },
-    sunset: {
-        colorBrand: "#7C2D12", colorPrimary: "#EA580C",
-        colorSuccess: "#16A34A", colorInfo: "#0284C7",
-        colorWarning: "#F59E0B", colorDanger: "#DC2626",
-        colorAppsmenuText: "#FFF7ED", colorAppbarText: "#FED7AA",
-        colorAppbarActive: "#EA580C", colorAppbarBg: "#431407",
-    },
-    slate: {
-        colorBrand: "#1E293B", colorPrimary: "#6366F1",
-        colorSuccess: "#22C55E", colorInfo: "#3B82F6",
-        colorWarning: "#F59E0B", colorDanger: "#EF4444",
-        colorAppsmenuText: "#F8FAFC", colorAppbarText: "#CBD5E1",
-        colorAppbarActive: "#6366F1", colorAppbarBg: "#0F172A",
-    },
-};
-
-const PRESET_OPTIONS = [
-    { key: "default", label: _t("Default"), color: "#5D8DA8" },
-    { key: "hqg", label: _t("HQG Blue"), color: "#007ad1" },
-    { key: "ocean", label: _t("Ocean"), color: "#0EA5E9" },
-    { key: "forest", label: _t("Forest"), color: "#16A34A" },
-    { key: "sunset", label: _t("Sunset"), color: "#EA580C" },
-    { key: "slate", label: _t("Slate"), color: "#6366F1" },
-];
 
 const SIDEBAR_OPTIONS = [
     { key: "large", label: _t("Visible"), icon: "fa-bars" },
@@ -217,13 +160,20 @@ export class ThemeSystray extends Component {
         });
 
         this.dirtyFields = new Set();
+
+        this.state.presets = [];
+        this.state.showCreatePreset = false;
+        this.state.newPresetName = '';
+        this.state.importing = false;
+
+        this._loadPresets();
     }
 
     // =========================================================================
     // Getters
     // =========================================================================
 
-    get presets() { return PRESET_OPTIONS; }
+    get presets() { return this.state.presets; }
     get sidebarOptions() { return SIDEBAR_OPTIONS; }
     get chatterOptions() { return CHATTER_OPTIONS; }
     get dialogOptions() { return DIALOG_OPTIONS; }
@@ -344,16 +294,38 @@ export class ThemeSystray extends Component {
     // Preview-only handlers
     // =========================================================================
 
-    onSelectPreset(preset) {
-        this.state.currentPreset = preset;
-        const presetColors = THEME_PRESETS[preset];
-        if (presetColors) {
-            Object.assign(this.state, presetColors);
-            this._applyAllColorPreview();
+    async _loadPresets() {
+        try {
+            const presets = await rpc('/t4_theme/presets');
+            this.state.presets = presets;
+        } catch (e) {
+            console.error('Failed to load presets:', e);
         }
+    }
+
+    onSelectPreset(preset) {
+        // preset is an object from DB: { id, name, color_brand, color_primary, ... }
+        this.state.currentPreset = preset.id;
+        this.state.colorBrand = preset.color_brand;
+        this.state.colorPrimary = preset.color_primary;
+        this.state.colorSuccess = preset.color_success;
+        this.state.colorInfo = preset.color_info;
+        this.state.colorWarning = preset.color_warning;
+        this.state.colorDanger = preset.color_danger;
+        this.state.colorAppsmenuText = preset.color_appsmenu_text;
+        this.state.colorAppbarText = preset.color_appbar_text;
+        this.state.colorAppbarActive = preset.color_appbar_active;
+        this.state.colorAppbarBg = preset.color_appbar_background;
+        this._applyAllColorPreview();
         this._markDirty("preset");
         for (const key of Object.keys(COLOR_FIELD_MAP)) {
             this._markDirty(key);
+        }
+        // If preset has font, apply it too
+        if (preset.font_family && preset.font_family !== 'system') {
+            this.state.fontFamily = preset.font_family;
+            this._applyFontPreview(preset.font_family);
+            this._markDirty("fontFamily");
         }
     }
 
@@ -499,9 +471,7 @@ export class ThemeSystray extends Component {
 
         try {
             const companyVals = {};
-            if (this.dirtyFields.has("preset")) {
-                companyVals.theme_preset = this.state.currentPreset;
-            }
+            // Preset is now saved via individual color fields, no need to save preset key
             for (const [stateKey, fieldName] of Object.entries(COLOR_FIELD_MAP)) {
                 if (this.dirtyFields.has(stateKey)) {
                     companyVals[fieldName] = this.state[stateKey];
@@ -588,6 +558,88 @@ export class ThemeSystray extends Component {
 
     onClickReset() {
         this._revertPreview();
+    }
+
+    async onExportTheme() {
+        try {
+            const data = await rpc('/t4_theme/export_theme');
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (data.name || 'theme') + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Export failed:', e);
+        }
+    }
+
+    onImportThemeClick() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (ev) => this._handleImportFile(ev);
+        input.click();
+    }
+
+    async _handleImportFile(ev) {
+        const file = ev.target.files[0];
+        if (!file) return;
+        this.state.importing = true;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            const result = await rpc('/t4_theme/import_theme', { theme_data: data });
+            if (result.success) {
+                await this._loadPresets();
+            } else {
+                alert(result.error || 'Import failed');
+            }
+        } catch (e) {
+            console.error('Import failed:', e);
+            alert('Invalid JSON file');
+        } finally {
+            this.state.importing = false;
+        }
+    }
+
+    onShowCreatePreset() {
+        this.state.showCreatePreset = true;
+        this.state.newPresetName = '';
+    }
+
+    onCancelCreatePreset() {
+        this.state.showCreatePreset = false;
+        this.state.newPresetName = '';
+    }
+
+    async onSaveNewPreset() {
+        const name = this.state.newPresetName.trim();
+        if (!name) return;
+        try {
+            await rpc('/t4_theme/preset/save_current', { name });
+            this.state.showCreatePreset = false;
+            this.state.newPresetName = '';
+            await this._loadPresets();
+        } catch (e) {
+            console.error('Create preset failed:', e);
+        }
+    }
+
+    async onDeletePreset(presetId) {
+        try {
+            const result = await rpc('/t4_theme/preset/delete', { preset_id: presetId });
+            if (result.success) {
+                await this._loadPresets();
+            }
+        } catch (e) {
+            console.error('Delete preset failed:', e);
+        }
+    }
+
+    onNewPresetNameInput(ev) {
+        this.state.newPresetName = ev.target.value;
     }
 
     onOpenThemeSettings() {

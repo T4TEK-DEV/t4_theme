@@ -13,7 +13,7 @@
                 <progressbar field="stage" colors='{"draft": "default", "progress": "warning", "review": "info", "done": "success", "cancel": "danger"}'/>
                 <templates>
                     <t t-name="kanban-card">
-                        <widget name="web_ribbon" title="Done" bg_color="text-bg-success" attrs="{'invisible': [('stage', '!=', 'done')]}"/>
+                        <widget name="web_ribbon" title="Done" bg_color="text-bg-success" invisible="stage != 'done'"/>
                         <div class="oe_kanban_details">
                             <div class="o_kanban_record_top mb-0">
                                 <div class="o_kanban_record_headings">

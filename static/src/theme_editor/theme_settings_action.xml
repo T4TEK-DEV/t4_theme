@@ -108,9 +108,9 @@
                 </div>
 
                 <!-- RIGHT: Preview Area -->
-                <div class="t4_ts_preview flex-grow-1 overflow-auto bg-light">
-                    <!-- View Tabs -->
-                    <div class="t4_ts_tabs d-flex border-bottom bg-white px-3">
+                <div class="flex-grow-1 d-flex flex-column overflow-hidden bg-light">
+                    <!-- View Tabs (outside preview click zone) -->
+                    <div class="t4_ts_tabs d-flex border-bottom bg-white px-3 flex-shrink-0">
                         <t t-foreach="viewTabs" t-as="tab" t-key="tab.key">
                             <button
                                 t-attf-class="btn btn-sm me-1 my-1 {{ state.activeTab === tab.key ? 'btn-primary' : 'btn-outline-secondary' }}"
@@ -122,8 +122,8 @@
                         </t>
                     </div>
 
-                    <!-- View Renderers — one per tab, only active one mounted -->
-                    <div class="t4_ts_view_container p-3">
+                    <!-- View Renderers (click zone for component selection) -->
+                    <div class="t4_ts_preview overflow-auto flex-grow-1 p-3">
                         <View t-if="state.activeTab === 'kanban'"
                             resModel="'t4.theme.demo'"
                             type="'kanban'"

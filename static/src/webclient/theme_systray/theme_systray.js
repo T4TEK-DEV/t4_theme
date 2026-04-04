@@ -590,7 +590,9 @@ export class ThemeSystray extends Component {
     }
 
     onToggleDesignMode() {
-        // Dispatch custom event that webclient can listen for
+        // Close theme settings panel first
+        this.state.open = false;
+        // Then activate design mode
         document.dispatchEvent(new CustomEvent('t4:toggle-design-mode'));
     }
 }

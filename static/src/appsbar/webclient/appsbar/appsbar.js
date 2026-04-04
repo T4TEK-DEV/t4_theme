@@ -78,10 +78,13 @@ export class AppsBar extends Component {
             return;
         }
 
-        const rect = ev.currentTarget.closest('.nav-item').getBoundingClientRect();
+        const itemRect = ev.currentTarget.closest('.nav-item').getBoundingClientRect();
+        const panel = ev.currentTarget.closest('.mk_apps_sidebar_panel');
+        const panelRight = panel ? panel.getBoundingClientRect().right : itemRect.right;
         this.subnav.appId = app.id;
         this.subnav.sections = sections;
-        this.subnav.top = rect.top;
+        this.subnav.top = itemRect.top;
+        this.subnav.left = panelRight + 5;
         this.subnav.visible = true;
     }
 
@@ -103,6 +106,6 @@ export class AppsBar extends Component {
     }
 
     get subnavStyle() {
-        return `top: ${this.subnav.top}px`;
+        return `top: ${this.subnav.top}px; left: ${this.subnav.left || 0}px`;
     }
 }

@@ -298,11 +298,6 @@ class ResCompany(models.Model):
         default='system',
     )
 
-    theme_font_size = fields.Char(
-        string='Font Size',
-        default='14',
-        help='Base font size in pixels (10-24).',
-    )
 
     theme_home_menu_overlay = fields.Boolean(
         string='Home Menu Overlay',

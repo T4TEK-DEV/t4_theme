@@ -5,14 +5,23 @@
 // ============================================================
 
 // --- Typography ---
-.o_web_client {
+// Apply font-family globally so all UI elements inherit
+body,
+.o_web_client,
+.o_action_manager,
+.o_main_navbar,
+.modal,
+.modal-title,
+.t4_theme_panel_header,
+.o_popover,
+.dropdown-menu,
+.o-dropdown--menu,
+.tooltip,
+.toast,
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+input, textarea, select, button {
     font-family: var(--t4-font-family, inherit) !important;
-    font-size: var(--t4-font-size, 14px) !important;
-}
-
-body {
-    font-family: var(--t4-font-family, inherit);
-    font-size: var(--t4-font-size, 14px);
 }
 
 // --- Navbar ---

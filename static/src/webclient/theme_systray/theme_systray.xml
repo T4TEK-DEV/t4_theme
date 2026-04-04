@@ -98,26 +98,6 @@
                         </div>
                     </div>
 
-                    <!-- Font Size - Input with +/- buttons -->
-                    <div>
-                        <small class="text-muted d-block mb-1">Font Size</small>
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-outline-secondary"
-                                t-on-click="() => this.onFontSizeStep(-1)">
-                                <i class="fa fa-minus"/>
-                            </button>
-                            <input type="number" class="form-control form-control-sm text-center"
-                                style="width: 70px"
-                                min="10" max="24"
-                                t-att-value="state.fontSize"
-                                t-on-change="onChangeFontSize"/>
-                            <button class="btn btn-sm btn-outline-secondary"
-                                t-on-click="() => this.onFontSizeStep(1)">
-                                <i class="fa fa-plus"/>
-                            </button>
-                            <small class="text-muted">px</small>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- ====== Layout Options ====== -->

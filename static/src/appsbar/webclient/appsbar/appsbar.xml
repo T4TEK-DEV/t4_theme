@@ -36,11 +36,11 @@
                                 <span class="mk_apps_sidebar_name">
                                     <t t-out="app.label"/>
                                 </span>
-                                <span
-                                    t-if="this._getAppSections(app).length"
-                                    t-on-click.stop.prevent="(ev) => this._onShowSubnav(app, ev)"
-                                    class="t4_nav_arrow"/>
                             </a>
+                            <span
+                                t-if="this._getAppSections(app).length"
+                                t-on-click.stop.prevent="(ev) => this._onShowSubnav(app, ev)"
+                                class="t4_nav_arrow"/>
                         </li>
                     </t>
                 </ul>

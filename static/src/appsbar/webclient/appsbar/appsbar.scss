@@ -1,20 +1,24 @@
 // =============================================================================
-// AppsBar Sidebar
+// AppsBar Sidebar (OM UX inspired)
 // =============================================================================
 
 .mk_apps_sidebar_panel {
     @include mk-disable-scrollbar();
-    background-color: #fff;
+    background-color: $t4-sidenav-bg;
     width: 100%;
     height: 100%;
     overflow-y: auto;
     position: relative;
+    // GPU layer for smooth scroll
+    will-change: scroll-position;
+    // OM_UX: proportional padding scales smoothly as sidebar resizes
+    padding-inline: calc(var(--t4-sidebar-width, 200px) * 0.09);
 
     .mk_apps_sidebar {
         height: 100%;
         display: flex;
         flex-direction: column;
-	    white-space: nowrap;
+        white-space: nowrap;
 
         // Logo area
         .mk_apps_sidebar_logo {
@@ -22,154 +26,173 @@
             justify-content: center;
             align-items: center;
             height: 100px;
-            border-bottom: 1px solid var(--bs-border-color, #dee2e6);
 
             img {
                 object-fit: contain;
-                max-height: 110px;
-                height: 110%;
+                max-height: 80px;
+                height: 80%;
                 width: 100%;
             }
         }
 
-        // Section header
+        // Section header ("APPS" label)
         .mk_apps_sidebar_header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 14px 8px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--bs-secondary-color, #6c757d);
+            padding: 8px 8px 6px;
+            border-top: 1px solid $t4-sidenav-border;
+
+            span {
+                font-size: .65rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: $t4-sidenav-muted;
+            }
         }
 
         // App list
-	    .mk_apps_sidebar_menu {
-	    	padding: 4px 8px;
+        .mk_apps_sidebar_menu {
+            padding: 4px 0;
             list-style: none;
 
-		    > li {
+            > li {
                 margin-bottom: 1px;
 
                 > a {
-			        cursor: pointer;
-		            font-size: 14px;
-		            font-weight: 500;
-		            overflow: hidden;
-		            padding: 8px 10px;
-		            text-decoration: none;
-		            color: var(--bs-body-color, #212529);
-		            text-overflow: ellipsis;
-		            transition: background-color 0.15s ease;
-		            display: flex;
-		            align-items: center;
-                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    font-weight: 500;
+                    overflow: hidden;
+                    padding: 6px 8px;
+                    padding-right: 4px;
+                    text-decoration: none;
+                    color: $t4-sidenav-text;
+                    text-overflow: ellipsis;
+                    // Only animate color + background (no layout properties)
+                    transition: background-color 0.15s ease, color 0.15s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-radius: $o-border-radius-lg;
+                    border: solid 1px transparent;
+                    line-height: $t4-sidenav-lh;
 
-		            .mk_apps_sidebar_icon {
-					    width: 40px;
-					    height: 40px;
-					    min-width: 40px;
-		    			margin-right: 12px;
-                        border-radius: 10px;
+                    .mk_apps_sidebar_icon {
+                        width: 27px;
+                        height: 27px;
+                        min-width: 27px;
+                        margin-right: 12px;
+                        border-radius: $o-border-radius-lg;
                         object-fit: contain;
-					}
-			    }
+                        background: $t4-sidenav-app-icon-bg;
+                        box-shadow: $t4-sidenav-app-icon-shadow;
+                        padding: 5px;
+
+                        img {
+                            width: 17px;
+                        }
+                    }
+
+                    .mk_apps_sidebar_name {
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        margin-right: auto;
+                    }
+                }
             }
 
-	        > li.active > a {
-                background: rgba($o-brand-primary, 0.12);
-                color: $o-brand-primary;
-	        }
+            // Active item — uses theme active color with subtle bg
+            > li.active > a {
+                background-color: var(--t4-color-appbar-active, $t4-sidenav-item-active-bg);
+                color: $t4-sidenav-item-active;
+                border-color: var(--t4-color-appbar-active, $t4-sidenav-item-active-bg);
+                font-weight: 500;
+                opacity: 0.85;
+            }
 
-	        > li:not(.active):hover > a {
-                background: var(--bs-tertiary-bg, #f8f9fa);
-	        }
-	    }
+            // Hover
+            > li:not(.active):hover > a {
+                background-color: $t4-sidenav-item-hover-bg;
+            }
+        }
 
         .mk_apps_sidebar_spacer {
             flex: 1;
         }
-	}
-}
-
-// =============================================================================
-// Small mode (compact with truncated names + flyout)
-// =============================================================================
-
-.t4_sidebar_panel.sm {
-    // Logo: smaller, square
-    .mk_apps_sidebar_logo {
-        height: 56px;
-        padding: 6px;
-
-        img {
-            max-height: 44px;
-        }
-    }
-
-    // Header: compact
-    .mk_apps_sidebar_header {
-        padding: 8px 6px 4px;
-        justify-content: center;
-        font-size: 9px;
-    }
-
-    // Menu items: icon centered + name below (truncated)
-    .mk_apps_sidebar_menu {
-        padding: 4px !important;
-
-        > li > a {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 8px 4px !important;
-            gap: 2px;
-
-            .mk_apps_sidebar_icon {
-                width: 32px !important;
-                height: 32px !important;
-                min-width: 32px !important;
-                margin-right: 0 !important;
-            }
-        }
-    }
-
-    .mk_apps_sidebar_name {
-        font-size: 10px !important;
-        line-height: 1.2;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 }
 
 // =============================================================================
-// Flyout sub-menu (appears next to sidebar in small mode)
+// Nav Arrow — blob-shaped expand button (OM UX style)
 // =============================================================================
 
-.t4_flyout {
+.t4_nav_arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-left: 4px;
+    border-radius: 50%;
+    cursor: pointer;
+    // OM_UX style: smooth transition on all properties
+    transition: 0.18s;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNMTAwIDBDMjAgMCAwIDIwIDAgMTAwczIwIDEwMCAxMDAgMTAwIDEwMC0yMCAxMDAtMTAwUzE4MCAwIDEwMCAwIi8+PC9zdmc+");
+    background-color: $t4-sidenav-item-arrow;
+
+    &:hover {
+        background-color: $t4-sidenav-item-arrow-bg;
+    }
+
+    &::after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 3px 0 3px 4px;
+        border-color: transparent transparent transparent #fff;
+        margin-left: 1px;
+    }
+}
+
+// =============================================================================
+// Subnav popup — glass effect (OM UX style)
+// =============================================================================
+
+.t4_subnav {
     position: fixed;
-    left: 68px; // sidebar small width
     z-index: 1060;
-    background: var(--bs-body-bg, #fff);
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 8px;
-    box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.12);
+    background: rgba($t4-subnav-bg, 0.97);
+    // Lighter blur for better performance
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid $t4-sidenav-border;
+    border-radius: $o-border-radius-lg;
+    box-shadow: $box-shadow;
     min-width: 200px;
-    max-width: 280px;
-    max-height: 70vh;
+    max-width: 300px;
+    max-height: calc(100vh - 55px);
     overflow-y: auto;
-    padding: 6px 0;
-    animation: t4FlyoutIn 0.12s ease;
+    padding: 10px;
+    text-align: left;
+    user-select: none;
+    // Use only transform + opacity for GPU-accelerated animation
+    animation: t4SubnavIn 0.15s ease-out;
+    will-change: transform, opacity;
 }
 
-@keyframes t4FlyoutIn {
+@keyframes t4SubnavIn {
     from {
         opacity: 0;
-        transform: translateX(-6px);
+        transform: translateX(-8px);
     }
     to {
         opacity: 1;
@@ -177,24 +200,48 @@
     }
 }
 
-.t4_flyout_group_label {
-    padding: 8px 14px 4px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--bs-secondary-color, #6c757d);
+// Section header (collapsible)
+.t4_subnav_section_header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding-inline: 4px;
+    margin-block: 6px;
+    color: $t4-subnav-header;
+    user-select: none;
+
+    > span {
+        font-weight: 600;
+        font-size: .678rem;
+        text-transform: uppercase;
+    }
+
+    .t4_collapse_icon {
+        margin-left: auto;
+        font-size: 12px;
+        color: $t4-sidenav-muted;
+        // No transition on icon — instant toggle feels snappier
+    }
 
     &:not(:first-child) {
-        margin-top: 4px;
-        border-top: 1px solid var(--bs-border-color, #dee2e6);
-        padding-top: 8px;
+        margin-top: 12px;
     }
 }
 
-.t4_flyout_item {
-    display: block;
-    padding: 6px 14px;
+// Group header (sub-category inside a section)
+.t4_subnav_group_label {
+    padding: 6px 8px 2px;
+    font-size: .65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: $t4-subnav-header;
+}
+
+// Menu entry
+.t4_subnav_item {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
     font-size: 13px;
     color: var(--bs-body-color, #212529);
     text-decoration: none;
@@ -202,10 +249,65 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    border-radius: $o-border-radius-sm;
+    min-width: 100px;
+    // Only animate background-color
     transition: background-color 0.1s ease;
+    line-height: $t4-sidenav-lh;
+
+    .t4_indicator_pill {
+        width: 6px;
+        height: 6px;
+        min-width: 6px;
+        border-radius: 50%;
+        background-color: $t4-sidenav-item-active;
+        margin-right: 8px;
+        opacity: 0.6;
+    }
 
     &:hover {
-        background: var(--bs-tertiary-bg, #f0f0f0);
-        color: var(--t4-color-primary, $o-brand-primary);
+        background: $t4-sidenav-item-hover-bg;
+        color: $t4-sidenav-item-active;
+    }
+}
+
+// Collapsible content — no animation, instant toggle
+.t4_subnav_collapse {
+    overflow: hidden;
+
+    &.collapsed {
+        display: none;
+    }
+}
+
+// =============================================================================
+// Compact mode (sm) — OM_UX smooth icon scaling
+// =============================================================================
+// MUST be at end of file: appsbar.scss loads after webclient.scss,
+// so these overrides need to appear after normal styles to win cascade.
+
+.t4_sidebar_panel.sm {
+    .mk_apps_sidebar_panel {
+        padding-inline: 13px;
+    }
+
+    .mk_apps_sidebar_menu {
+        row-gap: 4pt;
+
+        > li > a {
+            justify-content: center;
+            padding-block: 6px;
+            padding-inline: 0;
+
+            .mk_apps_sidebar_icon {
+                // OM_UX formula: icon scales with sidebar width
+                --t4-sm-icon: calc(var(--t4-sidebar-width, 79px) - 43px);
+                width: var(--t4-sm-icon);
+                height: var(--t4-sm-icon);
+                min-width: var(--t4-sm-icon);
+                margin-right: 0;
+                padding: 3px;
+            }
+        }
     }
 }

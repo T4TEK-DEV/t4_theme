@@ -7,7 +7,7 @@
         Preset themes, Dark mode, Dialog fullscreen, Group expand/collapse,
         View refresh, Custom branding.
     ''',
-    'version': '1.0',
+    'version': '19.0.1.0.0',
     'category': 'Themes/Backend',
     'license': 'LGPL-3',
     'author': 'T4Tek',

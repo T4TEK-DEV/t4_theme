@@ -24,7 +24,7 @@ class IrHttp(models.AbstractModel):
 
     @tools.ormcache('key', cache='routing')
     def routing_map(self, key=None):
-        # Read prefix from DB and cache globally
+        # sudo: read system parameters for URL prefix routing (technical config)
         icp = self.env['ir.config_parameter'].sudo()
         try:
             prefix = icp.get_param('t4_theme.url_prefix', '')

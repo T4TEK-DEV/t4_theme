@@ -3,29 +3,33 @@
 // =============================================================================
 
 .o_web_client {
-	display: grid !important;
+    display: grid !important;
     grid-template-areas:
         "sidebar banner"
         "sidebar navbar"
         "sidebar content"
         "sidebar components";
     grid-template-rows: auto auto 1fr auto;
-    grid-template-columns: auto 1fr;
+    // Use CSS var instead of `auto` — browser skips intrinsic sizing
+    grid-template-columns: var(--t4-sidebar-width, 200px) 1fr;
 
     > div:has(#oe_neutralize_banner) {
-    	grid-area: banner;
+        grid-area: banner;
     }
     > .o_navbar {
-    	grid-area: navbar;
+        grid-area: navbar;
     }
     > .t4_sidebar_area {
-    	grid-area: sidebar;
+        grid-area: sidebar;
     }
     > .o_action_manager {
-    	grid-area: content;
+        grid-area: content;
+        // Contain layout so internal content doesn't cascade reflow to grid
+        contain: layout style paint;
+        overflow: auto;
     }
     > .o-main-components-container {
-    	grid-area: components;
+        grid-area: components;
     }
     > iframe {
         grid-column: 1 / -1;
@@ -34,24 +38,28 @@
 }
 
 // -----------------------------------------------------------------------------
-// Sidebar Area — flex container, NO position:relative
-// (position:relative would make it the offsetParent for ResizablePanel,
-//  causing getLimitWidth() to cap at current width → can never grow)
+// Sidebar Area
 // -----------------------------------------------------------------------------
 
 .t4_sidebar_area {
     display: flex;
     overflow: visible;
     height: 100%;
+    border-right: solid 1px $t4-sidenav-border;
 }
 
-// Keep col-resize cursor during resize (ResizablePanel adds pe-none to body)
+// Keep col-resize cursor during resize
 body.pe-none {
     pointer-events: auto !important;
     cursor: col-resize !important;
 
     * {
         cursor: col-resize !important;
+    }
+
+    // Prevent iframe reflows
+    iframe {
+        pointer-events: none;
     }
 }
 
@@ -61,21 +69,23 @@ body.pe-none {
 
 .t4_sidebar_panel {
     height: 100%;
+    container-type: inline-size;
+    container-name: sidebar;
 
-    // Collapsed / icons-only mode
+    &.t4-resizing {
+        will-change: width;
+        contain: layout style;
+        container-type: normal !important;
+    }
+
+    // Compact mode: hide text elements (structural only)
+    // Visual overrides (icon sizing, padding) are in appsbar.scss to win cascade
     &.sm {
-        .mk_apps_sidebar_name {
-            display: none;
-        }
-        .mk_apps_sidebar_icon {
-            margin-right: 0 !important;
-        }
+        .mk_apps_sidebar_name,
+        .t4_nav_arrow,
+        .mk_apps_sidebar_header,
         .mk_apps_sidebar_logo {
-            display: none;
-        }
-        .mk_apps_sidebar_menu > li > a {
-            justify-content: center;
-            padding: 10px 6px;
+            display: none !important;
         }
     }
 }
@@ -114,7 +124,6 @@ body.pe-none {
     filter: drop-shadow(1px 0 4px rgba(0, 0, 0, 0.15));
     transition: filter 0.15s ease;
 
-    // SVG — solid curved tab
     .t4_toggle_svg {
         position: absolute;
         top: 0;
@@ -128,7 +137,6 @@ body.pe-none {
         transition: fill 0.15s ease;
     }
 
-    // Arrow icon — centered
     .t4_toggle_icon {
         position: absolute;
         left: 0;
@@ -150,11 +158,8 @@ body.pe-none {
     }
 }
 
-// (Home Menu overlay covers sidebar via position:fixed in appsmenu.scss)
-
 // -----------------------------------------------------------------------------
-// Hidden mode: sidebar completely removed, full-width content
-// CSS-based so live preview works without re-render
+// Hidden mode
 // -----------------------------------------------------------------------------
 
 .t4_sidebar_removed {
@@ -183,12 +188,8 @@ body.pe-none {
     }
 }
 
-.editor_has_snippets_hide_backend_navbar .t4_sidebar_area {
-    transition: width 300ms;
-}
-
 // -----------------------------------------------------------------------------
-// Responsive: hide sidebar on mobile/tablet
+// Responsive
 // -----------------------------------------------------------------------------
 
 @include media-breakpoint-down(lg) {
@@ -199,6 +200,20 @@ body.pe-none {
 
 @media print {
     .t4_sidebar_area {
+        display: none !important;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CSS Container Query fallback for sm mode
+// -----------------------------------------------------------------------------
+
+// Container query fallback for sm mode (hide text elements)
+@container sidebar (max-width: 141px) {
+    .mk_apps_sidebar_name,
+    .t4_nav_arrow,
+    .mk_apps_sidebar_header,
+    .mk_apps_sidebar_logo {
         display: none !important;
     }
 }

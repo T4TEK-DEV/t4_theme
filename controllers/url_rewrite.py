@@ -80,6 +80,7 @@ def _patch_session_info():
         result = _original_session_info(self)
         try:
             result['t4_theme_loaded'] = True
+            # sudo: read system parameter for URL prefix (no user-specific data)
             result['t4_url_prefix'] = self.env['ir.config_parameter'].sudo().get_param(
                 't4_theme.url_prefix', ''
             )

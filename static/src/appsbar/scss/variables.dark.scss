@@ -1,2 +1,10 @@
+// Dark mode overrides for sidebar
 $mk-appbar-color: #E4E4E4 !default;
 $mk-appbar-background: #3C3E4B !default;
+
+// Sidebar dark overrides
+$t4-sidenav-bg: var(--bs-body-bg) !default;
+$t4-sidenav-item-active: #7ec8d4 !default;
+$t4-sidenav-item-active-bg: rgba(white, 0.08) !default;
+$t4-sidenav-item-hover-bg: rgba(white, 0.04) !default;
+$t4-sidenav-app-icon-shadow: none !default;

@@ -22,12 +22,16 @@
         'web_enterprise',
     ],
     'data': [
+        'security/ir.model.access.csv',
         'templates/web_layout.xml',
         'templates/webclient.xml',
         'templates/debranding.xml',
         'views/res_config_settings.xml',
         'views/res_users.xml',
         'views/ir_actions_server_views.xml',
+        'views/t4_theme_demo_views.xml',
+        'views/theme_settings_action.xml',
+        'data/theme_demo_data.xml',
     ],
     'demo': [
         'demo/base_automation.xml',
@@ -253,6 +257,9 @@
             't4_theme/static/src/theme_editor/component_registry.js',
             't4_theme/static/src/theme_editor/theme_editor_overlay.js',
             't4_theme/static/src/theme_editor/theme_editor_overlay.xml',
+            't4_theme/static/src/theme_editor/theme_settings_action.js',
+            't4_theme/static/src/theme_editor/theme_settings_action.xml',
+            't4_theme/static/src/theme_editor/theme_settings_action.scss',
 
             # --- Shared SCSS variables & mixins ---
             't4_theme/static/src/scss/_t4_variables.scss',

@@ -1,0 +1,100 @@
+// =============================================================================
+// T4 Theme Settings — Full Page Layout
+// =============================================================================
+
+.t4_ts {
+    height: 100vh;
+    background: #f8f9fa;
+}
+
+.t4_ts_topbar {
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+}
+
+.t4_ts_sidebar {
+    width: 320px;
+    min-width: 320px;
+    overflow-y: auto;
+}
+
+.t4_ts_preview {
+    cursor: crosshair;
+}
+
+.t4_ts_tabs {
+    flex-shrink: 0;
+}
+
+.t4_ts_view_container {
+    min-height: 400px;
+}
+
+// Property editors
+.t4_ts_prop_label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+
+.t4_ts_slider_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type='range'] {
+        flex: 1;
+        height: 4px;
+        accent-color: #714B67;
+    }
+
+    input[type='number'] {
+        width: 52px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 2px 4px;
+        font-size: 12px;
+    }
+}
+
+.t4_ts_unit {
+    font-size: 11px;
+    color: #6c757d;
+    min-width: 16px;
+}
+
+.t4_ts_color_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type='color'] {
+        width: 32px;
+        height: 28px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 2px;
+        cursor: pointer;
+    }
+
+    input[type='text'] {
+        flex: 1;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-size: 12px;
+        font-family: monospace;
+    }
+}
+
+.t4_ts_select_row {
+    select {
+        font-size: 12px;
+    }
+}

@@ -25,8 +25,8 @@
 
             <div class="px-3 py-2 border-bottom">
                 <button class="btn btn-sm btn-outline-primary w-100"
-                    t-on-click="onToggleDesignMode">
-                    <i class="fa fa-paint-brush me-1"/>Visual Editor
+                    t-on-click="onOpenThemeSettings">
+                    <i class="fa fa-paint-brush me-1"/>Theme Editor
                 </button>
             </div>
 

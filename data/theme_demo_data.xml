@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Tags -->
+    <record id="demo_tag_feature" model="t4.theme.demo.tag">
+        <field name="name">Feature</field>
+        <field name="color">1</field>
+    </record>
+    <record id="demo_tag_bug" model="t4.theme.demo.tag">
+        <field name="name">Bug Fix</field>
+        <field name="color">4</field>
+    </record>
+    <record id="demo_tag_enhancement" model="t4.theme.demo.tag">
+        <field name="name">Enhancement</field>
+        <field name="color">10</field>
+    </record>
+    <record id="demo_tag_docs" model="t4.theme.demo.tag">
+        <field name="name">Documentation</field>
+        <field name="color">5</field>
+    </record>
+
+    <!-- Demo Records -->
+    <record id="demo_record_1" model="t4.theme.demo">
+        <field name="name">Dashboard Redesign</field>
+        <field name="description">Redesign the main dashboard layout</field>
+        <field name="stage">progress</field>
+        <field name="priority">2</field>
+        <field name="amount">15000</field>
+        <field name="progress">65</field>
+        <field name="color">2</field>
+        <field name="sequence">1</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_feature'), ref('demo_tag_enhancement')])]"/>
+    </record>
+    <record id="demo_record_2" model="t4.theme.demo">
+        <field name="name">API Integration</field>
+        <field name="description">Connect to external payment API</field>
+        <field name="stage">draft</field>
+        <field name="priority">1</field>
+        <field name="amount">8500</field>
+        <field name="progress">0</field>
+        <field name="color">3</field>
+        <field name="sequence">2</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_feature')])]"/>
+    </record>
+    <record id="demo_record_3" model="t4.theme.demo">
+        <field name="name">Performance Optimization</field>
+        <field name="description">Improve page load times by 40%</field>
+        <field name="stage">review</field>
+        <field name="priority">1</field>
+        <field name="amount">12000</field>
+        <field name="progress">90</field>
+        <field name="color">10</field>
+        <field name="sequence">3</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_enhancement')])]"/>
+    </record>
+    <record id="demo_record_4" model="t4.theme.demo">
+        <field name="name">User Guide</field>
+        <field name="description">Write comprehensive user documentation</field>
+        <field name="stage">done</field>
+        <field name="priority">0</field>
+        <field name="amount">3000</field>
+        <field name="progress">100</field>
+        <field name="color">7</field>
+        <field name="sequence">4</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_docs')])]"/>
+    </record>
+    <record id="demo_record_5" model="t4.theme.demo">
+        <field name="name">Login Bug</field>
+        <field name="description">Fix SSO authentication timeout issue</field>
+        <field name="stage">progress</field>
+        <field name="priority">2</field>
+        <field name="amount">5000</field>
+        <field name="progress">40</field>
+        <field name="color">1</field>
+        <field name="sequence">5</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_bug')])]"/>
+    </record>
+    <record id="demo_record_6" model="t4.theme.demo">
+        <field name="name">Mobile Responsive</field>
+        <field name="description">Make all views mobile-friendly</field>
+        <field name="stage">draft</field>
+        <field name="priority">0</field>
+        <field name="amount">20000</field>
+        <field name="progress">10</field>
+        <field name="color">4</field>
+        <field name="sequence">6</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('demo_tag_feature'), ref('demo_tag_enhancement')])]"/>
+    </record>
+</odoo>

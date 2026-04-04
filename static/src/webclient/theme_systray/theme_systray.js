@@ -194,6 +194,7 @@ export class ThemeSystray extends Component {
     setup() {
         this.orm = useService("orm");
         this.ui = useService("ui");
+        this.actionService = useService("action");
         this.panelRef = useRef("panel");
 
         const company = user.activeCompany || {};
@@ -589,11 +590,9 @@ export class ThemeSystray extends Component {
         this._revertPreview();
     }
 
-    onToggleDesignMode() {
-        // Close theme settings panel first
+    onOpenThemeSettings() {
         this.state.open = false;
-        // Then activate design mode
-        document.dispatchEvent(new CustomEvent('t4:toggle-design-mode'));
+        this.actionService.doAction('t4_theme.action_t4_theme_settings');
     }
 }
 

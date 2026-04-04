@@ -138,6 +138,33 @@ function applyThemeFont(company) {
     root.style.setProperty('--t4-font-family', fontStack);
 }
 
+function applyViewOverrides(company) {
+    const overrides = company?.theme_view_overrides || {};
+    const styleId = 't4-theme-view-overrides';
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+    }
+
+    // Overrides use compound key format: 'cssTarget|||propKey'
+    const groups = {};
+    for (const [compoundKey, value] of Object.entries(overrides)) {
+        if (!value) continue;
+        const [target, propKey] = compoundKey.split('|||');
+        if (!target || !propKey) continue;
+        if (!groups[target]) groups[target] = [];
+        groups[target].push(`${propKey}: ${value}`);
+    }
+
+    let css = '/* T4 View Overrides */\n';
+    for (const [selector, props] of Object.entries(groups)) {
+        css += `${selector} { ${props.join(' !important; ')} !important }\n`;
+    }
+    styleEl.textContent = css;
+}
+
 function getActiveCompanyColors() {
     const activeCompany = user.activeCompany;
     return activeCompany?.theme_colors || null;
@@ -152,9 +179,11 @@ export const themeColorService = {
         const company = user.activeCompany;
         applyThemeColors(getActiveCompanyColors());
         applyThemeFont(company);
+        applyViewOverrides(company);
         env.bus.addEventListener('MENUS:APP-CHANGED', () => {
             applyThemeColors(getActiveCompanyColors());
             applyThemeFont(user.activeCompany);
+            applyViewOverrides(user.activeCompany);
         });
     },
 };

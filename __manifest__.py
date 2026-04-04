@@ -248,6 +248,12 @@
             't4_theme/static/src/services/debranding_service.js',
             't4_theme/static/src/services/url_prefix_service.js',
 
+            # --- Theme Editor ---
+            't4_theme/static/src/theme_editor/views_theme.scss',
+            't4_theme/static/src/theme_editor/component_registry.js',
+            't4_theme/static/src/theme_editor/theme_editor_overlay.js',
+            't4_theme/static/src/theme_editor/theme_editor_overlay.xml',
+
             # --- Shared SCSS variables & mixins ---
             't4_theme/static/src/scss/_t4_variables.scss',
             't4_theme/static/src/scss/_t4_mixins.scss',

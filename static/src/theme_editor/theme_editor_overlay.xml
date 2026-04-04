@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="t4_theme.ThemeEditorOverlay">
+        <!-- Top toolbar -->
+        <div class="t4_design_toolbar">
+            <span class="t4_design_toolbar_label">
+                <i class="fa fa-paint-brush me-1"/>Design Mode
+            </span>
+
+            <span t-if="state.saveStatus === 'saving'" class="t4_design_toolbar_status text-warning">
+                <i class="fa fa-circle-o-notch fa-spin me-1"/>Saving...
+            </span>
+            <span t-if="state.saveStatus === 'saved'" class="t4_design_toolbar_status text-success">
+                <i class="fa fa-check me-1"/>Saved
+            </span>
+            <span t-if="state.saveStatus === 'error'" class="t4_design_toolbar_status text-danger">
+                <i class="fa fa-exclamation-triangle me-1"/>Error
+            </span>
+
+            <button t-if="state.dirty" class="btn btn-sm btn-success" t-on-click="onSave">
+                <i class="fa fa-save me-1"/>Save
+            </button>
+            <button class="btn btn-sm btn-light" t-on-click="close">
+                <i class="fa fa-times me-1"/>Exit
+            </button>
+        </div>
+
+        <!-- Highlight overlay -->
+        <div t-if="state.highlight and !state.panel"
+            class="t4_theme_highlight"
+            t-att-style="highlightStyle"/>
+
+        <div t-if="state.highlight and !state.panel"
+            class="t4_theme_highlight_label"
+            t-att-style="labelStyle">
+            <i t-attf-class="fa {{ state.highlight.icon }}"/>
+            <t t-out="state.highlight.label"/>
+        </div>
+
+        <!-- Style Panel -->
+        <div t-if="state.panel"
+            class="t4_style_panel"
+            t-att-style="panelStyle">
+            <div class="t4_style_panel_header">
+                <span>
+                    <i t-attf-class="fa {{ state.panel.config.icon }}"/>
+                    <t t-out="state.panel.config.label"/>
+                </span>
+                <button class="btn-close btn-close-sm" t-on-click="closePanel"/>
+            </div>
+            <div class="t4_style_panel_body">
+                <t t-foreach="state.panel.config.properties" t-as="prop" t-key="prop.key">
+                    <div class="t4_style_panel_property">
+                        <label class="t4_style_panel_label">
+                            <t t-out="prop.label"/>
+                        </label>
+
+                        <div t-if="prop.type === 'slider'" class="t4_style_panel_slider_row">
+                            <input type="range"
+                                t-att-min="prop.min"
+                                t-att-max="prop.max"
+                                t-att-value="getPropertyValue(prop)"
+                                t-att-data-css-var="prop.key"
+                                t-att-data-unit="prop.unit"
+                                t-on-input="onSliderInput"/>
+                            <input type="number"
+                                t-att-min="prop.min"
+                                t-att-max="prop.max"
+                                t-att-value="getPropertyValue(prop)"
+                                t-att-data-css-var="prop.key"
+                                t-att-data-unit="prop.unit"
+                                t-on-input="onSliderInput"/>
+                            <span class="t4_unit" t-out="prop.unit"/>
+                        </div>
+
+                        <div t-if="prop.type === 'color'" class="t4_style_panel_color_row">
+                            <input type="color"
+                                t-att-value="getPropertyValue(prop) or '#ffffff'"
+                                t-att-data-css-var="prop.key"
+                                t-on-input="onColorInput"/>
+                            <input type="text"
+                                t-att-value="getPropertyValue(prop)"
+                                placeholder="#hex"
+                                t-att-data-css-var="prop.key"
+                                t-on-change="onColorInput"/>
+                        </div>
+
+                        <!-- Select dropdown -->
+                        <div t-if="prop.type === 'select'" class="t4_style_panel_select_row">
+                            <select class="form-select form-select-sm"
+                                t-att-data-css-var="prop.key"
+                                t-on-change="onSelectInput">
+                                <option value="">Default</option>
+                                <t t-foreach="prop.options" t-as="opt" t-key="opt.value">
+                                    <option t-att-value="opt.value"
+                                        t-att-selected="getPropertyValue(prop) === opt.value">
+                                        <t t-out="opt.label"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+                </t>
+            </div>
+            <div class="t4_style_panel_footer">
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="onResetAll">
+                    <i class="fa fa-undo me-1"/>Reset
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

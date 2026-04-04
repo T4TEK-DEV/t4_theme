@@ -4,6 +4,7 @@ import { useHotkey } from '@web/core/hotkeys/hotkey_hook';
 import { WebClient } from '@web/webclient/webclient';
 import { ResizablePanel } from '@web/core/resizable_panel/resizable_panel';
 import { AppsBar } from '@t4_theme/appsbar/webclient/appsbar/appsbar';
+import { ThemeEditorOverlay } from '@t4_theme/theme_editor/theme_editor_overlay';
 import { onMounted, onWillUnmount, useState } from '@odoo/owl';
 
 const SIDEBAR_KEY = 't4_sidebar';
@@ -61,6 +62,8 @@ patch(WebClient.prototype, {
             width: initial.width || DEFAULT_WIDTH,
         });
 
+        this.designMode = useState({ active: false });
+
         this._panelEl = null;
         this._lastResizeWidth = null;
 
@@ -79,6 +82,7 @@ patch(WebClient.prototype, {
 
         onWillUnmount(() => {
             this._uninstallFastResize();
+            document.removeEventListener('t4:toggle-design-mode', this._onToggleDesignMode);
         });
 
         this._onSidebarPreview = (ev) => {
@@ -101,6 +105,16 @@ patch(WebClient.prototype, {
             });
         };
         document.addEventListener('t4:sidebar-preview', this._onSidebarPreview);
+
+        // Design Mode toggle
+        this._onToggleDesignMode = () => {
+            this._toggleDesignMode();
+        };
+        document.addEventListener('t4:toggle-design-mode', this._onToggleDesignMode);
+    },
+
+    _toggleDesignMode() {
+        this.designMode.active = !this.designMode.active;
     },
 
     _applySidebarClass() {
@@ -216,4 +230,4 @@ patch(WebClient.prototype, {
     },
 });
 
-WebClient.components = { ...WebClient.components, AppsBar, ResizablePanel };
+WebClient.components = { ...WebClient.components, AppsBar, ResizablePanel, ThemeEditorOverlay };

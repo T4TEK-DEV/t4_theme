@@ -99,6 +99,7 @@ def _patch_session_info():
                         'theme_preset': company.theme_preset or 'default',
                         'theme_font_family': company.theme_font_family or 'system',
                         'theme_home_menu_overlay': company.theme_home_menu_overlay if company.theme_home_menu_overlay is not None else True,
+                        'theme_view_overrides': company.theme_view_overrides or {},
                         'theme_colors': {
                             'color_brand': company.theme_color_brand or '#243742',
                             'color_primary': company.theme_color_primary or '#5D8DA8',

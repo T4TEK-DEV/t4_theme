@@ -23,6 +23,13 @@
                 <button class="btn btn-sm btn-close" t-on-click="closePanel"/>
             </div>
 
+            <div class="px-3 py-2 border-bottom">
+                <button class="btn btn-sm btn-outline-primary w-100"
+                    t-on-click="onToggleDesignMode">
+                    <i class="fa fa-paint-brush me-1"/>Visual Editor
+                </button>
+            </div>
+
             <div class="t4_theme_panel_body">
 
                 <!-- ====== Dark Mode ====== -->

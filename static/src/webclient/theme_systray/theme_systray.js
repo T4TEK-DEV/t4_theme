@@ -588,6 +588,11 @@ export class ThemeSystray extends Component {
     onClickReset() {
         this._revertPreview();
     }
+
+    onToggleDesignMode() {
+        // Dispatch custom event that webclient can listen for
+        document.dispatchEvent(new CustomEvent('t4:toggle-design-mode'));
+    }
 }
 
 registry.category("systray").add(

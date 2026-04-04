@@ -337,3 +337,13 @@ class ResCompany(models.Model):
         for company in self:
             preset = THEME_PRESETS.get(company.theme_preset, THEME_PRESETS['default'])
             company.write(preset)
+
+    #----------------------------------------------------------
+    # Fields - View Overrides
+    #----------------------------------------------------------
+
+    theme_view_overrides = fields.Json(
+        string='View Theme Overrides',
+        default=dict,
+        help='JSON map of CSS custom property overrides from theme editor.',
+    )

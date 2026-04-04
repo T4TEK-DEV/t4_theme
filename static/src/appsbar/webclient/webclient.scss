@@ -10,8 +10,9 @@
         "sidebar content"
         "sidebar components";
     grid-template-rows: auto auto 1fr auto;
-    // Use CSS var instead of `auto` — browser skips intrinsic sizing
-    grid-template-columns: var(--t4-sidebar-width, 200px) 1fr;
+    // `auto` lets ResizablePanel control width naturally (like f92627d)
+    // CSS var --t4-sidebar-width is still updated by JS for icon scaling in compact mode
+    grid-template-columns: auto 1fr;
 
     > div:has(#oe_neutralize_banner) {
         grid-area: banner;

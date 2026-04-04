@@ -51,16 +51,53 @@
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-swatchbook me-2"/>Theme Preset
                     </span>
-                    <div class="d-flex flex-wrap gap-2">
-                        <t t-foreach="presets" t-as="preset" t-key="preset.key">
-                            <button class="t4_preset_btn"
-                                t-attf-class="{{ state.currentPreset === preset.key ? 'active' : '' }}"
-                                t-attf-style="background-color: {{ preset.color }}"
-                                t-att-title="preset.label"
-                                t-on-click="() => this.onSelectPreset(preset.key)">
-                                <i t-if="state.currentPreset === preset.key" class="fa fa-check"/>
-                            </button>
+                    <div class="t4_ts_preset_grid">
+                        <t t-foreach="presets" t-as="preset" t-key="preset.id">
+                            <div class="t4_ts_preset_item" t-on-click="() => this.onSelectPreset(preset)">
+                                <div t-attf-class="t4_ts_preset_circle {{ state.currentPreset === preset.id ? 't4_ts_preset_active' : '' }}"
+                                     t-att-style="'background-color:' + preset.preview_color">
+                                    <i t-if="state.currentPreset === preset.id" class="fa fa-check"/>
+                                </div>
+                                <span class="t4_ts_preset_name" t-esc="preset.name"/>
+                                <button t-if="!preset.is_default"
+                                        class="t4_ts_preset_delete"
+                                        t-on-click.stop="() => this.onDeletePreset(preset.id)"
+                                        title="Delete preset">
+                                    <i class="fa fa-times"/>
+                                </button>
+                            </div>
                         </t>
+                        <!-- Create new preset -->
+                        <div class="t4_ts_preset_item t4_ts_preset_add" t-on-click="onShowCreatePreset">
+                            <div class="t4_ts_preset_circle t4_ts_preset_circle_add">
+                                <i class="fa fa-plus"/>
+                            </div>
+                            <span class="t4_ts_preset_name">Create</span>
+                        </div>
+                    </div>
+
+                    <!-- Create preset form (inline) -->
+                    <div t-if="state.showCreatePreset" class="t4_ts_create_preset">
+                        <input type="text" class="form-control form-control-sm"
+                               placeholder="Preset name..."
+                               t-att-value="state.newPresetName"
+                               t-on-input="onNewPresetNameInput"
+                               t-on-keydown="(ev) => ev.key === 'Enter' and this.onSaveNewPreset()"/>
+                        <div class="t4_ts_create_preset_actions">
+                            <button class="btn btn-sm btn-primary" t-on-click="onSaveNewPreset">Save</button>
+                            <button class="btn btn-sm btn-light" t-on-click="onCancelCreatePreset">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Import / Export -->
+                    <div class="t4_ts_import_export">
+                        <button class="btn btn-sm btn-outline-secondary" t-on-click="onExportTheme">
+                            <i class="fa fa-download me-1"/>Export
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" t-on-click="onImportThemeClick"
+                                t-att-disabled="state.importing">
+                            <i t-attf-class="fa {{ state.importing ? 'fa-spinner fa-spin' : 'fa-upload' }} me-1"/>Import
+                        </button>
                     </div>
                 </div>
 

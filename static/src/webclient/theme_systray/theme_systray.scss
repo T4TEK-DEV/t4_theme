@@ -192,6 +192,127 @@
 }
 
 // =============================================================================
+// Preset Grid (DB-backed presets with name + delete)
+// =============================================================================
+
+.t4_ts_preset_grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.t4_ts_preset_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    width: 52px;
+
+    &:hover .t4_ts_preset_delete {
+        opacity: 1;
+    }
+}
+
+.t4_ts_preset_circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+
+    i {
+        color: #fff;
+        font-size: 12px;
+    }
+
+    &:hover {
+        transform: scale(1.12);
+    }
+
+    &.t4_ts_preset_active {
+        border-color: var(--bs-body-color, #212529);
+        box-shadow: 0 0 0 2px var(--bs-body-bg, #fff), 0 0 0 4px var(--bs-body-color, #212529);
+    }
+}
+
+.t4_ts_preset_circle_add {
+    background-color: var(--bs-tertiary-bg, #f0f0f0);
+    border: 2px dashed var(--bs-border-color, #dee2e6);
+
+    i {
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 12px;
+    }
+
+    &:hover {
+        background-color: var(--bs-border-color, #dee2e6);
+    }
+}
+
+.t4_ts_preset_name {
+    font-size: 10px;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-top: 3px;
+    text-align: center;
+    max-width: 52px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.t4_ts_preset_delete {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: none;
+    background: #dc3545;
+    color: #fff;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+// Create preset inline form
+.t4_ts_create_preset {
+    margin-bottom: 10px;
+
+    .form-control {
+        margin-bottom: 6px;
+    }
+}
+
+.t4_ts_create_preset_actions {
+    display: flex;
+    gap: 6px;
+}
+
+// Import / Export row
+.t4_ts_import_export {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+
+    .btn {
+        flex: 1;
+        font-size: 12px;
+    }
+}
+
+// =============================================================================
 // Color Picker Rows
 // =============================================================================
 

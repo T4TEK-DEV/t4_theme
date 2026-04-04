@@ -136,12 +136,41 @@
     </record>
 
     <!-- ============================================================ -->
+    <!-- PIVOT VIEW — Theme Demo -->
+    <!-- ============================================================ -->
+    <record id="t4_theme_demo_view_pivot" model="ir.ui.view">
+        <field name="name">t4.theme.demo.pivot</field>
+        <field name="model">t4.theme.demo</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="stage" type="row"/>
+                <field name="priority" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- GRAPH VIEW — Theme Demo -->
+    <!-- ============================================================ -->
+    <record id="t4_theme_demo_view_graph" model="ir.ui.view">
+        <field name="name">t4.theme.demo.graph</field>
+        <field name="model">t4.theme.demo</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="stage"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
     <!-- ACTION (used internally by theme settings) -->
     <!-- ============================================================ -->
     <record id="t4_theme_demo_action" model="ir.actions.act_window">
         <field name="name">Theme Demo</field>
         <field name="res_model">t4.theme.demo</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
     </record>
 
 </odoo>

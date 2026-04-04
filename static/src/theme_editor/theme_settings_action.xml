@@ -122,9 +122,33 @@
                         </t>
                     </div>
 
-                    <!-- View Renderer -->
+                    <!-- View Renderers — one per tab, only active one mounted -->
                     <div class="t4_ts_view_container p-3">
-                        <View t-props="viewProps" t-key="state.activeTab"/>
+                        <View t-if="state.activeTab === 'kanban'"
+                            resModel="'t4.theme.demo'"
+                            type="'kanban'"
+                            display="{controlPanel: false}"
+                            t-key="'kanban'"/>
+                        <View t-if="state.activeTab === 'list'"
+                            resModel="'t4.theme.demo'"
+                            type="'list'"
+                            display="{controlPanel: false}"
+                            t-key="'list'"/>
+                        <View t-if="state.activeTab === 'form'"
+                            resModel="'t4.theme.demo'"
+                            type="'form'"
+                            display="{controlPanel: false}"
+                            t-key="'form'"/>
+                        <View t-if="state.activeTab === 'pivot'"
+                            resModel="'t4.theme.demo'"
+                            type="'pivot'"
+                            display="{controlPanel: false}"
+                            t-key="'pivot'"/>
+                        <View t-if="state.activeTab === 'graph'"
+                            resModel="'t4.theme.demo'"
+                            type="'graph'"
+                            display="{controlPanel: false}"
+                            t-key="'graph'"/>
                     </div>
                 </div>
             </div>

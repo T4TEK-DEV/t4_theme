@@ -158,14 +158,6 @@ const COLOR_FIELD_MAP = {
 
 const SIDEBAR_CLASS_PREFIX = "mk_sidebar_type_";
 
-const FONT_SIZE_MIN = 10;
-const FONT_SIZE_MAX = 24;
-
-function clampFontSize(val) {
-    const num = parseInt(val, 10);
-    if (isNaN(num)) return 14;
-    return Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, num));
-}
 
 function buildInitialState(company, colors) {
     return {
@@ -184,7 +176,6 @@ function buildInitialState(company, colors) {
         chatterPosition: session.chatter_position || "side",
         dialogSize: session.dialog_size || "minimize",
         fontFamily: company.theme_font_family || "system",
-        fontSize: String(company.theme_font_size || "14"),
         homeMenuOverlay: company.theme_home_menu_overlay !== false,
         brandName: company.t4_brand_name || "T4 ERP",
         webTitle: company.t4_web_title || "",
@@ -301,14 +292,13 @@ export class ThemeSystray extends Component {
         }
     }
 
-    _applyFontPreview(fontKey, fontSize) {
+    _applyFontPreview(fontKey) {
         const root = document.documentElement;
         if (fontKey !== "system") {
             this._preloadFont(fontKey);
         }
         const fontStack = FONT_FAMILY_MAP[fontKey] || FONT_FAMILY_MAP.system;
         root.style.setProperty("--t4-font-family", fontStack);
-        root.style.setProperty("--t4-font-size", `${fontSize}px`);
     }
 
     _applySidebarPreview(value) {
@@ -327,7 +317,7 @@ export class ThemeSystray extends Component {
             this._applyColorPreview(key, this.original[key]);
         }
         this._applySidebarPreview(this.original.sidebarType);
-        this._applyFontPreview(this.original.fontFamily, this.original.fontSize);
+        this._applyFontPreview(this.original.fontFamily);
         document.title = this.original.webTitle || "Odoo";
         Object.assign(this.state, { ...this.original });
         this.state.dirty = false;
@@ -394,24 +384,10 @@ export class ThemeSystray extends Component {
     onSelectFont(value) {
         this.state.fontFamily = value;
         this.state.fontDropdownOpen = false;
-        this._applyFontPreview(value, this.state.fontSize);
+        this._applyFontPreview(value);
         this._markDirty("fontFamily");
     }
 
-    onChangeFontSize(ev) {
-        const value = String(clampFontSize(ev.target.value));
-        this.state.fontSize = value;
-        this._applyFontPreview(this.state.fontFamily, value);
-        this._markDirty("fontSize");
-    }
-
-    onFontSizeStep(delta) {
-        const current = parseInt(this.state.fontSize, 10) || 14;
-        const value = String(clampFontSize(current + delta));
-        this.state.fontSize = value;
-        this._applyFontPreview(this.state.fontFamily, value);
-        this._markDirty("fontSize");
-    }
 
     onColorChange(stateKey, ev) {
         const value = ev.target.value;
@@ -487,7 +463,6 @@ export class ThemeSystray extends Component {
         await this.orm.call("res.company", "write", [[companyId], {
             theme_preset: "default",
             theme_font_family: "system",
-            theme_font_size: "14",
             theme_home_menu_overlay: true,
             theme_color_brand: "#714B67",
             theme_color_primary: "#714B67",
@@ -534,9 +509,6 @@ export class ThemeSystray extends Component {
             if (this.dirtyFields.has("fontFamily")) {
                 companyVals.theme_font_family = this.state.fontFamily;
             }
-            if (this.dirtyFields.has("fontSize")) {
-                companyVals.theme_font_size = this.state.fontSize;
-            }
             if (this.dirtyFields.has("homeMenuOverlay")) {
                 companyVals.theme_home_menu_overlay = this.state.homeMenuOverlay;
             }
@@ -578,7 +550,6 @@ export class ThemeSystray extends Component {
                 {
                     theme_preset: this.state.currentPreset,
                     theme_font_family: this.state.fontFamily,
-                    theme_font_size: this.state.fontSize,
                     theme_home_menu_overlay: this.state.homeMenuOverlay,
                     t4_brand_name: this.state.brandName,
                     t4_web_title: this.state.webTitle,

@@ -162,7 +162,7 @@ patch(WebClient.prototype, {
             if (!this._fastDragging) return;
             const delta = ev.clientX - this._fastStartX;
             const raw = this._fastStartWidth + delta;
-            const width = Math.max(52, Math.min(raw, MAX_WIDTH));
+            const width = Math.max(79, Math.min(raw, MAX_WIDTH));
 
             if (this._fastRafId) cancelAnimationFrame(this._fastRafId);
             this._fastRafId = requestAnimationFrame(() => {

@@ -13,6 +13,7 @@
     will-change: scroll-position;
     // OM_UX: proportional padding scales smoothly as sidebar resizes
     padding-inline: calc(var(--t4-sidebar-width, 200px) * 0.09);
+    font-size: 14px;
 
     .mk_apps_sidebar {
         height: 100%;
@@ -59,6 +60,7 @@
 
             > li {
                 margin-bottom: 1px;
+                position: relative;
 
                 > a {
                     cursor: pointer;
@@ -66,7 +68,6 @@
                     font-weight: 500;
                     overflow: hidden;
                     padding: 6px 8px;
-                    padding-right: 4px;
                     text-decoration: none;
                     color: $t4-sidenav-text;
                     text-overflow: ellipsis;
@@ -129,38 +130,59 @@
 // Nav Arrow — blob-shaped expand button (OM UX style)
 // =============================================================================
 
+// Nav arrow — 3-dot square button at sidebar right edge (OM_UX style)
 .t4_nav_arrow {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    margin-left: 4px;
-    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    border-radius: $o-border-radius;
     cursor: pointer;
-    // OM_UX style: smooth transition on all properties
-    transition: 0.18s;
-    mask-position: center;
-    mask-repeat: no-repeat;
-    mask-size: contain;
-    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNMTAwIDBDMjAgMCAwIDIwIDAgMTAwczIwIDEwMCAxMDAgMTAwIDEwMC0yMCAxMDAtMTAwUzE4MCAwIDEwMCAwIi8+PC9zdmc+");
-    background-color: $t4-sidenav-item-arrow;
+    transition: all 0.25s ease;
+    background: transparent;
+    z-index: 2;
 
-    &:hover {
-        background-color: $t4-sidenav-item-arrow-bg;
-    }
-
+    // Default: dots = appbar-active (for non-active menu items)
     &::after {
-        content: "";
-        display: block;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 3px 0 3px 4px;
-        border-color: transparent transparent transparent #fff;
-        margin-left: 1px;
+        font-family: "FontAwesome";
+        content: "\f142";
+        font-size: 11px;
+        color: var(--t4-color-appbar-active, $t4-sidenav-item-active);
+        transition: color 0.25s ease;
     }
+
+    // Hover: scale up, shift left, bg = appbar-background, dots = appbar-active
+    &:hover {
+        width: 28px;
+        height: 28px;
+        right: 4px;
+        background-color: var(--t4-color-appbar-background, $t4-sidenav-bg);
+
+        &::after {
+            font-size: 13px;
+            color: var(--t4-color-appbar-active, $t4-sidenav-item-active);
+        }
+    }
+}
+
+// Active / hover menu: dots = appbar-background (contrast with active/hover bg)
+.mk_apps_sidebar_menu > li.active .t4_nav_arrow::after,
+.mk_apps_sidebar_menu > li:hover .t4_nav_arrow::after {
+    color: var(--t4-color-appbar-background, $t4-sidenav-muted);
+}
+
+// Hover on button itself: dots = appbar-active (override li:hover)
+.mk_apps_sidebar_menu > li .t4_nav_arrow:hover::after {
+    color: var(--t4-color-appbar-active, $t4-sidenav-item-active) !important;
+}
+
+.mk_apps_sidebar_menu > li {
+    overflow: hidden;
 }
 
 // =============================================================================
@@ -212,7 +234,7 @@
 
     > span {
         font-weight: 600;
-        font-size: .678rem;
+        font-size: .65rem;
         text-transform: uppercase;
     }
 

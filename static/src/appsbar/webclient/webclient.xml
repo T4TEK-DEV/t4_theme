@@ -15,7 +15,7 @@
 		    			class="'t4_sidebar_panel'"
 		    			onResize.bind="_onSidebarResize"
 		    			initialWidth="sidebarState.width"
-		    			minWidth="52">
+		    			minWidth="79">
 		    			<AppsBar/>
 		    		</ResizablePanel>
 	    		</t>

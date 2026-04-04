@@ -130,14 +130,12 @@ function loadGoogleFont(fontKey) {
 function applyThemeFont(company) {
     const root = document.documentElement;
     const fontKey = company?.theme_font_family || 'system';
-    const fontSize = company?.theme_font_size || '14';
 
     if (fontKey !== 'system') {
         loadGoogleFont(fontKey);
     }
     const fontStack = FONT_FAMILY_MAP[fontKey] || FONT_FAMILY_MAP.system;
     root.style.setProperty('--t4-font-family', fontStack);
-    root.style.setProperty('--t4-font-size', `${fontSize}px`);
 }
 
 function getActiveCompanyColors() {

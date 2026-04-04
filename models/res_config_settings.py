@@ -99,10 +99,6 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
 
-    theme_font_size = fields.Char(
-        related='company_id.theme_font_size',
-        readonly=False,
-    )
 
     theme_home_menu_overlay = fields.Boolean(
         related='company_id.theme_home_menu_overlay',

@@ -98,7 +98,6 @@ def _patch_session_info():
                         't4_url_prefix': company.t4_url_prefix or '',
                         'theme_preset': company.theme_preset or 'default',
                         'theme_font_family': company.theme_font_family or 'system',
-                        'theme_font_size': company.theme_font_size or '14',
                         'theme_home_menu_overlay': company.theme_home_menu_overlay if company.theme_home_menu_overlay is not None else True,
                         'theme_colors': {
                             'color_brand': company.theme_color_brand or '#243742',

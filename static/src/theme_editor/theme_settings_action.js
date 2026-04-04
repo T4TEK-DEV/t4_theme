@@ -14,6 +14,8 @@ const VIEW_TABS = [
     { key: 'kanban', label: 'Kanban', icon: 'fa-th-large' },
     { key: 'list', label: 'List', icon: 'fa-list' },
     { key: 'form', label: 'Form', icon: 'fa-file-text-o' },
+    { key: 'pivot', label: 'Pivot', icon: 'fa-bar-chart' },
+    { key: 'graph', label: 'Graph', icon: 'fa-area-chart' },
 ];
 
 export class ThemeSettingsAction extends Component {
@@ -55,26 +57,6 @@ export class ThemeSettingsAction extends Component {
                 preview.removeEventListener('click', this._onPreviewClick, true);
             }
         });
-    }
-
-    // ── View Props ──
-
-    get viewProps() {
-        const tab = this.state.activeTab;
-        const base = {
-            resModel: 't4.theme.demo',
-            display: { controlPanel: false },
-        };
-        if (tab === 'kanban') {
-            return { ...base, type: 'kanban' };
-        }
-        if (tab === 'list') {
-            return { ...base, type: 'list' };
-        }
-        if (tab === 'form') {
-            return { ...base, type: 'form' };
-        }
-        return { ...base, type: 'kanban' };
     }
 
     // ── Tab Switching ──

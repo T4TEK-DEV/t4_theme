@@ -74,7 +74,7 @@ export class ThemeSettingsAction extends Component {
 
     _onPreviewClick(ev) {
         const el = ev.target;
-        if (el.closest('.o_dropdown_kanban, .dropdown-menu, .modal')) return;
+        if (el.closest('.t4_ts_tabs, .o_dropdown_kanban, .dropdown-menu, .modal')) return;
 
         const match = findComponentForElement(el);
         if (match) {

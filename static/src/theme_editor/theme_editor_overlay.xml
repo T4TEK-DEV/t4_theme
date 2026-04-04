@@ -2,8 +2,19 @@
 <templates xml:space="preserve">
 
     <t t-name="t4_theme.ThemeEditorOverlay">
-        <!-- Top toolbar -->
-        <div class="t4_design_toolbar">
+        <!-- Collapsed: small floating badge -->
+        <div t-if="state.collapsed" class="t4_design_badge" t-on-click="toggleCollapse">
+            <i class="fa fa-paint-brush"/>
+            <span t-if="state.dirty" class="t4_design_badge_dot"/>
+        </div>
+
+        <!-- Expanded toolbar -->
+        <div t-if="!state.collapsed" class="t4_design_toolbar">
+            <button class="btn btn-sm t4_design_toolbar_collapse" t-on-click="toggleCollapse"
+                title="Collapse">
+                <i class="fa fa-chevron-up"/>
+            </button>
+
             <span class="t4_design_toolbar_label">
                 <i class="fa fa-paint-brush me-1"/>Design Mode
             </span>

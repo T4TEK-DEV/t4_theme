@@ -3,13 +3,11 @@
 import { Component, useState, onMounted, onWillUnmount } from '@odoo/owl';
 import { rpc } from '@web/core/network/rpc';
 import { user } from '@web/core/user';
-import { findComponentForElement, buildTargetMap } from './component_registry';
+import { findComponentForElement } from './component_registry';
 
 // ============================================================================
 // T4 Theme Editor — Overlay System
 // ============================================================================
-// Uses <style> tag injection for realtime CSS var overrides.
-// Saves to DB only on explicit "Save" click — no auto-save, no reload.
 
 const STYLE_ID = 't4-theme-editor-overrides';
 
@@ -22,16 +20,15 @@ export class ThemeEditorOverlay extends Component {
     setup() {
         this.state = useState({
             active: true,
+            collapsed: false,
             highlight: null,
             panel: null,
             saveStatus: '',
             dirty: false,
         });
 
-        // In-memory overrides: { 'selector|||propKey': 'value' }
-        // Key format: 'cssTarget|||propertyKey' to support same prop on different selectors
+        // In-memory overrides: { 'cssTarget|||propKey': 'value' }
         this._overrides = {};
-        this._targetMap = buildTargetMap();
 
         this._onMouseMove = this._onMouseMove.bind(this);
         this._onMouseClick = this._onMouseClick.bind(this);
@@ -49,19 +46,19 @@ export class ThemeEditorOverlay extends Component {
             document.addEventListener('mousemove', this._onMouseMove, true);
             document.addEventListener('click', this._onMouseClick, true);
             document.addEventListener('keydown', this._onKeyDown);
-            // Apply existing overrides via style tag
             this._injectStyleTag();
         });
 
         onWillUnmount(() => {
             document.body.classList.remove('t4_design_mode');
+            document.body.classList.remove('t4_design_collapsed');
             document.removeEventListener('mousemove', this._onMouseMove, true);
             document.removeEventListener('click', this._onMouseClick, true);
             document.removeEventListener('keydown', this._onKeyDown);
         });
     }
 
-    // ── Style Tag Injection (realtime CSS override) ──
+    // ── Style Tag Injection ──
 
     _injectStyleTag() {
         let styleEl = document.getElementById(STYLE_ID);
@@ -71,32 +68,32 @@ export class ThemeEditorOverlay extends Component {
             document.head.appendChild(styleEl);
         }
 
-        // Group overrides by target selector
-        // Key format in _overrides: 'target|||propKey' → value
         const groups = {};
         for (const [compoundKey, value] of Object.entries(this._overrides)) {
             if (!value) continue;
-            const [target, propKey] = compoundKey.split('|||');
+            const sep = compoundKey.indexOf('|||');
+            if (sep < 0) continue;
+            const target = compoundKey.slice(0, sep);
+            const propKey = compoundKey.slice(sep + 3);
             if (!groups[target]) groups[target] = [];
-            groups[target].push(`${propKey}: ${value}`);
+            groups[target].push(`${propKey}: ${value} !important`);
         }
 
         let css = '/* T4 Theme Editor Overrides */\n';
         for (const [selector, props] of Object.entries(groups)) {
-            css += `${selector} { ${props.join(' !important; ')} !important }\n`;
+            css += `${selector} { ${props.join('; ')} }\n`;
         }
         styleEl.textContent = css;
     }
 
-    _makeKey(propKey) {
-        // Build compound key: 'cssTarget|||propKey'
-        const info = this._targetMap[propKey];
-        const target = info ? info.target : ':root';
-        return `${target}|||${propKey}`;
+    // Build compound key using the ACTIVE PANEL's cssTarget
+    _makeKeyForPanel(propKey) {
+        if (!this.state.panel) return `:root|||${propKey}`;
+        return `${this.state.panel.config.cssTarget}|||${propKey}`;
     }
 
     _setOverride(propKey, value) {
-        const key = this._makeKey(propKey);
+        const key = this._makeKeyForPanel(propKey);
         if (value) {
             this._overrides[key] = value;
         } else {
@@ -110,13 +107,13 @@ export class ThemeEditorOverlay extends Component {
     // ── Mouse Handlers ──
 
     _onMouseMove(ev) {
-        if (!this.state.active || this.state.panel) return;
+        if (!this.state.active || this.state.panel || this.state.collapsed) return;
         const el = ev.target;
-        if (el.closest('.t4_theme_highlight, .t4_theme_highlight_label, .t4_style_panel, .t4_design_toolbar')) return;
+        if (el.closest('.t4_theme_highlight, .t4_theme_highlight_label, .t4_style_panel, .t4_design_toolbar, .t4_design_badge')) return;
 
         const match = findComponentForElement(el);
         if (match) {
-            const targetEl = el.closest(match.selector);
+            const targetEl = el.closest(match.selector) || this._findTarget(el, match.selector);
             if (targetEl && targetEl !== this._currentEl) {
                 this._currentEl = targetEl;
                 const rect = targetEl.getBoundingClientRect();
@@ -136,14 +133,26 @@ export class ThemeEditorOverlay extends Component {
         }
     }
 
+    // Fallback for compound selectors where el.closest() may fail
+    _findTarget(el, selector) {
+        try {
+            const all = document.querySelectorAll(selector);
+            for (const candidate of all) {
+                if (candidate.contains(el)) return candidate;
+            }
+        } catch { /* invalid selector */ }
+        return null;
+    }
+
     _onMouseClick(ev) {
         if (!this.state.active) return;
         const el = ev.target;
 
-        if (el.closest('.t4_design_toolbar')) return;
+        if (el.closest('.t4_design_toolbar, .t4_design_badge')) return;
         if (el.closest('.t4_style_panel')) return;
 
-        if (this.state.panel && !el.closest('.t4_style_panel')) {
+        // Click outside panel → close panel
+        if (this.state.panel) {
             this.state.panel = null;
             return;
         }
@@ -154,7 +163,7 @@ export class ThemeEditorOverlay extends Component {
         ev.preventDefault();
         ev.stopPropagation();
 
-        const targetEl = el.closest(match.selector) || this._currentEl;
+        const targetEl = this._currentEl || this._findTarget(el, match.selector);
         if (!targetEl) return;
 
         const rect = targetEl.getBoundingClientRect();
@@ -189,17 +198,18 @@ export class ThemeEditorOverlay extends Component {
     }
 
     // ── Property Handlers ──
+    // All use _makeKeyForPanel() which reads cssTarget from the OPEN panel
 
     onSliderInput(ev) {
-        const cssVar = ev.target.dataset.cssVar;
+        const propKey = ev.target.dataset.cssVar;
         const unit = ev.target.dataset.unit || '';
         const value = ev.target.value;
-        this._setOverride(cssVar, unit ? `${value}${unit}` : value);
+        this._setOverride(propKey, unit ? `${value}${unit}` : value);
     }
 
     onColorInput(ev) {
-        const cssVar = ev.target.dataset.cssVar;
-        this._setOverride(cssVar, ev.target.value);
+        const propKey = ev.target.dataset.cssVar;
+        this._setOverride(propKey, ev.target.value);
     }
 
     onSelectInput(ev) {
@@ -209,8 +219,9 @@ export class ThemeEditorOverlay extends Component {
 
     onResetAll() {
         if (!this.state.panel) return;
+        const cssTarget = this.state.panel.config.cssTarget;
         for (const prop of this.state.panel.config.properties) {
-            const key = this._makeKey(prop.key);
+            const key = `${cssTarget}|||${prop.key}`;
             delete this._overrides[key];
         }
         this._injectStyleTag();
@@ -218,14 +229,12 @@ export class ThemeEditorOverlay extends Component {
         this.state.saveStatus = '';
     }
 
-    // ── Save (explicit, on button click only) ──
+    // ── Save ──
 
     async onSave() {
         this.state.saveStatus = 'saving';
         try {
-            const overrides = { ...this._overrides };
-            // Use custom endpoint to avoid ORM bus → no reload
-            await rpc('/t4_theme/save_overrides', { overrides });
+            await rpc('/t4_theme/save_overrides', { overrides: { ...this._overrides } });
             this.state.dirty = false;
             this.state.saveStatus = 'saved';
             setTimeout(() => { this.state.saveStatus = ''; }, 2000);
@@ -241,8 +250,12 @@ export class ThemeEditorOverlay extends Component {
         this.state.panel = null;
     }
 
+    toggleCollapse() {
+        this.state.collapsed = !this.state.collapsed;
+        document.body.classList.toggle('t4_design_collapsed', this.state.collapsed);
+    }
+
     close() {
-        // Remove style tag on exit (persisted overrides loaded by theme_color_service)
         const styleEl = document.getElementById(STYLE_ID);
         if (styleEl) styleEl.remove();
         this.state.active = false;
@@ -270,8 +283,9 @@ export class ThemeEditorOverlay extends Component {
     }
 
     getPropertyValue(prop) {
-        // Check in-memory overrides (compound key)
-        const key = this._makeKey(prop.key);
+        // Use PANEL's cssTarget to build the correct compound key
+        const cssTarget = this.state.panel ? this.state.panel.config.cssTarget : ':root';
+        const key = `${cssTarget}|||${prop.key}`;
         const memValue = this._overrides[key];
         if (memValue) {
             if (prop.unit && memValue.endsWith(prop.unit)) {
@@ -279,7 +293,7 @@ export class ThemeEditorOverlay extends Component {
             }
             return memValue;
         }
-        // Fallback: for CSS vars, read computed; for direct CSS, use default
+        // Fallback: CSS vars → read computed value
         if (!prop.css && prop.key.startsWith('--')) {
             const computed = getComputedStyle(document.documentElement).getPropertyValue(prop.key).trim();
             if (computed && prop.unit && computed.endsWith(prop.unit)) {

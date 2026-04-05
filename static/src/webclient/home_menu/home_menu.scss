@@ -20,7 +20,6 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         right: 0;
         z-index: 1060;
 
-        // Hide everything except the toggle button and systray
         .o_menu_brand,
         .o_menu_brand_icon,
         .o_menu_sections,
@@ -29,7 +28,6 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             display: none !important;
         }
 
-        // Toggle button prominent style on home menu background
         .o_menu_toggle {
             color: #fff !important;
             padding: 10px 16px !important;
@@ -44,28 +42,34 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             .o_menu_toggle_icon {
                 width: 18px !important;
                 height: 18px !important;
-                // Force white fill on home menu background
                 rect { fill: #fff !important; }
             }
         }
 
-        // Fade systray when home menu is open
         .o_menu_systray {
             opacity: 0.6;
             &:hover { opacity: 1; }
         }
     }
 
-    // Hide sidebar when home menu is active
     .t4_sidebar_area {
         display: none !important;
     }
 
-    // Make action container fill full viewport
     .o_action_manager {
         position: fixed !important;
         inset: 0 !important;
         z-index: 1050;
+    }
+
+    // Edit mode: navbar passes through mouse to widgets underneath
+    &.t4_hm_edit_active .o_main_navbar {
+        pointer-events: none;
+        // Keep toggle and systray clickable
+        .o_menu_toggle,
+        .o_menu_systray {
+            pointer-events: auto;
+        }
     }
 }
 
@@ -81,15 +85,13 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
 .o_home_menu {
     font-size: $font-size-base;
     scrollbar-color: rgba(0, 0, 0, .5) transparent;
-    // Fullscreen centering
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding-top: 60px;
 
-    &::-webkit-scrollbar {
-        width: map-get($spacers, 2);
-    }
-
+    &::-webkit-scrollbar { width: map-get($spacers, 2); }
     &::-webkit-scrollbar-thumb {
         background: rgba(0, 0, 0, .5);
         border-radius: $border-radius-pill;
@@ -99,10 +101,215 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         max-width: $o-home-menu-container-size !important;
     }
 
-    .o_apps {
-        justify-content: center;
+    .o_apps { justify-content: center; }
+
+    // ── Grid Overlay (edit mode) ──
+    .t4_hm_grid_overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+        background-size: 60px 60px;
+        border: 2px dashed rgba(255,255,255,0.15);
+        border-radius: 8px;
     }
 
+    // ── Edit Toolbar ──
+    .t4_hm_toolbar {
+        position: fixed;
+        top: 52px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1100;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+        padding: 6px 14px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        .btn { font-size: 12px; border-radius: 14px; }
+        cursor: grab;
+        &:active { cursor: grabbing; }
+    }
+
+    .t4_hm_toolbar_grip {
+        color: rgba(255,255,255,0.4);
+        font-size: 14px;
+        cursor: grab;
+        padding: 0 4px;
+        &:active { cursor: grabbing; }
+    }
+
+    .t4_hm_toolbar_sep {
+        width: 1px;
+        height: 20px;
+        background: rgba(255,255,255,0.2);
+        margin: 0 4px;
+    }
+
+    // ── Widget base (absolute positioned, above navbar in edit mode) ──
+    .t4_hm_widget {
+        position: absolute;
+        z-index: 10;
+        user-select: none;
+        border-radius: 12px;
+        padding: 6px;
+        transition: box-shadow 0.2s;
+    }
+
+    &.t4_hm_edit_mode .t4_hm_widget {
+        z-index: 1070;
+    }
+
+    .t4_hm_widget_resize {
+        position: absolute;
+        bottom: -6px;
+        right: -6px;
+        width: 24px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: nwse-resize;
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 10px;
+        color: #333;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        z-index: 5;
+    }
+
+    .t4_hm_widget_label {
+        position: absolute;
+        top: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    // ── Draggable (edit mode only) ──
+    .t4_hm_draggable {
+        cursor: grab;
+        &:active { cursor: grabbing; }
+        &:hover {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+            .t4_hm_widget_resize { opacity: 1; }
+            .t4_hm_widget_label { opacity: 1; }
+        }
+    }
+
+    // ── Company Logo ──
+    .t4_hm_logo {
+        max-height: 80px;
+        max-width: 200px;
+        object-fit: contain;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    }
+
+    // ── Clock ──
+    .t4_hm_clock {
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .t4_hm_clock_time_row {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 2px;
+        line-height: 1;
+    }
+
+    .t4_hm_clock_hours,
+    .t4_hm_clock_minutes {
+        font-size: 3.5rem;
+        font-weight: 200;
+        color: #fff;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .t4_hm_clock_seconds {
+        font-size: 1.8rem;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.7);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .t4_hm_clock_sep {
+        font-size: 3rem;
+        font-weight: 100;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0 1px;
+    }
+
+    .t4_hm_clock_period {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        margin-left: 6px;
+        align-self: center;
+    }
+
+    .t4_hm_clock_date {
+        font-size: 1rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        margin-top: 6px;
+        text-transform: capitalize;
+    }
+
+    // ── Edit Mode: app visual indicators ──
+    &.t4_hm_edit_mode {
+        .o_draggable {
+            cursor: move;
+        }
+
+        .t4_hm_app_editable {
+            border: 2px dashed rgba(255,255,255,0.25);
+            border-radius: 12px;
+            transition: border-color 0.2s, background 0.2s;
+            cursor: move;
+
+            &:hover {
+                border-color: rgba(255,255,255,0.5);
+                background: rgba(255,255,255,0.08);
+            }
+        }
+
+        // Always show edit icon in edit mode
+        .t4_edit_icon {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    // ── Normal mode: no drag indicators ──
+    &:not(.t4_hm_edit_mode) {
+        .t4_hm_logo_wrap,
+        .t4_hm_clock_wrap {
+            pointer-events: none;
+        }
+    }
+
+    // ── App Icons ──
     .o_app {
         .o_app_icon {
             width: $o-home-menu-app-icon-max-width;
@@ -118,9 +325,7 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
                 0 4px 8px rgba(#000, .04),
                 0 8px 16px rgba(#000, .04);
 
-            .fa {
-                font-size: $o-home-menu-app-icon-max-width * 0.5;
-            }
+            .fa { font-size: $o-home-menu-app-icon-max-width * 0.5; }
         }
 
         &:hover .o_app_icon {
@@ -150,7 +355,7 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         }
     }
 
-    // Edit icon button (studio-like)
+    // Edit icon button (only in edit mode via t-if)
     .t4_edit_icon {
         display: none;
         top: -4px;
@@ -165,12 +370,6 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
 
-    .o_app:hover .t4_edit_icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     .o_dragged_app {
         transition: transform 0.5s;
         transform: rotate(6deg);
@@ -181,34 +380,44 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
     }
 
     @include media-breakpoint-down(md) {
+        padding-top: 50px;
+
+        .t4_hm_clock_hours,
+        .t4_hm_clock_minutes {
+            font-size: 2.2rem;
+        }
+        .t4_hm_clock_seconds { font-size: 1.2rem; }
+        .t4_hm_clock_sep { font-size: 2rem; }
+        .t4_hm_clock_period { font-size: 0.9rem; }
+        .t4_hm_clock_date { font-size: 0.8rem; }
+
+        .t4_hm_logo {
+            max-height: 50px;
+            max-width: 120px;
+        }
+
+        .t4_hm_widget_resize { opacity: 0.6; }
+
         &.o_ios_app {
             .o_apps {
                 flex-direction: column;
                 font-size: $o-home-menu-font-size-base * 1.25;
                 margin-top: map-get($spacers, 1);
                 padding: 0 map-get($spacers, 2);
-
-                > *, .o_app {
-                    width: 100%;
-                }
+                > *, .o_app { width: 100%; }
             }
-
             .o_app {
                 flex-direction: row !important;
                 justify-content: initial !important;
                 background-color: rgba(255, 255, 255, 0.1);
                 padding: map-get($spacers, 3) map-get($spacers, 4) !important;
             }
-
             .o_app_icon {
                 width: $o-home-menu-app-icon-max-width * 0.75;
                 height: $o-home-menu-app-icon-max-width * 0.75;
                 margin-right: map-get($spacers, 4);
             }
-
-            .o_caption {
-                text-align: start !important;
-            }
+            .o_caption { text-align: start !important; }
         }
 
         &:not(.o_ios_app) .o_caption {

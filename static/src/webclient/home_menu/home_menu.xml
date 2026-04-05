@@ -2,38 +2,100 @@
 <templates xml:space="preserve">
 
 <t t-name="t4_theme.HomeMenu">
-    <div t-ref="root" class="o_home_menu h-100 overflow-auto" t-att-class="{ o_ios_app: state.isIosApp }">
+    <div t-ref="root" class="o_home_menu h-100 overflow-auto position-relative"
+        t-att-class="{ o_ios_app: state.isIosApp, t4_hm_edit_mode: editMode }">
+
+        <!-- Grid overlay (edit mode) -->
+        <div t-if="editMode" class="t4_hm_grid_overlay"/>
+
+        <!-- Edit toolbar (edit mode, draggable) -->
+        <div t-if="editMode" class="t4_hm_toolbar" t-ref="toolbar"
+            t-on-mousedown="onToolbarDrag" t-on-touchstart="onToolbarDrag">
+            <span class="t4_hm_toolbar_grip" title="Drag toolbar"><i class="fa fa-ellipsis-v"/></span>
+            <button class="btn btn-sm" t-att-class="logoState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
+                t-on-click.stop="() => this.toggleWidget('logo')" title="Toggle Logo">
+                <i class="fa fa-image me-1"/>Logo
+            </button>
+            <button class="btn btn-sm" t-att-class="timeState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
+                t-on-click.stop="() => this.toggleWidget('time')" title="Toggle Time">
+                <i class="fa fa-clock-o me-1"/>Time
+            </button>
+            <button class="btn btn-sm" t-att-class="dateState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
+                t-on-click.stop="() => this.toggleWidget('date')" title="Toggle Date">
+                <i class="fa fa-calendar me-1"/>Date
+            </button>
+            <span class="t4_hm_toolbar_sep"/>
+            <button class="btn btn-sm btn-outline-warning" t-on-click.stop="resetHomeMenu" title="Reset to Default">
+                <i class="fa fa-undo me-1"/>Reset
+            </button>
+        </div>
+
+        <!-- Company Logo -->
+        <div t-if="logoState.visible" class="t4_hm_widget"
+            t-att-class="{ 't4_hm_draggable': editMode }"
+            t-att-style="logoStyle"
+            t-on-mousedown="onLogoDrag" t-on-touchstart="onLogoDrag">
+            <img t-att-src="companyLogoUrl" class="t4_hm_logo" alt="Logo" draggable="false"/>
+            <div t-if="editMode" class="t4_hm_widget_resize" t-on-mousedown.stop="onLogoResize" t-on-touchstart.stop="onLogoResize">
+                <i class="fa fa-expand"/>
+            </div>
+            <span t-if="editMode" class="t4_hm_widget_label">Logo</span>
+        </div>
+
+        <!-- Time (HH:MM:SS AM/PM) — separate draggable -->
+        <div t-if="timeState.visible" class="t4_hm_widget"
+            t-att-class="{ 't4_hm_draggable': editMode }"
+            t-att-style="timeStyle"
+            t-on-mousedown="onTimeDrag" t-on-touchstart="onTimeDrag">
+            <div class="t4_hm_clock_time_row">
+                <span class="t4_hm_clock_hours" t-esc="timeState.hours"/>
+                <span class="t4_hm_clock_sep">:</span>
+                <span class="t4_hm_clock_minutes" t-esc="timeState.minutes"/>
+                <span class="t4_hm_clock_sep">:</span>
+                <span class="t4_hm_clock_seconds" t-esc="timeState.seconds"/>
+                <span class="t4_hm_clock_period" t-esc="timeState.period"/>
+            </div>
+            <div t-if="editMode" class="t4_hm_widget_resize" t-on-mousedown.stop="onTimeResize" t-on-touchstart.stop="onTimeResize">
+                <i class="fa fa-expand"/>
+            </div>
+            <span t-if="editMode" class="t4_hm_widget_label">Time</span>
+        </div>
+
+        <!-- Date — separate draggable -->
+        <div t-if="dateState.visible" class="t4_hm_widget"
+            t-att-class="{ 't4_hm_draggable': editMode }"
+            t-att-style="dateStyle"
+            t-on-mousedown="onDateDrag" t-on-touchstart="onDateDrag">
+            <div class="t4_hm_clock_date" t-esc="dateState.text"/>
+            <div t-if="editMode" class="t4_hm_widget_resize" t-on-mousedown.stop="onDateResize" t-on-touchstart.stop="onDateResize">
+                <i class="fa fa-expand"/>
+            </div>
+            <span t-if="editMode" class="t4_hm_widget_label">Date</span>
+        </div>
+
         <div class="container">
             <input t-ref="input" type="text" class="o_search_hidden visually-hidden w-auto" data-allow-hotkeys="true" t-on-input="_onInputSearch" t-on-blur="_onInputBlur" t-on-compositionstart="_onCompositionStart"
                 role="combobox"
                 t-att-aria-activedescendant="'result_app_' + state.focusedIndex"
                 t-att-aria-expanded="displayedApps.length ? 'true' : 'false'"
-                aria-autocomplete="list"
-                aria-haspopup="listbox"
-            />
-            <div t-if="displayedApps.length" role="listbox" class="o_apps row user-select-none mt-5 mx-0">
+                aria-autocomplete="list" aria-haspopup="listbox"/>
+            <div t-if="displayedApps.length" role="listbox" class="o_apps row user-select-none mt-3 mx-0">
                 <div t-foreach="displayedApps" t-as="app" t-key="app.id" class="col-3 col-md-2 o_draggable mb-3 px-0">
-                    <a t-att-id="'result_app_' + app_index"
-                        role="option"
+                    <a t-att-id="'result_app_' + app_index" role="option"
                         t-att-aria-selected="state.focusedIndex === app_index ? 'true' : 'false'"
                         class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                        t-att-class="{o_focused: state.focusedIndex === app_index}"
+                        t-att-class="{o_focused: state.focusedIndex === app_index, 't4_hm_app_editable': editMode}"
                         t-att-data-menu-xmlid="app.xmlid"
-                        t-att-href="app.href"
-                        t-on-click.prevent="() => this._onAppClick(app)"
-                        >
+                        t-att-href="editMode ? undefined : app.href"
+                        t-on-click.prevent="() => this._onAppClick(app)">
                         <div class="position-relative">
-                            <img t-if="app.webIconData" class="o_app_icon rounded-3"
-                                t-attf-src="{{app.webIconData}}"
-                            />
+                            <img t-if="app.webIconData" class="o_app_icon rounded-3" t-attf-src="{{app.webIconData}}"/>
                             <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
-                                t-attf-style="background-color: {{app.webIcon.backgroundColor}};"
-                            >
+                                t-attf-style="background-color: {{app.webIcon.backgroundColor}};">
                                 <i t-attf-class="{{app.webIcon.iconClass}} position-relative w-auto h-auto" t-attf-style="color: {{app.webIcon.color}};"/>
                             </div>
-                            <button class="t4_edit_icon btn btn-sm btn-primary position-absolute"
-                                    title="Edit Icon"
-                                    t-on-click="(ev) => this.onEditIconClick(ev, app)">
+                            <button t-if="editMode" class="t4_edit_icon btn btn-sm btn-primary position-absolute"
+                                    title="Edit Icon" t-on-click="(ev) => this.onEditIconClick(ev, app)">
                                 <i class="fa fa-pencil"/>
                             </button>
                         </div>

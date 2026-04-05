@@ -19,11 +19,13 @@ export const appMenuService = {
 					menu.getMenuAsTree('root')
 				)
 				const apps = menuItems.apps;
-				const menuConfig = JSON.parse(
+				const raw = JSON.parse(
 					user.settings?.homemenu_config || 'null'
 				);
-				if (menuConfig) {
-                    reorderApps(apps, menuConfig);
+				// Support both old format (array) and new format ({appOrder, logo, clock})
+				const order = Array.isArray(raw) ? raw : (raw?.appOrder || null);
+				if (order) {
+                    reorderApps(apps, order);
 				}
         		return apps;
 			},

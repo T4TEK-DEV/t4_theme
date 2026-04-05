@@ -41,10 +41,14 @@
     }
 }
 
-// When on home menu, hide brand elements inside toggle button
+// When on home menu, hide brand elements and force SVG grid visible
 .o_home_menu_background .o_menu_toggle {
     .o_menu_brand,
     .o_menu_brand_icon {
         display: none !important;
+    }
+    .o_menu_toggle_icon {
+        opacity: 1 !important;
+        transform: none !important;
     }
 }

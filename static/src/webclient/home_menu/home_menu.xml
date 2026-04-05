@@ -103,8 +103,8 @@
                             t-att-href="editMode ? undefined : cell.app.href"
                             t-on-click.prevent="() => this._onAppClick(cell.app)">
                             <div class="position-relative">
-                                <img t-if="cell.app.webIconData" class="o_app_icon rounded-3" t-attf-src="{{cell.app.webIconData}}" draggable="false"/>
-                                <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
+                                <img t-if="cell.app.webIconData" class="o_app_icon" t-attf-src="{{cell.app.webIconData}}" draggable="false"/>
+                                <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 ratio ratio-1x1"
                                     t-attf-style="background-color: {{cell.app.webIcon.backgroundColor}};">
                                     <i t-attf-class="{{cell.app.webIcon.iconClass}} position-relative w-auto h-auto" t-attf-style="color: {{cell.app.webIcon.color}};"/>
                                 </div>

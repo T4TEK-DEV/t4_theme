@@ -14,16 +14,6 @@
             transition: opacity 0.2s;
         }
 
-        // Back arrow when there's a background action
-        &.o_menu_toggle_back .o_menu_toggle_icon {
-            // Show back arrow via CSS
-            g:first-child { opacity: 0; }
-            g:nth-child(2) {
-                transform: translateX(-2px);
-                rect:first-child { width: 10px; height: 2px; y: 6; }
-            }
-        }
-
         .o_menu_brand {
             font-weight: 600;
             white-space: nowrap;
@@ -37,5 +27,13 @@
             max-height: 28px;
             border-radius: 4px;
         }
+    }
+}
+
+// When on home menu, hide brand elements inside toggle button
+.o_home_menu_background .o_menu_toggle {
+    .o_menu_brand,
+    .o_menu_brand_icon {
+        display: none !important;
     }
 }

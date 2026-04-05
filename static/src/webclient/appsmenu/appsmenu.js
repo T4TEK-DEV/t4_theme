@@ -16,14 +16,16 @@ export class AppsMenu extends Dropdown {
         const company = user.activeCompany || {};
         this.homeMenuEnabled = company.theme_home_menu_overlay !== false;
 
-    	if (company.has_background_image) {
+    	if (this.homeMenuEnabled && company.has_background_image) {
             this.imageUrl = url('/web/image', {
                 model: 'res.company',
                 field: 'background_image',
                 id: company.id,
             });
-    	} else {
+    	} else if (this.homeMenuEnabled) {
     		this.imageUrl = '/t4_theme/static/src/img/background.png';
+    	} else {
+    	    this.imageUrl = null;
     	}
 
         // Only bind ESC if home menu overlay is enabled
@@ -39,7 +41,7 @@ export class AppsMenu extends Dropdown {
 
         useEffect(
             (isOpen) => {
-            	if (isOpen) {
+            	if (isOpen && this.homeMenuEnabled) {
             		const openMainPalette = (ev) => {
             	    	if (
             	    		!this.commandPaletteOpen &&
@@ -71,7 +73,7 @@ export class AppsMenu extends Dropdown {
     }
     onOpened() {
 		super.onOpened();
-		if (this.menuRef && this.menuRef.el) {
+		if (this.homeMenuEnabled && this.imageUrl && this.menuRef && this.menuRef.el) {
 			this.menuRef.el.style.backgroundImage = `url('${this.imageUrl}')`;
 		}
     }

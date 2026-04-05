@@ -100,6 +100,11 @@ class ResConfigSettings(models.TransientModel):
     )
 
 
+    theme_icon_shape = fields.Selection(
+        related='company_id.theme_icon_shape',
+        readonly=False,
+    )
+
     theme_home_menu_overlay = fields.Boolean(
         related='company_id.theme_home_menu_overlay',
         readonly=False,

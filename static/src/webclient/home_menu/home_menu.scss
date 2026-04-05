@@ -19,6 +19,21 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         left: 0;
         right: 0;
         z-index: 1060;
+
+        // Hide everything except the toggle button and systray
+        .o_menu_brand,
+        .o_menu_brand_icon,
+        .o_menu_sections,
+        .o_navbar_breadcrumbs,
+        .o_breadcrumb {
+            display: none !important;
+        }
+
+        // Keep systray but make it subtle
+        .o_menu_systray {
+            opacity: 0.7;
+            &:hover { opacity: 1; }
+        }
     }
 
     // Hide sidebar when home menu is active

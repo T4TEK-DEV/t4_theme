@@ -29,9 +29,10 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             display: none !important;
         }
 
-        // Hide systray completely when home menu is open
+        // Fade systray when home menu is open
         .o_menu_systray {
-            display: none !important;
+            opacity: 0.6;
+            &:hover { opacity: 1; }
         }
     }
 

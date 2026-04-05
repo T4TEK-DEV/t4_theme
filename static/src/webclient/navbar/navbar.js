@@ -1,6 +1,7 @@
 /** @odoo-module **/
 import { patch } from '@web/core/utils/patch';
 import { useService, useBus } from '@web/core/utils/hooks';
+import { useHotkey } from '@web/core/hotkeys/hotkey_hook';
 import { _t } from '@web/core/l10n/translation';
 import { useEffect, useRef } from '@odoo/owl';
 
@@ -20,6 +21,9 @@ patch(NavBar.prototype, {
             this.navRef = useRef('nav');
             useBus(this.env.bus, 'HOME-MENU:TOGGLED', () => this._updateMenuAppsIcon());
             useEffect(() => this._updateMenuAppsIcon());
+
+            // Global ESC: toggle home menu from anywhere
+            useHotkey('escape', () => this.hm.toggle(), { global: true });
         }
     },
 

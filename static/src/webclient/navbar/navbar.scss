@@ -1,17 +1,25 @@
 .o_main_navbar {
     border-bottom: none !important;
 
-    // Enterprise-style menu toggle button
+    // Enterprise-style menu toggle button — always visible
+    .o_navbar_apps_menu {
+        display: flex !important;
+        align-items: center;
+    }
+
     .o_menu_toggle {
-        display: flex;
+        display: flex !important;
         align-items: center;
         padding: 0 14px;
-        color: var(--NavBar-menuToggle-color, currentColor);
         text-decoration: none;
         cursor: pointer;
+        // Explicit contrast color so icon never disappears
+        color: var(--NavBar-entry-color, var(--o-navbar-color, #fff));
 
         .o_menu_toggle_icon {
             transition: opacity 0.2s;
+            min-width: 14px;
+            min-height: 14px;
         }
 
         .o_menu_brand {

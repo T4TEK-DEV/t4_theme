@@ -1,9 +1,11 @@
+import base64
 import json
 import logging
 import re
 
 from odoo import http
 from odoo.http import request
+from odoo.exceptions import AccessError
 
 _logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class ThemeEditorController(http.Controller):
             return {'status': 'ok'}
         except Exception as e:
             _logger.exception('Theme editor save failed: %s', e)
-            return {'status': 'error', 'message': str(e)}
+            return {'status': 'error', 'message': 'Save failed'}
 
     @http.route('/t4_theme/presets', type='json', auth='user')
     def get_presets(self):
@@ -130,6 +132,73 @@ class ThemeEditorController(http.Controller):
         }
         preset = request.env['t4_theme.preset'].create(vals)
         return {'success': True, 'preset_id': preset.id}
+
+    # ── Home Menu Icon Editing ──────────────────────────────────────────
+
+    @http.route('/t4_theme/edit_menu_icon', type='json', auth='user')
+    def edit_menu_icon(self, menu_id, icon):
+        """Edit menu icon. Requires admin/settings group.
+        icon can be:
+        - int: attachment_id (uploaded image)
+        - list of 3: [iconClass, color, backgroundColor] (custom icon)
+        """
+        if not isinstance(menu_id, int) or menu_id <= 0:
+            return {'success': False, 'error': 'Invalid menu_id'}
+
+        if not request.env.user.has_group('base.group_erp_manager'):
+            return {'success': False, 'error': 'Access denied'}
+
+        menu = request.env['ir.ui.menu'].browse(menu_id)
+        if not menu.exists():
+            return {'success': False, 'error': 'Menu not found'}
+
+        try:
+            values = self._get_icon_fields(icon)
+        except ValueError as e:
+            return {'success': False, 'error': str(e)}
+
+        # sudo: admin-verified icon update bypassing menu access rights
+        menu.sudo().write(values)
+        return {'success': True}
+
+    def _get_icon_fields(self, icon):
+        if isinstance(icon, int):
+            attachment = request.env['ir.attachment'].browse(icon)
+            if not attachment.exists():
+                raise ValueError('Attachment not found')
+            return {'web_icon_data': attachment.datas}
+        elif isinstance(icon, list) and len(icon) == 3:
+            icon_class, color, bg_color = icon
+            if not all(isinstance(v, str) for v in icon):
+                raise ValueError('Invalid icon format')
+            hex_re = re.compile(r'^#[0-9A-Fa-f]{3,8}$')
+            if not hex_re.match(color) or not hex_re.match(bg_color):
+                raise ValueError('Invalid color format')
+            return {'web_icon': ','.join(icon)}
+        else:
+            raise ValueError('Invalid icon format')
+
+    @http.route('/t4_theme/set_background_image', type='json', auth='user')
+    def set_background_image(self, attachment_id):
+        """Set home menu background image for current company."""
+        if not request.env.user.has_group('base.group_erp_manager'):
+            return {'success': False, 'error': 'Access denied'}
+        attachment = request.env['ir.attachment'].browse(attachment_id)
+        if attachment.exists():
+            request.env.company.background_image = attachment.datas
+            return {'success': True}
+        return {'success': False, 'error': 'Attachment not found'}
+
+    @http.route('/t4_theme/reset_background_image', type='json', auth='user')
+    def reset_background_image(self):
+        """Reset home menu background image."""
+        if not request.env.user.has_group('base.group_erp_manager'):
+            return {'success': False, 'error': 'Access denied'}
+        company = request.env.company
+        if company in request.env.user.company_ids:
+            company.background_image = None
+            return {'success': True}
+        return {'success': False, 'error': 'Access denied'}
 
     @http.route('/t4_theme/preset/delete', type='json', auth='user')
     def preset_delete(self, preset_id):

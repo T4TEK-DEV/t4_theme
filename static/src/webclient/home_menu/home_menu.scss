@@ -1,0 +1,192 @@
+// ── Home Menu Variables (inlined to avoid cross-bundle issues) ──
+$o-home-menu-font-size-base: 1rem !default;
+$o-home-menu-container-size: 850px !default;
+$o-home-menu-app-icon-max-width: 70px !default;
+$o-home-menu-app-icon-padding: 10px !default;
+$o-home-menu-app-icon-background-color: rgba(#fff, 1) !default;
+$o-home-menu-caption-color: #212529 !default;
+$o-home-menu-caption-shadow: none !default;
+$o-home-menu-custom-caption-color: #fff !default;
+$o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba(0, 0, 0, .05), 0 0 5px rgba(0, 0, 0, .05) !default;
+
+// ── Fullscreen: hide navbar + sidebar when home menu is open ──
+.o_home_menu_background {
+    .o_main_navbar {
+        background: transparent !important;
+        border-bottom-color: transparent !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1060;
+    }
+
+    // Hide sidebar when home menu is active
+    .t4_sidebar_area {
+        display: none !important;
+    }
+
+    // Make action container fill full viewport
+    .o_action_manager {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 1050;
+    }
+}
+
+.o_home_menu_background_custom .o_home_menu {
+    background: {
+        size: cover;
+        repeat: no-repeat;
+        position: center;
+    }
+}
+
+// ── Home Menu Component ──
+.o_home_menu {
+    font-size: $font-size-base;
+    scrollbar-color: rgba(0, 0, 0, .5) transparent;
+    // Fullscreen centering
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &::-webkit-scrollbar {
+        width: map-get($spacers, 2);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, .5);
+        border-radius: $border-radius-pill;
+    }
+
+    .container {
+        max-width: $o-home-menu-container-size !important;
+    }
+
+    .o_apps {
+        justify-content: center;
+    }
+
+    .o_app {
+        .o_app_icon {
+            width: $o-home-menu-app-icon-max-width;
+            aspect-ratio: 1;
+            padding: $o-home-menu-app-icon-padding;
+            background-color: var(--AppSwitcherIcon-background, #{$o-home-menu-app-icon-background-color});
+            object-fit: cover;
+            transform-origin: center bottom;
+            transition: box-shadow ease-in 0.1s, transform ease-in 0.1s;
+            box-shadow: var(--AppSwitcherIcon-inset-shadow, inset 0 0 0 1px rgba(0,0,0, .2)),
+                0 1px 1px rgba(#000, .02),
+                0 2px 2px rgba(#000, .02),
+                0 4px 4px rgba(#000, .02),
+                0 8px 8px rgba(#000, .02),
+                0 16px 16px rgba(#000, .02);
+
+            .fa {
+                font-size: $o-home-menu-app-icon-max-width * 0.5;
+            }
+        }
+
+        &:hover .o_app_icon {
+            box-shadow: var(--AppSwitcherIcon-inset-shadow, inset 0 0 0 1px rgba(0,0,0, .2)),
+                0 2px 2px rgba(#000, .03),
+                0 4px 4px rgba(#000, .03),
+                0 8px 8px rgba(#000, .03),
+                0 12px 12px rgba(#000, .03),
+                0 24px 24px rgba(#000, .03);
+            transform: translateY(-2px);
+        }
+
+        &:active .o_app_icon {
+            transform: translateY(-2px) scale(.98);
+            transition: none;
+        }
+
+        .o_caption {
+            color: var(--homeMenuCaption-color, #{$o-home-menu-caption-color});
+            text-shadow: $o-home-menu-caption-shadow;
+        }
+
+        &.o_focused {
+            background: $component-active-bg;
+            outline: 1px solid $o-action;
+            border-radius: $border-radius;
+        }
+    }
+
+    // Edit icon button (studio-like)
+    .t4_edit_icon {
+        display: none;
+        top: -4px;
+        right: -4px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border-radius: 50% !important;
+        font-size: 11px;
+        line-height: 24px;
+        z-index: 1;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .o_app:hover .t4_edit_icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .o_dragged_app {
+        transition: transform 0.5s;
+        transform: rotate(6deg);
+        .o_app_icon {
+            box-shadow: 0 8px 15px -10px black;
+            transform: translateY(-1px);
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        &.o_ios_app {
+            .o_apps {
+                flex-direction: column;
+                font-size: $o-home-menu-font-size-base * 1.25;
+                margin-top: map-get($spacers, 1);
+                padding: 0 map-get($spacers, 2);
+
+                > *, .o_app {
+                    width: 100%;
+                }
+            }
+
+            .o_app {
+                flex-direction: row !important;
+                justify-content: initial !important;
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: map-get($spacers, 3) map-get($spacers, 4) !important;
+            }
+
+            .o_app_icon {
+                width: $o-home-menu-app-icon-max-width * 0.75;
+                height: $o-home-menu-app-icon-max-width * 0.75;
+                margin-right: map-get($spacers, 4);
+            }
+
+            .o_caption {
+                text-align: start !important;
+            }
+        }
+
+        &:not(.o_ios_app) .o_caption {
+            font-size: $font-size-sm;
+            font-weight: $font-weight-bold;
+        }
+    }
+}
+
+.o_home_menu_background_custom {
+    .o_home_menu .o_app .o_caption {
+        color: $o-home-menu-custom-caption-color;
+        text-shadow: $o-home-menu-custom-caption-shadow;
+    }
+}

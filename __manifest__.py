@@ -148,6 +148,9 @@
                 't4_theme/static/src/appsbar/scss/variables.scss',
                 't4_theme/static/src/appsbar/scss/variables.dark.scss',
             ),
+            # Home menu dark mode
+            't4_theme/static/src/webclient/home_menu/home_menu.dark.scss',
+            't4_theme/static/src/webclient/home_menu/home_menu_background.dark.scss',
             # Dark mode custom styles
             't4_theme/static/src/dark/custom_styles.dark.scss',
         ],
@@ -278,6 +281,9 @@
             't4_theme/static/src/webclient/**/*.xml',
             't4_theme/static/src/webclient/**/*.scss',
             't4_theme/static/src/webclient/**/*.js',
+            # Exclude dark mode SCSS (loaded in web.assets_web_dark)
+            ('remove', 't4_theme/static/src/webclient/home_menu/home_menu.dark.scss'),
+            ('remove', 't4_theme/static/src/webclient/home_menu/home_menu_background.dark.scss'),
             't4_theme/static/src/views/**/*.scss',
         ],
         # ============================================================

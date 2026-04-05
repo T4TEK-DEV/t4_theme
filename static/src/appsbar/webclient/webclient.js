@@ -1,5 +1,6 @@
 import { patch } from '@web/core/utils/patch';
 import { useHotkey } from '@web/core/hotkeys/hotkey_hook';
+import { user } from '@web/core/user';
 
 import { WebClient } from '@web/webclient/webclient';
 import { ResizablePanel } from '@web/core/resizable_panel/resizable_panel';
@@ -54,6 +55,13 @@ function _getInitialState() {
 patch(WebClient.prototype, {
     setup() {
         super.setup();
+
+        // Home menu service — only when overlay mode is on
+        const company = user.activeCompany || {};
+        this._homeMenuOverlay = company.theme_home_menu_overlay !== false;
+        if (this._homeMenuOverlay && this.env.services.t4_home_menu) {
+            this.hm = this.env.services.t4_home_menu;
+        }
 
         const initial = _getInitialState();
         this.sidebarState = useState({
@@ -228,6 +236,14 @@ patch(WebClient.prototype, {
         }
         _updateSidebarCssVar(width);
         this._lastResizeWidth = width;
+    },
+
+    // Override: show home menu on initial load (enterprise-style)
+    _loadDefaultApp() {
+        if (this.hm) {
+            return this.hm.toggle(true);
+        }
+        return super._loadDefaultApp();
     },
 });
 

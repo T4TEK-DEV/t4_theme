@@ -5,35 +5,42 @@
 // ── Rounded Rectangle (default) ──
 .t4-icon-shape-rounded_rect {
     .o_home_menu .o_app .o_app_icon {
-        border-radius: 25%;
+        border-radius: 25% !important;
     }
 }
 
 // ── Circle ──
 .t4-icon-shape-circle {
     .o_home_menu .o_app .o_app_icon {
-        border-radius: 50%;
+        border-radius: 50% !important;
     }
 }
 
 // ── Square ──
 .t4-icon-shape-square {
     .o_home_menu .o_app .o_app_icon {
-        border-radius: 0;
+        border-radius: 0 !important;
     }
 }
 
 // ── iOS Squircle (superellipse-like) ──
-// Uses a smooth continuous curvature inspired by iOS icons
+// Uses SVG clip-path for smooth continuous curvature inspired by iOS icons
 .t4-icon-shape-squircle {
     .o_home_menu .o_app .o_app_icon {
-        border-radius: 22%;
-        // Smooth mask for true squircle feel
-        mask-image: paint(squircle);
-        // Fallback: CSS border-radius approximation (works everywhere)
-        @supports not (mask-image: paint(squircle)) {
-            border-radius: 22%;
+        border-radius: 0 !important;
+        border: none;
+        clip-path: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath id='s' d='M50,0 C78,0 100,0 100,22 C100,22 100,50 100,50 C100,78 100,100 78,100 C78,100 50,100 50,100 C22,100 0,100 0,78 C0,78 0,50 0,50 C0,22 0,0 22,0 C22,0 50,0 50,0Z'/%3E%3C/svg%3E#s");
+        // Fallback for browsers that don't support SVG clip-path reference
+        @supports not (clip-path: url("data:image/svg+xml,x#s")) {
+            clip-path: inset(0 round 22%);
         }
+        box-shadow: none;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+    }
+
+    .o_home_menu .o_app:hover .o_app_icon {
+        box-shadow: none;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
     }
 }
 
@@ -42,7 +49,7 @@
 // so we use filter: drop-shadow() instead of box-shadow.
 .t4-icon-shape-hexagon {
     .o_home_menu .o_app .o_app_icon {
-        border-radius: 0;
+        border-radius: 0 !important;
         border: none;
         clip-path: polygon(
             50% 0%,
@@ -70,19 +77,26 @@
 // ── AppBar (sidebar) icon shapes — mirror home menu shapes ──
 .t4-icon-shape-circle {
     .o_apps_menu_entry img {
-        border-radius: 50%;
+        border-radius: 50% !important;
     }
 }
 
 .t4-icon-shape-square {
     .o_apps_menu_entry img {
-        border-radius: 0;
+        border-radius: 0 !important;
+    }
+}
+
+.t4-icon-shape-squircle {
+    .o_apps_menu_entry img {
+        border-radius: 0 !important;
+        clip-path: inset(0 round 22%);
     }
 }
 
 .t4-icon-shape-hexagon {
     .o_apps_menu_entry img {
-        border-radius: 0;
+        border-radius: 0 !important;
         clip-path: polygon(
             50% 0%,
             100% 25%,

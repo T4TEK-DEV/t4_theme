@@ -13,13 +13,16 @@
         padding: 0 14px;
         text-decoration: none;
         cursor: pointer;
-        // Explicit contrast color so icon never disappears
         color: var(--NavBar-entry-color, var(--o-navbar-color, #fff));
 
         .o_menu_toggle_icon {
             transition: opacity 0.2s;
             min-width: 14px;
             min-height: 14px;
+            // Explicit fill so icon never disappears on any background
+            rect {
+                fill: var(--NavBar-entry-color, var(--o-navbar-color, #fff));
+            }
         }
 
         .o_menu_brand {

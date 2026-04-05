@@ -8,7 +8,7 @@
 		t-inherit-mode="extension"
 	>
 		<xpath expr="//Dropdown" position="replace">
-			<AppsMenu t-att-menuClass="this.appMenuService.homeMenuOverlay ? 'mk_app_menu' : ''">
+			<AppsMenu menuClass="this.appMenuService.homeMenuOverlay ? 'mk_app_menu' : ''">
 				<button data-hotkey="h" title="Home Menu">
 					<i class="oi oi-apps" />
 				</button>

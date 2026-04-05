@@ -34,10 +34,13 @@ input, textarea, select, button {
         color: var(--t4-color-appsmenu-text) !important;
     }
 
-    // Navigation entries (Discuss, Calendar, etc.)
+    // Navigation entries (Discuss, Calendar, etc.) + dropdown toggles
     .o_nav_entry,
     .o-dropdown-item.dropdown-item,
-    .dropdown-item.o_nav_entry {
+    .dropdown-item.o_nav_entry,
+    .o_menu_sections .dropdown-toggle,
+    .o_menu_sections > button,
+    .o_menu_sections > a {
         color: var(--t4-color-appsmenu-text) !important;
 
         &:hover, &:focus {

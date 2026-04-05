@@ -1,0 +1,22 @@
+.t4_icon_editor {
+    .t4_color_swatch {
+        transition: transform 0.1s, box-shadow 0.1s;
+
+        &:hover {
+            transform: scale(1.15);
+        }
+
+        &.ring-2 {
+            outline: 2px solid var(--o-action, #714B67);
+            outline-offset: 2px;
+        }
+    }
+
+    .t4_icon_choice {
+        transition: background-color 0.15s;
+
+        &:hover:not(.bg-primary) {
+            background-color: var(--o-gray-200, #f0f0f0);
+        }
+    }
+}

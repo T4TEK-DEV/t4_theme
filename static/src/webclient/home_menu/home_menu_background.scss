@@ -1,0 +1,9 @@
+// Shared with web client — applied when home menu is open
+.o_home_menu_background, .o_web_client.o_home_menu_background {
+    background: {
+        size: cover;
+        attachment: fixed;
+        color: var(--homeMenu-bg-color, #{$o-gray-200});
+        image: var(--homeMenu-bg-image, url("/t4_theme/static/src/img/background.png"));
+    }
+}

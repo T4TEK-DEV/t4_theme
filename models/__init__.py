@@ -3,5 +3,6 @@ from . import ir_http
 from . import res_company
 from . import res_config_settings
 from . import res_users
+from . import res_users_settings
 from . import t4_theme_demo
 from . import theme_preset

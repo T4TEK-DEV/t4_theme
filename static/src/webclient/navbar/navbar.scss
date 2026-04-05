@@ -1,3 +1,41 @@
 .o_main_navbar {
     border-bottom: none !important;
+
+    // Enterprise-style menu toggle button
+    .o_menu_toggle {
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        color: var(--NavBar-menuToggle-color, currentColor);
+        text-decoration: none;
+        cursor: pointer;
+
+        .o_menu_toggle_icon {
+            transition: opacity 0.2s;
+        }
+
+        // Back arrow when there's a background action
+        &.o_menu_toggle_back .o_menu_toggle_icon {
+            // Show back arrow via CSS
+            g:first-child { opacity: 0; }
+            g:nth-child(2) {
+                transform: translateX(-2px);
+                rect:first-child { width: 10px; height: 2px; y: 6; }
+            }
+        }
+
+        .o_menu_brand {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .o_menu_brand_icon {
+            width: auto;
+            max-height: 28px;
+            border-radius: 4px;
+        }
+    }
 }

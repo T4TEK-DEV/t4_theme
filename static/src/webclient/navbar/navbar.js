@@ -62,10 +62,9 @@ patch(NavBar.prototype, {
     _updateMenuAppsIcon() {
         if (!this.menuAppsRef || !this.menuAppsRef.el) return;
         const el = this.menuAppsRef.el;
-        // Always show toggle button (never hide)
-        el.classList.remove('o_hidden');
-        el.classList.toggle('o_menu_toggle_back', !this.isInApp && this.hasBackgroundAction);
-        el.title = (!this.isInApp && this.hasBackgroundAction) ? _t('Previous view') : _t('Home menu');
+        // Always show toggle button, always 3x3 grid (no back arrow)
+        el.classList.remove('o_hidden', 'o_menu_toggle_back');
+        el.title = this.isInApp ? _t('Home menu') : _t('Close home menu');
 
         const nav = this.navRef && this.navRef.el;
         if (!nav) return;

@@ -49,7 +49,7 @@
 			<!-- Standard mode: Odoo default dropdown (text list) -->
 			<t t-else="">
 				<Dropdown>
-					<button data-hotkey="h" title="Home Menu">
+					<button data-hotkey="h" title="Menu chính">
 						<i class="oi oi-apps" />
 					</button>
 					<t t-set-slot="content">

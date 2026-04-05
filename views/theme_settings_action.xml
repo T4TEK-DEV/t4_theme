@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_t4_theme_settings" model="ir.actions.client">
-        <field name="name">Theme Settings</field>
+        <field name="name">Cài đặt giao diện</field>
         <field name="tag">t4_theme_settings</field>
     </record>
 </odoo>

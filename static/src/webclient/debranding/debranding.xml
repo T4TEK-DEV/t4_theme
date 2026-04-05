@@ -7,10 +7,10 @@
        t-inherit="web.SessionExpiredDialog"
        t-inherit-mode="extension">
         <xpath expr="//Dialog" position="attributes">
-            <attribute name="title">Session Expired</attribute>
+            <attribute name="title">Phiên làm việc đã hết hạn</attribute>
         </xpath>
         <xpath expr="//p[contains(text(),'Odoo')]" position="replace">
-            <p class="text-prewrap">Your session expired. The current page is about to be refreshed.</p>
+            <p class="text-prewrap">Phiên làm việc đã hết hạn. Trang hiện tại sẽ được tải lại.</p>
         </xpath>
     </t>
 
@@ -20,17 +20,17 @@
        t-inherit-mode="extension">
         <xpath expr="//div[contains(@class,'alert')]" position="replace">
             <div t-if="isNotificationBlocked" class="alert alert-primary text-center">
-                Push notifications have been blocked. Please enable them in your browser settings.
+                Thông báo đẩy đã bị chặn. Vui lòng bật trong cài đặt trình duyệt.
             </div>
         </xpath>
     </t>
 
-    <!-- Upgrade Dialog — replace "Odoo Enterprise" -->
+    <!-- Upgrade Dialog — replace "Odoo Enterprise" with generic label -->
     <t t-name="t4_theme.UpgradeDialog"
        t-inherit="web.UpgradeDialog"
        t-inherit-mode="extension">
         <xpath expr="//Dialog" position="attributes">
-            <attribute name="title">Enterprise Features</attribute>
+            <attribute name="title">Tính năng nâng cao</attribute>
         </xpath>
     </t>
 

@@ -5,7 +5,7 @@
     <t t-name="t4_theme.ThemeSystray">
         <!-- Systray Button -->
         <div class="o_theme_systray">
-            <button class="btn o_theme_systray_btn" t-on-click="togglePanel" title="Theme Settings">
+            <button class="btn o_theme_systray_btn" t-on-click="togglePanel" title="Cài đặt giao diện">
                 <i class="fa fa-lg fa-paint-brush"/>
             </button>
         </div>
@@ -18,7 +18,7 @@
             <!-- Header -->
             <div class="t4_theme_panel_header">
                 <h6 class="mb-0 fw-bold">
-                    <i class="fa fa-paint-brush me-2"/>Theme Settings
+                    <i class="fa fa-paint-brush me-2"/>Cài đặt giao diện
                 </h6>
                 <button class="btn btn-sm btn-close" t-on-click="closePanel"/>
             </div>
@@ -33,8 +33,8 @@
                         t-att-class="isHomeEditMode ? 'btn-primary' : 'btn-outline-secondary'"
                         t-on-click="onToggleHomeEdit">
                         <i t-att-class="isHomeEditMode ? 'fa fa-check me-1' : 'fa fa-th me-1'"/>
-                        <t t-if="isHomeEditMode">Done</t>
-                        <t t-else="">Edit Home</t>
+                        <t t-if="isHomeEditMode">Xong</t>
+                        <t t-else="">Chỉnh sửa</t>
                     </button>
                 </div>
             </div>
@@ -58,7 +58,7 @@
                 <!-- ====== Theme Presets ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-swatchbook me-2"/>Theme Preset
+                        <i class="fa fa-swatchbook me-2"/>Giao diện có sẵn
                     </span>
                     <div class="t4_ts_preset_grid">
                         <t t-foreach="presets" t-as="preset" t-key="preset.id">
@@ -81,20 +81,20 @@
                             <div class="t4_ts_preset_circle t4_ts_preset_circle_add">
                                 <i class="fa fa-plus"/>
                             </div>
-                            <span class="t4_ts_preset_name">Create</span>
+                            <span class="t4_ts_preset_name">Tạo mới</span>
                         </div>
                     </div>
 
                     <!-- Create preset form (inline) -->
                     <div t-if="state.showCreatePreset" class="t4_ts_create_preset">
                         <input type="text" class="form-control form-control-sm"
-                               placeholder="Preset name..."
+                               placeholder="Tên giao diện..."
                                t-att-value="state.newPresetName"
                                t-on-input="onNewPresetNameInput"
                                t-on-keydown="(ev) => ev.key === 'Enter' and this.onSaveNewPreset()"/>
                         <div class="t4_ts_create_preset_actions">
-                            <button class="btn btn-sm btn-primary" t-on-click="onSaveNewPreset">Save</button>
-                            <button class="btn btn-sm btn-light" t-on-click="onCancelCreatePreset">Cancel</button>
+                            <button class="btn btn-sm btn-primary" t-on-click="onSaveNewPreset">Lưu</button>
+                            <button class="btn btn-sm btn-light" t-on-click="onCancelCreatePreset">Hủy</button>
                         </div>
                     </div>
 
@@ -128,7 +128,7 @@
                             </button>
                             <div t-if="state.fontDropdownOpen" class="t4_font_dropdown_menu">
                                 <input type="text" class="t4_font_search"
-                                    placeholder="Search fonts..."
+                                    placeholder="Tìm font..."
                                     t-on-input="(ev) => this.state.fontSearch = ev.target.value"
                                     t-ref="fontSearch"/>
                                 <div class="t4_font_list">
@@ -156,12 +156,12 @@
                 <!-- ====== Layout Options ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-columns me-2"/>Layout
+                        <i class="fa fa-columns me-2"/>Bố cục
                     </span>
 
                     <!-- Sidebar -->
                     <div class="mb-2">
-                        <small class="text-muted d-block mb-1">Sidebar</small>
+                        <small class="text-muted d-block mb-1">Thanh bên</small>
                         <div class="btn-group w-100" role="group">
                             <t t-foreach="sidebarOptions" t-as="opt" t-key="opt.key">
                                 <button type="button" class="btn btn-sm"
@@ -222,15 +222,15 @@
                 <!-- ====== Brand Colors ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-tint me-2"/>Brand Colors
+                        <i class="fa fa-tint me-2"/>Màu thương hiệu
                     </span>
                     <div class="t4_color_row">
-                        <label>Brand</label>
+                        <label>Thương hiệu</label>
                         <input type="color" t-att-value="state.colorBrand"
                             t-on-input="(ev) => this.onColorChange('colorBrand', ev)"/>
                     </div>
                     <div class="t4_color_row">
-                        <label>Primary</label>
+                        <label>Chính</label>
                         <input type="color" t-att-value="state.colorPrimary"
                             t-on-input="(ev) => this.onColorChange('colorPrimary', ev)"/>
                     </div>
@@ -239,7 +239,7 @@
                 <!-- ====== Context Colors ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-circle-o me-2"/>Context Colors
+                        <i class="fa fa-circle-o me-2"/>Màu ngữ cảnh
                     </span>
                     <div class="t4_color_row">
                         <label>Success</label>
@@ -266,25 +266,25 @@
                 <!-- ====== Sidebar Colors ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-bars me-2"/>Sidebar Colors
+                        <i class="fa fa-bars me-2"/>Màu thanh bên
                     </span>
                     <div class="t4_color_row">
-                        <label>Background</label>
+                        <label>Nền</label>
                         <input type="color" t-att-value="state.colorAppbarBg"
                             t-on-input="(ev) => this.onColorChange('colorAppbarBg', ev)"/>
                     </div>
                     <div class="t4_color_row">
-                        <label>Text</label>
+                        <label>Chữ</label>
                         <input type="color" t-att-value="state.colorAppbarText"
                             t-on-input="(ev) => this.onColorChange('colorAppbarText', ev)"/>
                     </div>
                     <div class="t4_color_row">
-                        <label>Active</label>
+                        <label>Đang chọn</label>
                         <input type="color" t-att-value="state.colorAppbarActive"
                             t-on-input="(ev) => this.onColorChange('colorAppbarActive', ev)"/>
                     </div>
                     <div class="t4_color_row">
-                        <label>Menu Text</label>
+                        <label>Chữ menu</label>
                         <input type="color" t-att-value="state.colorAppsmenuText"
                             t-on-input="(ev) => this.onColorChange('colorAppsmenuText', ev)"/>
                     </div>
@@ -293,7 +293,7 @@
                 <!-- ====== Branding ====== -->
                 <div class="t4_section">
                     <span class="t4_section_label d-block mb-2">
-                        <i class="fa fa-building-o me-2"/>Branding
+                        <i class="fa fa-building-o me-2"/>Thương hiệu
                     </span>
 
                     <!-- URL Prefix -->
@@ -312,7 +312,7 @@
                     <!-- Brand Name -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-1 mb-1">
-                            <small class="text-muted">Brand Name</small>
+                            <small class="text-muted">Tên thương hiệu</small>
                         </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.brandName"
@@ -323,7 +323,7 @@
                     <!-- Browser Title -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-1 mb-1">
-                            <small class="text-muted">Browser Title</small>
+                            <small class="text-muted">Tiêu đề trình duyệt</small>
                         </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.webTitle"
@@ -333,13 +333,13 @@
 
                     <!-- Logo -->
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">Sidebar Logo</small>
+                        <small class="text-muted d-block mb-1">Logo thanh bên</small>
                         <div class="d-flex align-items-center gap-2">
                             <img t-if="state.hasLogo" class="t4_branding_preview"
                                 t-attf-src="/web/image?model=res.company&amp;field=appbar_image&amp;id={{ state.companyId }}"/>
-                            <span t-else="" class="text-muted small">No logo</span>
+                            <span t-else="" class="text-muted small">Chưa có logo</span>
                             <label class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="fa fa-upload me-1"/>Upload
+                                <i class="fa fa-upload me-1"/>Tải lên
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('appbar_image', ev)"/>
                             </label>
@@ -353,13 +353,13 @@
 
                     <!-- Background Image -->
                     <div class="mb-3">
-                        <small class="text-muted d-block mb-1">Apps Menu Background</small>
+                        <small class="text-muted d-block mb-1">Ảnh nền menu ứng dụng</small>
                         <div class="d-flex align-items-center gap-2">
                             <img t-if="state.hasBackground" class="t4_branding_preview"
                                 t-attf-src="/web/image?model=res.company&amp;field=background_image&amp;id={{ state.companyId }}"/>
-                            <span t-else="" class="text-muted small">No image</span>
+                            <span t-else="" class="text-muted small">Chưa có ảnh</span>
                             <label class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="fa fa-upload me-1"/>Upload
+                                <i class="fa fa-upload me-1"/>Tải lên
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('background_image', ev)"/>
                             </label>
@@ -377,9 +377,9 @@
                         <div class="d-flex align-items-center gap-2">
                             <img t-if="state.hasFavicon" class="t4_favicon_preview"
                                 t-attf-src="/web/image?model=res.company&amp;field=favicon&amp;id={{ state.companyId }}"/>
-                            <span t-else="" class="text-muted small">Default</span>
+                            <span t-else="" class="text-muted small">Mặc định</span>
                             <label class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="fa fa-upload me-1"/>Upload
+                                <i class="fa fa-upload me-1"/>Tải lên
                                 <input type="file" class="d-none" accept="image/*"
                                     t-on-change="(ev) => this.onUploadImage('favicon', ev)"/>
                             </label>
@@ -396,7 +396,7 @@
                 <div class="t4_section">
                     <button class="btn btn-sm btn-outline-danger w-100"
                         t-on-click="onResetToOdoo">
-                        <i class="fa fa-refresh me-1"/>Reset to Odoo Default
+                        <i class="fa fa-refresh me-1"/>Đặt lại mặc định Odoo
                     </button>
                 </div>
 
@@ -407,14 +407,14 @@
                 <button class="btn btn-sm btn-outline-secondary flex-fill"
                     t-att-disabled="state.saving"
                     t-on-click="onClickReset">
-                    <i class="fa fa-undo me-1"/>Reset
+                    <i class="fa fa-undo me-1"/>Đặt lại
                 </button>
                 <button class="btn btn-sm btn-primary flex-fill"
                     t-att-disabled="state.saving"
                     t-on-click="onClickSave">
                     <i t-if="state.saving" class="fa fa-spinner fa-spin me-1"/>
                     <i t-else="" class="fa fa-check me-1"/>
-                    Save
+                    Lưu
                 </button>
             </div>
 

@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
 
 <t t-name="t4_theme.IconEditorDialog">
-    <Dialog title="'Edit App Icon'" size="'md'">
+    <Dialog title="'Sửa biểu tượng ứng dụng'" size="'md'">
         <div class="t4_icon_editor">
             <!-- Preview -->
             <div class="t4_icon_preview d-flex justify-content-center mb-4">
@@ -22,11 +22,11 @@
             <ul class="nav nav-tabs mb-3">
                 <li class="nav-item">
                     <a class="nav-link" t-att-class="{ active: state.activeTab === 'custom_icon' }"
-                       href="#" t-on-click.prevent="() => this.onTabChange('custom_icon')">Custom Icon</a>
+                       href="#" t-on-click.prevent="() => this.onTabChange('custom_icon')">Biểu tượng tùy chỉnh</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" t-att-class="{ active: state.activeTab === 'base64' }"
-                       href="#" t-on-click.prevent="() => this.onTabChange('base64')">Upload Image</a>
+                       href="#" t-on-click.prevent="() => this.onTabChange('base64')">Tải ảnh lên</a>
                 </li>
             </ul>
 
@@ -34,7 +34,7 @@
             <div t-if="state.activeTab === 'custom_icon'">
                 <!-- Background Color -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Background Color</label>
+                    <label class="form-label fw-bold">Màu nền</label>
                     <div class="d-flex flex-wrap gap-1">
                         <button t-foreach="bgColors" t-as="color" t-key="color"
                                 class="t4_color_swatch border-0 rounded-2"
@@ -46,7 +46,7 @@
 
                 <!-- Icon Color -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Icon Color</label>
+                    <label class="form-label fw-bold">Màu biểu tượng</label>
                     <div class="d-flex flex-wrap gap-1">
                         <button t-foreach="iconColors" t-as="color" t-key="color"
                                 class="t4_color_swatch border rounded-2"
@@ -58,7 +58,7 @@
 
                 <!-- Icon Class -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Icon</label>
+                    <label class="form-label fw-bold">Biểu tượng</label>
                     <div class="d-flex flex-wrap gap-1">
                         <button t-foreach="iconClasses" t-as="ic" t-key="ic"
                                 class="t4_icon_choice border rounded-2 d-flex align-items-center justify-content-center"
@@ -74,10 +74,10 @@
             <!-- Upload Tab -->
             <div t-if="state.activeTab === 'base64'">
                 <div class="text-center py-4">
-                    <p class="text-muted mb-3">Upload a PNG image (recommended: 120x120px)</p>
+                    <p class="text-muted mb-3">Tải lên ảnh PNG (khuyến nghị: 120x120px)</p>
                     <FileInput t-props="fileInputProps" onUpload.bind="onFileUploaded">
                         <button class="btn btn-outline-primary">
-                            <i class="fa fa-upload me-1"/> Choose File
+                            <i class="fa fa-upload me-1"/> Chọn tệp
                         </button>
                     </FileInput>
                 </div>
@@ -85,8 +85,8 @@
         </div>
 
         <t t-set-slot="footer">
-            <button class="btn btn-primary" t-on-click="saveIcon">Save</button>
-            <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            <button class="btn btn-primary" t-on-click="saveIcon">Lưu</button>
+            <button class="btn btn-secondary" t-on-click="props.close">Hủy</button>
         </t>
     </Dialog>
 </t>

@@ -15,7 +15,7 @@
     <!-- 2. Offline Page — replace Odoo references -->
     <template id="t4_offline_debrand" inherit_id="web.webclient_offline" name="T4 Debrand Offline">
         <xpath expr="//p[contains(text(),'Odoo')]" position="replace">
-            <p>Check your network connection and come back here. The application will load as soon as you're back online.</p>
+            <p>Kiểm tra kết nối mạng và quay lại đây. Ứng dụng sẽ tải ngay khi bạn có kết nối.</p>
         </xpath>
     </template>
 

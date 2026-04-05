@@ -8,20 +8,20 @@
 	    <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
 	    <field name="arch" type="xml">
 	    	<xpath expr="//block[@id='user_default_rights']" position="before">
-	    		<block title="Backend Theme" id="theme_settings">
+	    		<block title="Giao diện Backend" id="theme_settings">
 
 	    			<!-- Theme Preset -->
 	    			<setting
-	    				string="Theme Preset"
+	    				string="Giao diện có sẵn"
 	    				company_dependent="1"
-	    				help="Choose a pre-built color scheme for the current company"
+	    				help="Chọn bộ màu có sẵn cho công ty hiện tại"
 	    			>
 	    				<div class="w-50 row">
 	    					<field name="theme_preset" class="w-75"/>
 	    					<button
 	    						name="action_apply_theme_preset"
 	    						type="object"
-	    						string="Apply Preset"
+	    						string="Áp dụng"
 	    						class="btn-primary ms-2"
 	    						icon="fa-paint-brush"
 	    					/>
@@ -30,41 +30,41 @@
 
 	    			<!-- Brand & UI Colors (per-company) -->
 	    			<setting
-	    				string="Theme Colors"
+	    				string="Màu giao diện"
 	    				company_dependent="1"
-	    				help="Customize brand and UI colors for the current company"
+	    				help="Tùy chỉnh màu thương hiệu và giao diện cho công ty hiện tại"
 	    			>
                      	<div class="w-50 row">
-                            <label for="theme_color_brand" string="Brand" class="d-block w-75 py-2"/>
+                            <label for="theme_color_brand" string="Thương hiệu" class="d-block w-75 py-2"/>
                             <field name="theme_color_brand" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                      	<div class="w-50 row">
-                            <label for="theme_color_primary" string="Primary" class="d-block w-75 py-2"/>
+                            <label for="theme_color_primary" string="Màu chính" class="d-block w-75 py-2"/>
                             <field name="theme_color_primary" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                      	<div class="w-50 row">
-                            <label for="theme_color_appsmenu_text" string="Menu Text" class="d-block w-75 py-2"/>
+                            <label for="theme_color_appsmenu_text" string="Chữ menu" class="d-block w-75 py-2"/>
                             <field name="theme_color_appsmenu_text" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                      	<div class="w-50 row">
-                            <label for="theme_color_appbar_text" string="Sidebar Text" class="d-block w-75 py-2"/>
+                            <label for="theme_color_appbar_text" string="Chữ thanh bên" class="d-block w-75 py-2"/>
                             <field name="theme_color_appbar_text" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                      	<div class="w-50 row">
-                            <label for="theme_color_appbar_active" string="Sidebar Active" class="d-block w-75 py-2"/>
+                            <label for="theme_color_appbar_active" string="Thanh bên đang chọn" class="d-block w-75 py-2"/>
                             <field name="theme_color_appbar_active" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                      	<div class="w-50 row">
-                            <label for="theme_color_appbar_background" string="Sidebar Background" class="d-block w-75 py-2"/>
+                            <label for="theme_color_appbar_background" string="Nền thanh bên" class="d-block w-75 py-2"/>
                             <field name="theme_color_appbar_background" class="d-block w-25 p-0 m-0" widget="color"/>
                         </div>
                     </setting>
 
                     <!-- Context Colors (per-company) -->
 	    			<setting
-	    				string="Context Colors"
+	    				string="Màu ngữ cảnh"
 	    				company_dependent="1"
-	    				help="Customize context colors for the current company"
+	    				help="Tùy chỉnh màu ngữ cảnh cho công ty hiện tại"
 	    			>
                      	<div class="w-50 row">
                             <label for="theme_color_info" string="Info" class="d-block w-75 py-2"/>
@@ -86,37 +86,37 @@
                             name="action_reset_theme_colors"
                             icon="fa-refresh"
                             type="object"
-                            string="Reset Colors to Default"
+                            string="Đặt lại màu mặc định"
                             class="btn-link"
                         />
                     </setting>
 
                     <!-- Background Image (per-company) -->
 	    			<setting
-	    				string="Background Image"
+	    				string="Ảnh nền"
 	    				company_dependent="1"
-	    				help="Set the background image for the apps menu"
+	    				help="Đặt ảnh nền cho menu ứng dụng"
 	    			>
 	    				<field name="theme_background_image" widget="image" class="ml-4 w-75"/>
                     </setting>
 
                     <!-- Branding & Debranding (per-company) -->
                     <setting
-                    	string="Branding"
+                    	string="Thương hiệu"
                     	company_dependent="1"
-                    	help="Replace Odoo branding with your own across the system"
+                    	help="Thay thế thương hiệu Odoo bằng của bạn trên toàn hệ thống"
                     >
 		    			<div class="w-50 row">
-	                        <label for="t4_brand_name" string="Brand Name" class="o_light_label mb-1"/>
+	                        <label for="t4_brand_name" string="Tên thương hiệu" class="o_light_label mb-1"/>
 	                        <field name="t4_brand_name" class="w-75" placeholder="My Company"/>
-	                        <div class="text-muted small mt-1 mb-2">Replaces "Odoo" across login, emails, dialogs, reports, etc.</div>
+	                        <div class="text-muted small mt-1 mb-2">Thay thế "Odoo" trên trang đăng nhập, email, hộp thoại, báo cáo, v.v.</div>
 	                        <div class="w-100 mt-1"/>
-	                        <label for="t4_web_title" string="Browser Title" class="o_light_label mb-1"/>
+	                        <label for="t4_web_title" string="Tiêu đề trình duyệt" class="o_light_label mb-1"/>
 	                        <field name="t4_web_title" class="w-75" placeholder="My ERP"/>
 	                        <div class="w-100 mt-1"/>
 	                        <label for="t4_url_prefix" string="URL Prefix" class="o_light_label mb-1"/>
 	                        <field name="t4_url_prefix" class="w-75" placeholder="app"/>
-	                        <div class="text-muted small mt-1 mb-2">Replace /odoo/ in URLs. E.g. "app" → /app/settings. Leave empty for default /odoo/.</div>
+	                        <div class="text-muted small mt-1 mb-2">Thay /odoo/ trong URL. VD: "app" → /app/settings. Để trống giữ /odoo/ mặc định.</div>
 	                        <div class="w-100 mt-1"/>
 	                    	<label for="appbar_image" string="Logo" class="o_light_label mb-1"/>
 	                        <field name="appbar_image" widget="image" class="ml-4 oe_avatar"/>

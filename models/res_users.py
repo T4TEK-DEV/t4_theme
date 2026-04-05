@@ -35,30 +35,30 @@ class ResUsers(models.Model):
 
     sidebar_type = fields.Selection(
         selection=[
-            ('invisible', 'Hidden'),
-            ('large', 'Visible'),
+            ('invisible', 'Ẩn'),
+            ('large', 'Hiện'),
         ],
-        string="Sidebar Type",
+        string='Kiểu thanh bên',
         default='large',
         required=True,
     )
 
     chatter_position = fields.Selection(
         selection=[
-            ('side', 'Side'),
-            ('bottom', 'Bottom'),
+            ('side', 'Bên cạnh'),
+            ('bottom', 'Phía dưới'),
         ],
-        string="Chatter Position",
+        string='Vị trí Chatter',
         default='side',
         required=True,
     )
 
     dialog_size = fields.Selection(
         selection=[
-            ('minimize', 'Minimize'),
-            ('maximize', 'Maximize'),
+            ('minimize', 'Thu nhỏ'),
+            ('maximize', 'Phóng to'),
         ],
-        string="Dialog Size",
+        string='Kích thước Dialog',
         default='minimize',
         required=True,
     )
@@ -69,6 +69,6 @@ class ResUsers(models.Model):
     )
 
     dark_mode_device_dependent = fields.Boolean(
-        string='Device Dependent Dark Mode',
+        string='Dark Mode theo thiết bị',
         default=False,
     )

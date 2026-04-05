@@ -25,28 +25,27 @@ input, textarea, select, button {
 }
 
 // --- Navbar ---
+// Override Odoo's CSS custom properties so all navbar children inherit correctly.
+// Odoo uses --NavBar-entry-color, --NavBar-entry-backgroundColor, etc. on
+// %-main-navbar-entry-base (see web/webclient/navbar/navbar.variables.scss).
 .o_main_navbar {
     background-color: var(--t4-color-brand, $o-brand-odoo) !important;
 
-    // Top-level labels & toggle
+    // Set Odoo's own CSS custom properties — this propagates to ALL navbar children
+    // including .o_nav_entry, .dropdown-toggle, .o_menu_toggle, systray, etc.
+    --NavBar-entry-color: var(--t4-color-appsmenu-text);
+    --NavBar-entry-color--hover: var(--t4-color-appsmenu-text);
+    --NavBar-entry-color--active: var(--t4-color-appsmenu-text);
+    --NavBar-entry-backgroundColor: transparent;
+    --NavBar-entry-backgroundColor--hover: rgba(255, 255, 255, 0.15);
+    --NavBar-entry-backgroundColor--focus: rgba(255, 255, 255, 0.15);
+    --NavBar-entry-backgroundColor--active: rgba(255, 255, 255, 0.2);
+    --NavBar-brand-color: var(--t4-color-appsmenu-text);
+
+    // Top-level brand & toggle (extra specificity for safety)
     .o_menu_brand,
     .o_menu_toggle {
         color: var(--t4-color-appsmenu-text) !important;
-    }
-
-    // Navigation entries (Discuss, Calendar, etc.) + dropdown toggles
-    .o_nav_entry,
-    .o-dropdown-item.dropdown-item,
-    .dropdown-item.o_nav_entry,
-    .o_menu_sections .dropdown-toggle,
-    .o_menu_sections > button,
-    .o_menu_sections > a {
-        color: var(--t4-color-appsmenu-text) !important;
-
-        &:hover, &:focus {
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            color: var(--t4-color-appsmenu-text) !important;
-        }
     }
 
     // Systray icons

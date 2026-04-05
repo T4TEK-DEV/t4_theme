@@ -29,17 +29,9 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             display: none !important;
         }
 
-        // Make toggle button always visible and prominent on home menu
-        .o_navbar_apps_menu {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
+        // Toggle button prominent style on home menu background
         .o_menu_toggle {
             color: #fff !important;
-            opacity: 1 !important;
-            visibility: visible !important;
             padding: 10px 16px !important;
             border-radius: 8px;
             background-color: rgba(255, 255, 255, 0.12);

@@ -138,6 +138,20 @@ function applyThemeFont(company) {
     root.style.setProperty('--t4-font-family', fontStack);
 }
 
+const ICON_SHAPE_CLASS_PREFIX = 't4-icon-shape-';
+const VALID_ICON_SHAPES = ['rounded_rect', 'circle', 'square', 'squircle', 'hexagon'];
+
+function applyIconShape(company) {
+    const root = document.documentElement;
+    const shape = company?.theme_icon_shape || 'rounded_rect';
+    // Remove all existing shape classes
+    for (const s of VALID_ICON_SHAPES) {
+        root.classList.remove(ICON_SHAPE_CLASS_PREFIX + s);
+    }
+    // Add the active shape class
+    root.classList.add(ICON_SHAPE_CLASS_PREFIX + shape);
+}
+
 function applyViewOverrides(company) {
     const overrides = company?.theme_view_overrides || {};
     const styleId = 't4-theme-view-overrides';
@@ -180,10 +194,12 @@ export const themeColorService = {
         const company = user.activeCompany;
         applyThemeColors(getActiveCompanyColors());
         applyThemeFont(company);
+        applyIconShape(company);
         applyViewOverrides(company);
         env.bus.addEventListener('MENUS:APP-CHANGED', () => {
             applyThemeColors(getActiveCompanyColors());
             applyThemeFont(user.activeCompany);
+            applyIconShape(user.activeCompany);
             applyViewOverrides(user.activeCompany);
         });
     },

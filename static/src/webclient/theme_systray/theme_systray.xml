@@ -27,14 +27,14 @@
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-primary flex-fill"
                         t-on-click="onOpenThemeSettings">
-                        <i class="fa fa-paint-brush me-1"/>Theme Editor
+                        <i class="fa fa-paint-brush me-1"/>Sửa CSS
                     </button>
                     <button t-if="isOnHomeMenu" class="btn btn-sm flex-fill"
                         t-att-class="isHomeEditMode ? 'btn-primary' : 'btn-outline-secondary'"
                         t-on-click="onToggleHomeEdit">
                         <i t-att-class="isHomeEditMode ? 'fa fa-check me-1' : 'fa fa-th me-1'"/>
                         <t t-if="isHomeEditMode">Xong</t>
-                        <t t-else="">Chỉnh sửa</t>
+                        <t t-else="">Sửa Home Menu</t>
                     </button>
                 </div>
             </div>
@@ -215,6 +215,20 @@
                                     t-att-checked="state.homeMenuOverlay"
                                     t-on-change="onToggleHomeMenuOverlay"/>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Icon Shape -->
+                    <div class="mt-2">
+                        <small class="text-muted d-block mb-1">Hình dạng icon ứng dụng</small>
+                        <div class="btn-group w-100 flex-wrap" role="group">
+                            <t t-foreach="iconShapeOptions" t-as="opt" t-key="opt.key">
+                                <button type="button" class="btn btn-sm"
+                                    t-attf-class="{{ state.iconShape === opt.key ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    t-on-click="() => this.onSelectIconShape(opt.key)">
+                                    <t t-out="opt.label"/>
+                                </button>
+                            </t>
                         </div>
                     </div>
                 </div>

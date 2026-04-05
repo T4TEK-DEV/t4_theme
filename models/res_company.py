@@ -299,6 +299,18 @@ class ResCompany(models.Model):
     )
 
 
+    theme_icon_shape = fields.Selection(
+        selection=[
+            ('rounded_rect', 'Rounded Rectangle'),
+            ('circle', 'Circle'),
+            ('square', 'Square'),
+            ('squircle', 'iOS Squircle'),
+            ('hexagon', 'Hexagon'),
+        ],
+        string='Hình dạng icon ứng dụng',
+        default='rounded_rect',
+    )
+
     theme_home_menu_overlay = fields.Boolean(
         string='Home Menu Overlay',
         default=True,

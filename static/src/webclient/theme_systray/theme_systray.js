@@ -27,6 +27,14 @@ const DIALOG_OPTIONS = [
     { key: "maximize", label: _t("Toàn màn hình") },
 ];
 
+const ICON_SHAPE_OPTIONS = [
+    { key: "rounded_rect", label: _t("Bo tròn góc"), icon: "fa-square" },
+    { key: "circle", label: _t("Hình tròn"), icon: "fa-circle" },
+    { key: "square", label: _t("Vuông"), icon: "fa-stop" },
+    { key: "squircle", label: _t("iOS Squircle"), icon: "fa-tablet" },
+    { key: "hexagon", label: _t("Lục giác"), icon: "fa-hexagon" },
+];
+
 const FONT_OPTIONS = [
     // Sans-serif
     { key: "system", label: "Mặc định hệ thống", category: "system" },
@@ -119,6 +127,7 @@ function buildInitialState(company, colors) {
         chatterPosition: session.chatter_position || "side",
         dialogSize: session.dialog_size || "minimize",
         fontFamily: company.theme_font_family || "system",
+        iconShape: company.theme_icon_shape || "rounded_rect",
         homeMenuOverlay: company.theme_home_menu_overlay !== false,
         brandName: company.t4_brand_name || "T4 ERP",
         webTitle: company.t4_web_title || "",
@@ -183,6 +192,7 @@ export class ThemeSystray extends Component {
     get chatterOptions() { return CHATTER_OPTIONS; }
     get dialogOptions() { return DIALOG_OPTIONS; }
     get fontOptions() { return FONT_OPTIONS; }
+    get iconShapeOptions() { return ICON_SHAPE_OPTIONS; }
 
     get selectedFontLabel() {
         const opt = FONT_OPTIONS.find(f => f.key === this.state.fontFamily);
@@ -257,6 +267,15 @@ export class ThemeSystray extends Component {
         root.style.setProperty("--t4-font-family", fontStack);
     }
 
+    _applyIconShapePreview(value) {
+        const root = document.documentElement;
+        const shapes = ['rounded_rect', 'circle', 'square', 'squircle', 'hexagon'];
+        for (const s of shapes) {
+            root.classList.remove('t4-icon-shape-' + s);
+        }
+        root.classList.add('t4-icon-shape-' + value);
+    }
+
     _applySidebarPreview(value) {
         const body = document.body;
         for (const opt of SIDEBAR_OPTIONS) {
@@ -274,6 +293,7 @@ export class ThemeSystray extends Component {
         }
         this._applySidebarPreview(this.original.sidebarType);
         this._applyFontPreview(this.original.fontFamily);
+        this._applyIconShapePreview(this.original.iconShape);
         document.title = this.original.webTitle || "Odoo";
         Object.assign(this.state, { ...this.original });
         this.state.dirty = false;
@@ -366,6 +386,11 @@ export class ThemeSystray extends Component {
         this._markDirty("fontFamily");
     }
 
+    onSelectIconShape(value) {
+        this.state.iconShape = value;
+        this._applyIconShapePreview(value);
+        this._markDirty("iconShape");
+    }
 
     onColorChange(stateKey, ev) {
         const value = ev.target.value;
@@ -441,6 +466,7 @@ export class ThemeSystray extends Component {
         await this.orm.call("res.company", "write", [[companyId], {
             theme_preset: "default",
             theme_font_family: "system",
+            theme_icon_shape: "rounded_rect",
             theme_home_menu_overlay: true,
             theme_color_brand: "#714B67",
             theme_color_primary: "#714B67",
@@ -486,6 +512,9 @@ export class ThemeSystray extends Component {
             if (this.dirtyFields.has("fontFamily")) {
                 companyVals.theme_font_family = this.state.fontFamily;
             }
+            if (this.dirtyFields.has("iconShape")) {
+                companyVals.theme_icon_shape = this.state.iconShape;
+            }
             if (this.dirtyFields.has("homeMenuOverlay")) {
                 companyVals.theme_home_menu_overlay = this.state.homeMenuOverlay;
             }
@@ -527,6 +556,7 @@ export class ThemeSystray extends Component {
                 {
                     theme_preset: this.state.currentPreset,
                     theme_font_family: this.state.fontFamily,
+                    theme_icon_shape: this.state.iconShape,
                     theme_home_menu_overlay: this.state.homeMenuOverlay,
                     t4_brand_name: this.state.brandName,
                     t4_web_title: this.state.webTitle,

@@ -68,10 +68,6 @@ patch(NavBar.prototype, {
 
         const nav = this.navRef && this.navRef.el;
         if (!nav) return;
-        for (const sel of ['.o_menu_brand', '.o_menu_brand_icon']) {
-            const el2 = nav.querySelector(sel);
-            if (el2) el2.classList.toggle('o_hidden', !this.isInApp);
-        }
         const sub = this.appSubMenus && this.appSubMenus.el;
         if (sub) sub.classList.toggle('o_hidden', !this.isInApp);
         const bc = nav.querySelector('.o_breadcrumb');

@@ -64,6 +64,9 @@ patch(NavBar.prototype, {
         const el = this.menuAppsRef.el;
         // Always show toggle button, always 3x3 grid (no back arrow)
         el.classList.remove('o_hidden', 'o_menu_toggle_back');
+        // Imperatively manage hasImage: only when in app AND app has icon
+        const hasImg = this.isInApp && !!this.currentApp?.webIconData;
+        el.classList.toggle('hasImage', hasImg);
         el.title = this.isInApp ? _t('Home menu') : _t('Close home menu');
 
         const nav = this.navRef && this.navRef.el;

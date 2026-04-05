@@ -563,6 +563,11 @@ export const THEME_COMPONENTS = {
             { key: 'background-color', label: 'Background', type: 'color', css: true },
             { key: 'box-shadow', label: 'Shadow', type: 'select', css: true, options: SHADOW_OPTIONS.slice(0, 3), default: '' },
             { key: 'font-size', label: 'Font Size', type: 'slider', min: 11, max: 18, unit: 'px', css: true },
+            { key: '--t4-color-navbar-entry-color', label: 'Menu Text Color', type: 'color' },
+            { key: '--t4-color-navbar-entry-color-hover', label: 'Menu Text Hover', type: 'color' },
+            { key: '--t4-color-navbar-entry-bg', label: 'Menu Item BG', type: 'color' },
+            { key: '--t4-color-navbar-entry-bg-hover', label: 'Menu Item BG Hover', type: 'color' },
+            { key: '--t4-color-navbar-entry-bg-active', label: 'Menu Item BG Active', type: 'color' },
         ],
     },
 

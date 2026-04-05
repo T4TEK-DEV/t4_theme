@@ -13,7 +13,7 @@ patch(NavBar.prototype, {
         super.setup();
         this.appMenuService = useService('app_menu');
 
-        // home_menu service: safe access (may not be started yet)
+        // home_menu service: safe access
         this.hm = this.env.services.t4_home_menu || null;
 
         if (this.hm) {
@@ -23,7 +23,7 @@ patch(NavBar.prototype, {
             useEffect(() => this._updateMenuAppsIcon());
 
             // Global ESC: toggle home menu from anywhere
-            useHotkey('escape', () => this.hm.toggle(), { global: true });
+            useHotkey('escape', () => this._toggleOrOpenFirstApp(), { global: true });
         }
     },
 
@@ -35,9 +35,25 @@ patch(NavBar.prototype, {
         return this.hm ? !this.hm.hasHomeMenu : true;
     },
 
+    /**
+     * Toggle home menu. If closing and no previous app, open the first app.
+     */
+    _toggleOrOpenFirstApp() {
+        if (!this.hm) return;
+        if (this.hm.hasHomeMenu && !this.hm.hasBackgroundAction) {
+            // No previous app → select first app
+            const apps = this.appMenuService.getAppsMenuItems();
+            if (apps.length) {
+                this.appMenuService.selectApp(apps[0]);
+            }
+        } else {
+            this.hm.toggle();
+        }
+    },
+
     _openAppMenuSidebar() {
         if (this.hm && this.hm.hasHomeMenu) {
-            this.hm.toggle(false);
+            this._toggleOrOpenFirstApp();
         } else {
             this.state.isAppMenuSidebarOpened = true;
         }
@@ -46,7 +62,8 @@ patch(NavBar.prototype, {
     _updateMenuAppsIcon() {
         if (!this.menuAppsRef || !this.menuAppsRef.el) return;
         const el = this.menuAppsRef.el;
-        el.classList.toggle('o_hidden', !this.isInApp && !this.hasBackgroundAction);
+        // Always show toggle button (never hide)
+        el.classList.remove('o_hidden');
         el.classList.toggle('o_menu_toggle_back', !this.isInApp && this.hasBackgroundAction);
         el.title = (!this.isInApp && this.hasBackgroundAction) ? _t('Previous view') : _t('Home menu');
 

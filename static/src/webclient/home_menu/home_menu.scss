@@ -29,6 +29,20 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             display: none !important;
         }
 
+        // Make toggle button prominent on home menu
+        .o_menu_toggle {
+            color: #fff !important;
+            opacity: 0.85;
+            padding: 8px 16px !important;
+            border-radius: 8px;
+            transition: opacity 0.2s, background-color 0.2s;
+
+            &:hover {
+                opacity: 1;
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+
         // Fade systray when home menu is open
         .o_menu_systray {
             opacity: 0.6;
@@ -91,13 +105,12 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
             background-color: var(--AppSwitcherIcon-background, #{$o-home-menu-app-icon-background-color});
             object-fit: cover;
             transform-origin: center bottom;
-            transition: box-shadow ease-in 0.1s, transform ease-in 0.1s;
-            box-shadow: var(--AppSwitcherIcon-inset-shadow, inset 0 0 0 1px rgba(0,0,0, .2)),
-                0 1px 1px rgba(#000, .02),
-                0 2px 2px rgba(#000, .02),
-                0 4px 4px rgba(#000, .02),
-                0 8px 8px rgba(#000, .02),
-                0 16px 16px rgba(#000, .02);
+            transition: box-shadow ease-in 0.15s, transform ease-in 0.15s, border-color ease-in 0.15s;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            box-shadow:
+                0 2px 4px rgba(#000, .04),
+                0 4px 8px rgba(#000, .04),
+                0 8px 16px rgba(#000, .04);
 
             .fa {
                 font-size: $o-home-menu-app-icon-max-width * 0.5;
@@ -105,28 +118,28 @@ $o-home-menu-custom-caption-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 2px 5px rgba
         }
 
         &:hover .o_app_icon {
-            box-shadow: var(--AppSwitcherIcon-inset-shadow, inset 0 0 0 1px rgba(0,0,0, .2)),
-                0 2px 2px rgba(#000, .03),
-                0 4px 4px rgba(#000, .03),
-                0 8px 8px rgba(#000, .03),
-                0 12px 12px rgba(#000, .03),
-                0 24px 24px rgba(#000, .03);
-            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 4px 8px rgba(#000, .08),
+                0 8px 16px rgba(#000, .08),
+                0 16px 32px rgba(#000, .08);
+            transform: translateY(-3px);
         }
 
         &:active .o_app_icon {
-            transform: translateY(-2px) scale(.98);
+            transform: translateY(-1px) scale(.97);
             transition: none;
         }
 
         .o_caption {
-            color: var(--homeMenuCaption-color, #{$o-home-menu-caption-color});
-            text-shadow: $o-home-menu-caption-shadow;
+            color: #fff;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.2);
         }
 
         &.o_focused {
-            background: $component-active-bg;
-            outline: 1px solid $o-action;
+            background: rgba(255, 255, 255, 0.1);
+            outline: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: $border-radius;
         }
     }

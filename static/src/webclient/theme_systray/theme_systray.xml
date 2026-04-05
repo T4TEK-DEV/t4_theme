@@ -24,10 +24,19 @@
             </div>
 
             <div class="px-3 py-2 border-bottom">
-                <button class="btn btn-sm btn-outline-primary w-100"
-                    t-on-click="onOpenThemeSettings">
-                    <i class="fa fa-paint-brush me-1"/>Theme Editor
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary flex-fill"
+                        t-on-click="onOpenThemeSettings">
+                        <i class="fa fa-paint-brush me-1"/>Theme Editor
+                    </button>
+                    <button t-if="isOnHomeMenu" class="btn btn-sm flex-fill"
+                        t-att-class="isHomeEditMode ? 'btn-primary' : 'btn-outline-secondary'"
+                        t-on-click="onToggleHomeEdit">
+                        <i t-att-class="isHomeEditMode ? 'fa fa-check me-1' : 'fa fa-th me-1'"/>
+                        <t t-if="isHomeEditMode">Done</t>
+                        <t t-else="">Edit Home</t>
+                    </button>
+                </div>
             </div>
 
             <div class="t4_theme_panel_body">

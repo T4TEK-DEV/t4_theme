@@ -9,6 +9,7 @@ const homeMenuService = {
         const state = reactive({
             hasHomeMenu: false,
             hasBackgroundAction: false,
+            editMode: false,
         });
         const mutex = new Mutex();
 
@@ -19,7 +20,6 @@ const homeMenuService = {
                     if (show) {
                         await env.services.action.doAction("menu");
                     } else {
-                        // Only close if there's a previous action to restore
                         if (!state.hasBackgroundAction) {
                             return;
                         }
@@ -37,8 +37,18 @@ const homeMenuService = {
         state.setHomeMenu = function setHomeMenu(val, hasBg) {
             state.hasHomeMenu = val;
             state.hasBackgroundAction = hasBg;
+            if (!val) {
+                state.editMode = false;
+                document.body.classList.remove("t4_hm_edit_active");
+            }
             document.body.classList.toggle("o_home_menu_background", val);
             env.bus.trigger("HOME-MENU:TOGGLED");
+        };
+
+        state.toggleEditMode = function toggleEditMode() {
+            state.editMode = !state.editMode;
+            document.body.classList.toggle("t4_hm_edit_active", state.editMode);
+            env.bus.trigger("HOME-MENU:EDIT-TOGGLED");
         };
 
         return state;

@@ -22,13 +22,38 @@ import {
     xml,
 } from "@odoo/owl";
 
+// ── Config Helpers ──
+
+const WIDGET_DEFAULTS = {
+    logo: { x: 50, y: 10, scale: 1, visible: true },
+    time: { x: 50, y: 60, scale: 1, visible: true },
+    date: { x: 50, y: 140, scale: 1, visible: true },
+};
+
+function parseConfig(raw) {
+    if (!raw) return { appOrder: null, ...structuredClone(WIDGET_DEFAULTS) };
+    if (Array.isArray(raw)) return { appOrder: raw, ...structuredClone(WIDGET_DEFAULTS) };
+    // Migrate old "clock" key to "time" + "date"
+    const legacy = raw.clock || {};
+    return {
+        appOrder: raw.appOrder || null,
+        logo: { ...WIDGET_DEFAULTS.logo, ...(raw.logo || {}) },
+        time: { ...WIDGET_DEFAULTS.time, ...(raw.time || legacy) },
+        date: { ...WIDGET_DEFAULTS.date, ...(raw.date || {}) },
+    };
+}
+
+function buildConfig(appOrder, logo, time, date) {
+    return { appOrder, logo, time, date };
+}
+
+function extractPos(s) { return { x: s.x, y: s.y, scale: s.scale, visible: s.visible }; }
+
 // ── Footer for command palette ──
 class FooterComponent extends Component {
     static template = "t4_theme.HomeMenu.CommandPalette.Footer";
     static props = { switchNamespace: { type: Function, optional: true } };
-    setup() {
-        this.controlKey = isMacOS() ? "COMMAND" : "CONTROL";
-    }
+    setup() { this.controlKey = isMacOS() ? "COMMAND" : "CONTROL"; }
 }
 
 // ── HomeMenu Component ──
@@ -42,30 +67,49 @@ export class HomeMenu extends Component {
     setup() {
         this.command = useService("command");
         this.menus = useService("menu");
-        this.homeMenuService = useService("t4_home_menu");
+        this.hm = useService("t4_home_menu");
         this.ui = useService("ui");
         this.dialog = useService("dialog");
+        this.orm = useService("orm");
+
         this.state = useState({ focusedIndex: null, isIosApp: isIosApp() });
         this.inputRef = useRef("input");
         this.rootRef = useRef("root");
+        this.toolbarRef = useRef("toolbar");
 
-        if (!this.env.isSmall) {
-            this._registerHotkeys();
-        }
+        // Parse config
+        const raw = JSON.parse(user.settings?.homemenu_config || "null");
+        const cfg = parseConfig(raw);
+
+        // Widget states
+        this.logoState = useState({ ...cfg.logo, dragging: false });
+        this.timeState = useState({ ...cfg.time, dragging: false, hours: '', minutes: '', seconds: '', period: '' });
+        this.dateState = useState({ ...cfg.date, dragging: false, text: '' });
+        this._updateClock();
+
+        if (!this.env.isSmall) this._registerHotkeys();
 
         useSortable({
-            enable: () => true,
+            enable: () => this.hm.editMode,
             ref: this.rootRef,
             elements: ".o_draggable",
             cursor: "move",
-            delay: 500,
+            delay: 200,
             tolerance: 10,
             onWillStartDrag: ({ element, addClass }) => addClass(element.children[0], "o_dragged_app"),
             onDrop: ({ element, previous }) => this._sortAppDrop(element, previous),
         });
 
+        useBus(this.env.bus, "HOME-MENU:EDIT-TOGGLED", () => this.render());
+
         onWillUpdateProps(() => { this.state.focusedIndex = null; });
-        onMounted(() => { if (!hasTouch()) this._focusInput(); });
+        onMounted(() => {
+            this._clockInterval = setInterval(() => this._updateClock(), 1000);
+            if (!hasTouch()) this._focusInput();
+        });
+        onWillUnmount(() => {
+            if (this._clockInterval) clearInterval(this._clockInterval);
+        });
         onPatched(() => {
             if (this.state.focusedIndex !== null && !this.env.isSmall) {
                 const el = document.querySelector(".o_home_menu .o_menuitem.o_focused");
@@ -74,15 +118,158 @@ export class HomeMenu extends Component {
         });
     }
 
-    get displayedApps() { return this.props.apps; }
+    // ── Edit Mode ──
+    get editMode() { return this.hm.editMode; }
 
+    // ── Clock ──
+    _updateClock() {
+        const now = new Date();
+        const h = now.getHours();
+        const h12 = h % 12 || 12;
+        this.timeState.hours = String(h12).padStart(2, '0');
+        this.timeState.minutes = String(now.getMinutes()).padStart(2, '0');
+        this.timeState.seconds = String(now.getSeconds()).padStart(2, '0');
+        this.timeState.period = h >= 12 ? 'PM' : 'AM';
+        this.dateState.text = now.toLocaleDateString([], {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        });
+    }
+
+    // ── Widget Style/Visibility ──
+    _widgetStyle(s) {
+        return `left:${s.x}%;top:${s.y}px;transform:translate(-50%,0) scale(${s.scale});`;
+    }
+    get logoStyle() { return this._widgetStyle(this.logoState); }
+    get timeStyle() { return this._widgetStyle(this.timeState); }
+    get dateStyle() { return this._widgetStyle(this.dateState); }
+    get companyLogoUrl() { return '/web/binary/company_logo'; }
+
+    // ── Toggle Visibility ──
+    toggleWidget(name) {
+        const st = this[name + 'State'];
+        st.visible = !st.visible;
+        this._saveConfig();
+    }
+
+    // ── Reset to Default ──
+    resetHomeMenu() {
+        const defs = structuredClone(WIDGET_DEFAULTS);
+        Object.assign(this.logoState, defs.logo, { dragging: false });
+        Object.assign(this.timeState, defs.time, { dragging: false });
+        Object.assign(this.dateState, defs.date, { dragging: false });
+        this._saveConfig();
+    }
+
+    // ── Generic Drag ──
+    _startDrag(widgetState, ev) {
+        if (!this.editMode || widgetState.dragging) return;
+        ev.preventDefault();
+        const start = ev.touches ? ev.touches[0] : ev;
+        const sx = start.clientX, sy = start.clientY;
+        const origX = widgetState.x, origY = widgetState.y;
+        const rootW = this.rootRef.el.offsetWidth;
+        widgetState.dragging = true;
+
+        const onMove = (e) => {
+            const pt = e.touches ? e.touches[0] : e;
+            widgetState.x = Math.max(5, Math.min(95, origX + ((pt.clientX - sx) / rootW) * 100));
+            widgetState.y = Math.max(0, origY + (pt.clientY - sy));
+        };
+        const onEnd = () => {
+            widgetState.dragging = false;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            this._saveConfig();
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+    }
+
+    // ── Generic Resize ──
+    _startResize(widgetState, ev) {
+        if (!this.editMode) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const sy = (ev.touches ? ev.touches[0] : ev).clientY;
+        const origScale = widgetState.scale;
+
+        const onMove = (e) => {
+            const pt = e.touches ? e.touches[0] : e;
+            widgetState.scale = Math.max(0.3, Math.min(3, origScale + (pt.clientY - sy) * 0.005));
+        };
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            this._saveConfig();
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+    }
+
+    // Event handlers (delegate to generic)
+    onLogoDrag(ev) { this._startDrag(this.logoState, ev); }
+    onLogoResize(ev) { this._startResize(this.logoState, ev); }
+    onTimeDrag(ev) { this._startDrag(this.timeState, ev); }
+    onTimeResize(ev) { this._startResize(this.timeState, ev); }
+    onDateDrag(ev) { this._startDrag(this.dateState, ev); }
+    onDateResize(ev) { this._startResize(this.dateState, ev); }
+
+    // ── Toolbar Drag ──
+    onToolbarDrag(ev) {
+        // Only drag from grip or empty area, not from buttons
+        if (ev.target.closest('button')) return;
+        ev.preventDefault();
+        const el = this.toolbarRef.el;
+        if (!el) return;
+        const start = ev.touches ? ev.touches[0] : ev;
+        const rect = el.getBoundingClientRect();
+        const offsetX = start.clientX - rect.left;
+        const offsetY = start.clientY - rect.top;
+
+        const onMove = (e) => {
+            const pt = e.touches ? e.touches[0] : e;
+            el.style.left = (pt.clientX - offsetX) + 'px';
+            el.style.top = (pt.clientY - offsetY) + 'px';
+            el.style.transform = 'none';
+        };
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+    }
+
+    // ── Save ──
+    _saveConfig() {
+        const order = this.props.apps.map((a) => a.xmlid);
+        const cfg = buildConfig(order, extractPos(this.logoState), extractPos(this.timeState), extractPos(this.dateState));
+        try { user.setUserSettings("homemenu_config", JSON.stringify(cfg)); } catch {}
+    }
+
+    // ── Apps ──
+    get displayedApps() { return this.props.apps; }
     get maxIconNumber() {
         const w = window.innerWidth;
         return w < 576 ? 3 : w < 768 ? 4 : 6;
     }
 
-    _openMenu(menu) { return this.menus.selectMenu(menu); }
-
+    _openMenu(menu) {
+        if (this.editMode) return;
+        return this.menus.selectMenu(menu);
+    }
     _onAppClick(app) { this._openMenu(app); }
 
     _focusInput() {
@@ -119,7 +306,10 @@ export class HomeMenu extends Component {
         const prevIdx = previous ? order.indexOf(previous.children[0].dataset.menuXmlid) : -1;
         order.splice(prevIdx + 1, 0, id);
         this.props.reorderApps(order);
-        try { user.setUserSettings("homemenu_config", JSON.stringify(order)); } catch {}
+
+        const cfg = buildConfig(order, extractPos(this.logoState), extractPos(this.timeState), extractPos(this.dateState));
+        try { user.setUserSettings("homemenu_config", JSON.stringify(cfg)); } catch {}
+        this.orm.call("ir.ui.menu", "reorder_apps_sequence", [order]).catch(() => {});
     }
 
     _registerHotkeys() {
@@ -131,7 +321,10 @@ export class HomeMenu extends Component {
             ["Tab", () => this._updateFocusedIndex("nextElem")],
             ["shift+Tab", () => this._updateFocusedIndex("previousElem")],
             ["Enter", () => { const m = this.displayedApps[this.state.focusedIndex]; if (m) this._openMenu(m); }],
-            ["Escape", () => this.homeMenuService.toggle(false)],
+            ["Escape", () => {
+                if (this.editMode) { this.hm.toggleEditMode(); }
+                else { this.hm.toggle(false); }
+            }],
         ].forEach((h) => useHotkey(...h, { allowRepeat: true }));
         useExternalListener(window, "keydown", () => {
             if (document.activeElement !== this.inputRef.el && this.ui.activeElement === document && !["TEXTAREA", "INPUT"].includes(document.activeElement.tagName)) {
@@ -190,9 +383,10 @@ class HomeMenuAction extends Component {
     }
 
     get homeMenuProps() {
-        const cfg = JSON.parse(user.settings?.homemenu_config || "null");
+        const raw = JSON.parse(user.settings?.homemenu_config || "null");
+        const cfg = parseConfig(raw);
         const apps = reactive(computeAppsAndMenuItems(this.menus.getMenuAsTree("root")).apps);
-        if (cfg) reorderApps(apps, cfg);
+        if (cfg.appOrder) reorderApps(apps, cfg.appOrder);
         return { apps, reorderApps: (order) => reorderApps(apps, order) };
     }
 }

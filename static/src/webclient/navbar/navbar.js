@@ -4,6 +4,7 @@ import { useService, useBus } from '@web/core/utils/hooks';
 import { useHotkey } from '@web/core/hotkeys/hotkey_hook';
 import { _t } from '@web/core/l10n/translation';
 import { useEffect, useRef } from '@odoo/owl';
+import { user } from '@web/core/user';
 
 import { NavBar } from '@web/webclient/navbar/navbar';
 import { AppsMenu } from '@t4_theme/webclient/appsmenu/appsmenu';
@@ -13,8 +14,10 @@ patch(NavBar.prototype, {
         super.setup();
         this.appMenuService = useService('app_menu');
 
-        // home_menu service: safe access
-        this.hm = this.env.services.t4_home_menu || null;
+        // home_menu service: only when overlay mode is enabled
+        const company = user.activeCompany || {};
+        const overlayEnabled = company.theme_home_menu_overlay !== false;
+        this.hm = overlayEnabled ? (this.env.services.t4_home_menu || null) : null;
 
         if (this.hm) {
             this.menuAppsRef = useRef('menuApps');

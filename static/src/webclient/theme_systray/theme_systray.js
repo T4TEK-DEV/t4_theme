@@ -138,6 +138,7 @@ export class ThemeSystray extends Component {
         this.orm = useService("orm");
         this.ui = useService("ui");
         this.actionService = useService("action");
+        this.hm = this.env.services.t4_home_menu || null;
         this.panelRef = useRef("panel");
 
         const company = user.activeCompany || {};
@@ -646,6 +647,20 @@ export class ThemeSystray extends Component {
     onOpenThemeSettings() {
         this.state.open = false;
         document.dispatchEvent(new CustomEvent('t4:toggle-design-mode'));
+    }
+
+    onToggleHomeEdit() {
+        if (this.hm) {
+            this.hm.toggleEditMode();
+        }
+    }
+
+    get isOnHomeMenu() {
+        return this.hm ? this.hm.hasHomeMenu : false;
+    }
+
+    get isHomeEditMode() {
+        return this.hm ? this.hm.editMode : false;
     }
 }
 

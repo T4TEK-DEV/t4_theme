@@ -1,12 +1,25 @@
 .o_home_menu_background {
-
     .o_app_icon {
         --AppSwitcherIcon-background: #{rgba(#fff, .05)};
         --AppSwitcherIcon-inset-shadow: #{inset 0 0 0 1px rgba(#fff, .1)};
         --AppSwitcherIcon-border-color: transparent;
     }
-
     .o_app:hover .o_app_icon {
         --AppSwitcherIcon-inset-shadow: #{inset 0 0 0 1px rgba(#fff, .2)};
     }
+}
+
+.o_home_menu {
+    .t4_hm_clock_hours, .t4_hm_clock_minutes { color: rgba(255, 255, 255, 0.9); }
+    .t4_hm_clock_seconds { color: rgba(255, 255, 255, 0.5); }
+    .t4_hm_clock_date { color: rgba(255, 255, 255, 0.6); }
+    .t4_hm_logo { filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)); }
+    .t4_hm_widget_resize { background: rgba(255, 255, 255, 0.15); color: #fff; }
+    .t4_hm_grid_overlay {
+        background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .t4_hm_toolbar { background: rgba(0,0,0,0.6); }
 }

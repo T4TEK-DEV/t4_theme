@@ -2,13 +2,13 @@
 
 <templates xml:space="preserve">
 
-	<t 
+	<t
 		t-name="t4_theme.NavBar.AppsMenu"
-		t-inherit="web.NavBar.AppsMenu" 
-		t-inherit-mode="extension" 
+		t-inherit="web.NavBar.AppsMenu"
+		t-inherit-mode="extension"
 	>
 		<xpath expr="//Dropdown" position="replace">
-			<AppsMenu menuClass="'mk_app_menu'">
+			<AppsMenu t-att-menuClass="this.appMenuService.homeMenuOverlay ? 'mk_app_menu' : ''">
 				<button data-hotkey="h" title="Home Menu">
 					<i class="oi oi-apps" />
 				</button>
@@ -22,18 +22,18 @@
 						onSelected="() => this.onNavBarDropdownItemSelection(app)"
 						closingMode="'none'"
 					>
-						<a 
-							t-att-href="app.href" 
+						<a
+							t-att-href="app.href"
 							t-on-click.prevent=""
 						>
-							<img 
-								t-if="app.webIconData"          		
-								class="mk_app_icon" 
+							<img
+								t-if="app.webIconData"
+								class="mk_app_icon"
 								t-att-src="app.webIconData"
 							/>
-							<img  
-								t-else="" 
-								class="mk_app_icon" 
+							<img
+								t-else=""
+								class="mk_app_icon"
 								src="/base/static/description/icon.png"
 							/>
 							<span class="mk_app_name">
@@ -45,5 +45,5 @@
 			</AppsMenu>
 		</xpath>
 	</t>
-	
+
 </templates>

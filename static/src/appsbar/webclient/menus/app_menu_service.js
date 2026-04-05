@@ -6,7 +6,11 @@ import { computeAppsAndMenuItems, reorderApps } from "@web/webclient/menus/menu_
 export const appMenuService = {
     dependencies: ["menu"],
     async start(env, { menu }) {
+        const company = user.activeCompany || {};
+        const homeMenuOverlay = company.theme_home_menu_overlay !== false;
+
         return {
+        	homeMenuOverlay,
         	getCurrentApp () {
         		return menu.getCurrentApp();
         	},

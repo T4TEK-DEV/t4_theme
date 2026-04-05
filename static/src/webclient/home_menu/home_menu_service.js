@@ -19,16 +19,14 @@ const homeMenuService = {
                     if (show) {
                         await env.services.action.doAction("menu");
                     } else {
-                        // Clear state immediately so UI updates
-                        state.hasHomeMenu = false;
-                        state.hasBackgroundAction = false;
-                        document.body.classList.remove("o_home_menu_background");
+                        // Only close if there's a previous action to restore
+                        if (!state.hasBackgroundAction) {
+                            return;
+                        }
                         try {
                             await env.services.action.restore();
                         } catch {
-                            // No previous action — stay on home menu
-                            state.hasHomeMenu = true;
-                            document.body.classList.add("o_home_menu_background");
+                            // ignore ControllerNotFoundError
                         }
                     }
                 }
@@ -40,6 +38,7 @@ const homeMenuService = {
             state.hasHomeMenu = val;
             state.hasBackgroundAction = hasBg;
             document.body.classList.toggle("o_home_menu_background", val);
+            env.bus.trigger("HOME-MENU:TOGGLED");
         };
 
         return state;

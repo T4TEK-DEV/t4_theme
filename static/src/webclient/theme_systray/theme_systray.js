@@ -1,6 +1,6 @@
 import { Component, useState, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { rpc } from '@web/core/network/rpc';
 import { cookie } from "@web/core/browser/cookie";
 import { browser } from "@web/core/browser/browser";
@@ -159,6 +159,10 @@ export class ThemeSystray extends Component {
             hasBackground: Boolean(company.has_background_image),
             hasFavicon: Boolean(company.has_favicon),
         });
+
+        // Re-render when home menu edit mode or visibility changes
+        useBus(this.env.bus, "HOME-MENU:EDIT-TOGGLED", () => this.render());
+        useBus(this.env.bus, "HOME-MENU:TOGGLED", () => this.render());
 
         this.dirtyFields = new Set();
 

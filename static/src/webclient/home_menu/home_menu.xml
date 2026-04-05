@@ -25,6 +25,9 @@
                 <i class="fa fa-calendar me-1"/>Date
             </button>
             <span class="t4_hm_toolbar_sep"/>
+            <button class="btn btn-sm btn-outline-light" t-on-click.stop="compactApps" title="Auto Compact">
+                <i class="fa fa-th me-1"/>Compact
+            </button>
             <button class="btn btn-sm btn-outline-warning" t-on-click.stop="resetHomeMenu" title="Reset to Default">
                 <i class="fa fa-undo me-1"/>Reset
             </button>
@@ -79,29 +82,50 @@
                 t-att-aria-activedescendant="'result_app_' + state.focusedIndex"
                 t-att-aria-expanded="displayedApps.length ? 'true' : 'false'"
                 aria-autocomplete="list" aria-haspopup="listbox"/>
-            <div t-if="displayedApps.length" role="listbox" class="o_apps row user-select-none mt-3 mx-0">
-                <div t-foreach="displayedApps" t-as="app" t-key="app.id" class="col-3 col-md-2 o_draggable mb-3 px-0">
-                    <a t-att-id="'result_app_' + app_index" role="option"
-                        t-att-aria-selected="state.focusedIndex === app_index ? 'true' : 'false'"
-                        class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                        t-att-class="{o_focused: state.focusedIndex === app_index, 't4_hm_app_editable': editMode}"
-                        t-att-data-menu-xmlid="app.xmlid"
-                        t-att-href="editMode ? undefined : app.href"
-                        t-on-click.prevent="() => this._onAppClick(app)">
-                        <div class="position-relative">
-                            <img t-if="app.webIconData" class="o_app_icon rounded-3" t-attf-src="{{app.webIconData}}"/>
-                            <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
-                                t-attf-style="background-color: {{app.webIcon.backgroundColor}};">
-                                <i t-attf-class="{{app.webIcon.iconClass}} position-relative w-auto h-auto" t-attf-style="color: {{app.webIcon.color}};"/>
+            <div t-if="displayedApps.length" t-ref="grid" role="listbox"
+                 class="t4_hm_grid user-select-none mt-3" t-att-style="gridStyle">
+                <t t-foreach="gridCells" t-as="cell" t-key="cell.row + '_' + cell.col">
+                    <!-- App cell -->
+                    <div t-if="cell.app" class="t4_hm_cell t4_hm_cell_occupied"
+                         t-att-class="{
+                            't4_hm_cell_dragging': state.draggingApp === cell.app.xmlid,
+                            't4_hm_cell_highlight': editMode and state.highlightRow === cell.row and state.highlightCol === cell.col
+                         }"
+                         t-att-data-row="cell.row" t-att-data-col="cell.col"
+                         t-att-style="cellStyle(cell)"
+                         t-on-mousedown="(ev) => this.onAppGridDrag(ev, cell.app)"
+                         t-on-touchstart="(ev) => this.onAppGridDrag(ev, cell.app)">
+                        <a t-att-id="'result_app_' + cell.appIndex" role="option"
+                            t-att-aria-selected="state.focusedIndex === cell.appIndex ? 'true' : 'false'"
+                            class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
+                            t-att-class="{o_focused: state.focusedIndex === cell.appIndex, 't4_hm_app_editable': editMode}"
+                            t-att-data-menu-xmlid="cell.app.xmlid"
+                            t-att-href="editMode ? undefined : cell.app.href"
+                            t-on-click.prevent="() => this._onAppClick(cell.app)">
+                            <div class="position-relative">
+                                <img t-if="cell.app.webIconData" class="o_app_icon rounded-3" t-attf-src="{{cell.app.webIconData}}" draggable="false"/>
+                                <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
+                                    t-attf-style="background-color: {{cell.app.webIcon.backgroundColor}};">
+                                    <i t-attf-class="{{cell.app.webIcon.iconClass}} position-relative w-auto h-auto" t-attf-style="color: {{cell.app.webIcon.color}};"/>
+                                </div>
+                                <button t-if="editMode" class="t4_edit_icon btn btn-sm btn-primary position-absolute"
+                                        title="Edit Icon" t-on-click="(ev) => this.onEditIconClick(ev, cell.app)">
+                                    <i class="fa fa-pencil"/>
+                                </button>
                             </div>
-                            <button t-if="editMode" class="t4_edit_icon btn btn-sm btn-primary position-absolute"
-                                    title="Edit Icon" t-on-click="(ev) => this.onEditIconClick(ev, app)">
-                                <i class="fa fa-pencil"/>
-                            </button>
+                            <div class="o_caption w-100 text-center text-truncate mt-2" t-esc="cell.app.label or cell.app.name"/>
+                        </a>
+                    </div>
+                    <!-- Empty cell (edit mode only) -->
+                    <div t-elif="editMode" class="t4_hm_cell t4_hm_cell_empty"
+                         t-att-class="{'t4_hm_cell_highlight': state.highlightRow === cell.row and state.highlightCol === cell.col}"
+                         t-att-data-row="cell.row" t-att-data-col="cell.col"
+                         t-att-style="cellStyle(cell)">
+                        <div class="t4_hm_cell_placeholder">
+                            <i class="fa fa-plus"/>
                         </div>
-                        <div class="o_caption w-100 text-center text-truncate mt-2" t-esc="app.label or app.name"/>
-                    </a>
-                </div>
+                    </div>
+                </t>
             </div>
             <div t-elif="!displayedApps.length" id="result_menu_0" role="option" aria-selected="true" class="o_no_result">
                 No result

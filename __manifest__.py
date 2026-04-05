@@ -1,11 +1,11 @@
 {
     'name': 'Branding',
-    'summary': 'Odoo Community Backend Theme',
+    'summary': 'Giao diện Backend cho Odoo Community',
     'description': '''
-        This module offers a mobile compatible design for Odoo Community.
-        Includes: AppsBar sidebar, Chatter enhancements, Per-company colors,
-        Preset themes, Dark mode, Dialog fullscreen, Group expand/collapse,
-        View refresh, Custom branding.
+        Module cung cấp giao diện tương thích di động cho Odoo Community.
+        Bao gồm: Thanh ứng dụng bên, Cải tiến Chatter, Màu theo công ty,
+        Giao diện có sẵn, Dark mode, Dialog toàn màn hình, Thu gọn/Mở rộng nhóm,
+        Làm mới view, Tùy chỉnh thương hiệu.
     ''',
     'version': '19.0.1.0.0',
     'category': 'Themes/Backend',

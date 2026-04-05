@@ -3,39 +3,39 @@ from odoo import fields, models
 
 class T4ThemeDemo(models.Model):
     _name = 't4.theme.demo'
-    _description = 'Theme Demo Record'
+    _description = 'Bản ghi demo giao diện'
     _order = 'sequence, id'
 
-    name = fields.Char(string='Name', required=True)
-    description = fields.Text(string='Description')
+    name = fields.Char(string='Tên', required=True)
+    description = fields.Text(string='Mô tả')
     stage = fields.Selection([
-        ('draft', 'Draft'),
-        ('progress', 'In Progress'),
-        ('review', 'Review'),
-        ('done', 'Done'),
-        ('cancel', 'Cancelled'),
-    ], string='Stage', default='draft')
+        ('draft', 'Nháp'),
+        ('progress', 'Đang thực hiện'),
+        ('review', 'Đang duyệt'),
+        ('done', 'Hoàn thành'),
+        ('cancel', 'Đã hủy'),
+    ], string='Giai đoạn', default='draft')
     priority = fields.Selection([
-        ('0', 'Normal'),
-        ('1', 'Important'),
-        ('2', 'Urgent'),
-    ], string='Priority', default='0')
-    color = fields.Integer(string='Color')
-    partner_id = fields.Many2one('res.partner', string='Contact')
-    user_id = fields.Many2one('res.users', string='Assigned To')
-    date_start = fields.Date(string='Start Date')
-    date_end = fields.Date(string='End Date')
-    amount = fields.Float(string='Amount')
-    progress = fields.Integer(string='Progress', default=0)
-    active = fields.Boolean(string='Active', default=True)
-    sequence = fields.Integer(string='Sequence', default=10)
-    tag_ids = fields.Many2many('t4.theme.demo.tag', string='Tags')
-    note = fields.Html(string='Notes')
+        ('0', 'Bình thường'),
+        ('1', 'Quan trọng'),
+        ('2', 'Khẩn cấp'),
+    ], string='Ưu tiên', default='0')
+    color = fields.Integer(string='Màu')
+    partner_id = fields.Many2one('res.partner', string='Liên hệ')
+    user_id = fields.Many2one('res.users', string='Giao cho')
+    date_start = fields.Date(string='Ngày bắt đầu')
+    date_end = fields.Date(string='Ngày kết thúc')
+    amount = fields.Float(string='Số tiền')
+    progress = fields.Integer(string='Tiến độ', default=0)
+    active = fields.Boolean(string='Hoạt động', default=True)
+    sequence = fields.Integer(string='Thứ tự', default=10)
+    tag_ids = fields.Many2many('t4.theme.demo.tag', string='Nhãn')
+    note = fields.Html(string='Ghi chú')
 
 
 class T4ThemeDemoTag(models.Model):
     _name = 't4.theme.demo.tag'
-    _description = 'Theme Demo Tag'
+    _description = 'Nhãn demo giao diện'
 
-    name = fields.Char(string='Name', required=True)
-    color = fields.Integer(string='Color')
+    name = fields.Char(string='Tên', required=True)
+    color = fields.Integer(string='Màu')

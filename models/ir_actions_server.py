@@ -11,7 +11,7 @@ class IrActionsServer(models.Model):
 
     state = fields.Selection(
         selection_add=[
-            ('refresh', 'Reload Views'),
+            ('refresh', 'Tải lại View'),
         ],
         ondelete={'refresh': 'cascade'},
     )
@@ -19,8 +19,8 @@ class IrActionsServer(models.Model):
     refresh_view_types = fields.Char(
         string='View Types',
         help=(
-            'Comma-separated list of view types to reload (e.g. list, kanban). '
-            'Leave empty to reload all view types.'
+            'Danh sách loại view cách nhau bằng dấu phẩy (vd: list, kanban). '
+            'Để trống để tải lại tất cả.'
         ),
     )
 
@@ -30,7 +30,7 @@ class IrActionsServer(models.Model):
 
     def _generate_action_name(self):
         if self.state == 'refresh':
-            return _('Reload Views')
+            return _('Tải lại View')
         return super()._generate_action_name()
 
     def _run_action_refresh_multi(self, eval_context=None):

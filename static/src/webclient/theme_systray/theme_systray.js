@@ -13,23 +13,23 @@ import {
 } from "@t4_theme/services/theme_color_service";
 
 const SIDEBAR_OPTIONS = [
-    { key: "large", label: _t("Visible"), icon: "fa-bars" },
-    { key: "invisible", label: _t("Hidden"), icon: "fa-times" },
+    { key: "large", label: _t("Hiện"), icon: "fa-bars" },
+    { key: "invisible", label: _t("Ẩn"), icon: "fa-times" },
 ];
 
 const CHATTER_OPTIONS = [
-    { key: "side", label: _t("Side") },
-    { key: "bottom", label: _t("Bottom") },
+    { key: "side", label: _t("Bên cạnh") },
+    { key: "bottom", label: _t("Phía dưới") },
 ];
 
 const DIALOG_OPTIONS = [
-    { key: "minimize", label: _t("Normal") },
-    { key: "maximize", label: _t("Fullscreen") },
+    { key: "minimize", label: _t("Thu nhỏ") },
+    { key: "maximize", label: _t("Toàn màn hình") },
 ];
 
 const FONT_OPTIONS = [
     // Sans-serif
-    { key: "system", label: "System Default", category: "system" },
+    { key: "system", label: "Mặc định hệ thống", category: "system" },
     { key: "inter", label: "Inter", category: "sans" },
     { key: "roboto", label: "Roboto", category: "sans" },
     { key: "open_sans", label: "Open Sans", category: "sans" },
@@ -186,7 +186,7 @@ export class ThemeSystray extends Component {
 
     get selectedFontLabel() {
         const opt = FONT_OPTIONS.find(f => f.key === this.state.fontFamily);
-        return opt ? opt.label : "System Default";
+        return opt ? opt.label : "Mặc định hệ thống";
     }
 
     get selectedFontStyle() {
@@ -604,7 +604,7 @@ export class ThemeSystray extends Component {
             }
         } catch (e) {
             console.error('Import failed:', e);
-            alert('Invalid JSON file');
+            alert('Tệp JSON không hợp lệ');
         } finally {
             this.state.importing = false;
         }

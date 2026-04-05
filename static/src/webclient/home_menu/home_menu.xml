@@ -11,25 +11,25 @@
         <!-- Edit toolbar (edit mode, draggable) -->
         <div t-if="editMode" class="t4_hm_toolbar" t-ref="toolbar"
             t-on-mousedown="onToolbarDrag" t-on-touchstart="onToolbarDrag">
-            <span class="t4_hm_toolbar_grip" title="Drag toolbar"><i class="fa fa-ellipsis-v"/></span>
+            <span class="t4_hm_toolbar_grip" title="Kéo thanh công cụ"><i class="fa fa-ellipsis-v"/></span>
             <button class="btn btn-sm" t-att-class="logoState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
-                t-on-click.stop="() => this.toggleWidget('logo')" title="Toggle Logo">
+                t-on-click.stop="() => this.toggleWidget('logo')" title="Bật/tắt Logo">
                 <i class="fa fa-image me-1"/>Logo
             </button>
             <button class="btn btn-sm" t-att-class="timeState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
-                t-on-click.stop="() => this.toggleWidget('time')" title="Toggle Time">
-                <i class="fa fa-clock-o me-1"/>Time
+                t-on-click.stop="() => this.toggleWidget('time')" title="Bật/tắt Giờ">
+                <i class="fa fa-clock-o me-1"/>Giờ
             </button>
             <button class="btn btn-sm" t-att-class="dateState.visible ? 'btn-light' : 'btn-outline-light opacity-50'"
-                t-on-click.stop="() => this.toggleWidget('date')" title="Toggle Date">
-                <i class="fa fa-calendar me-1"/>Date
+                t-on-click.stop="() => this.toggleWidget('date')" title="Bật/tắt Ngày">
+                <i class="fa fa-calendar me-1"/>Ngày
             </button>
             <span class="t4_hm_toolbar_sep"/>
-            <button class="btn btn-sm btn-outline-light" t-on-click.stop="compactApps" title="Auto Compact">
-                <i class="fa fa-th me-1"/>Compact
+            <button class="btn btn-sm btn-outline-light" t-on-click.stop="compactApps" title="Tự động thu gọn">
+                <i class="fa fa-th me-1"/>Thu gọn
             </button>
-            <button class="btn btn-sm btn-outline-warning" t-on-click.stop="resetHomeMenu" title="Reset to Default">
-                <i class="fa fa-undo me-1"/>Reset
+            <button class="btn btn-sm btn-outline-warning" t-on-click.stop="resetHomeMenu" title="Đặt lại mặc định">
+                <i class="fa fa-undo me-1"/>Đặt lại
             </button>
         </div>
 
@@ -109,7 +109,7 @@
                                     <i t-attf-class="{{cell.app.webIcon.iconClass}} position-relative w-auto h-auto" t-attf-style="color: {{cell.app.webIcon.color}};"/>
                                 </div>
                                 <button t-if="editMode" class="t4_edit_icon btn btn-sm btn-primary position-absolute"
-                                        title="Edit Icon" t-on-click="(ev) => this.onEditIconClick(ev, cell.app)">
+                                        title="Sửa biểu tượng" t-on-click="(ev) => this.onEditIconClick(ev, cell.app)">
                                     <i class="fa fa-pencil"/>
                                 </button>
                             </div>
@@ -128,7 +128,7 @@
                 </t>
             </div>
             <div t-elif="!displayedApps.length" id="result_menu_0" role="option" aria-selected="true" class="o_no_result">
-                No result
+                Không có kết quả
             </div>
         </div>
     </div>
@@ -136,7 +136,7 @@
 
 <t t-name="t4_theme.HomeMenu.CommandPalette.Footer">
     <span>
-        <span class='fw-bolder text-primary'>TIP</span> — open me anywhere with <span t-esc="controlKey" class='fw-bolder text-primary'/> + <span class='fw-bolder text-primary'>K</span>
+        <span class='fw-bolder text-primary'>MẸO</span> — mở từ bất kỳ đâu bằng <span t-esc="controlKey" class='fw-bolder text-primary'/> + <span class='fw-bolder text-primary'>K</span>
     </span>
 </t>
 

@@ -107,14 +107,14 @@ class ResCompany(models.Model):
 
     theme_preset = fields.Selection(
         selection=[
-            ('default', 'Default'),
+            ('default', 'Mặc định'),
             ('hqg', 'HQG Blue'),
             ('ocean', 'Ocean'),
             ('forest', 'Forest'),
             ('sunset', 'Sunset'),
-            ('slate', 'Slate Professional'),
+            ('slate', 'Slate chuyên nghiệp'),
         ],
-        string='Theme Preset',
+        string='Giao diện có sẵn',
         default='default',
     )
 
@@ -123,32 +123,32 @@ class ResCompany(models.Model):
     #----------------------------------------------------------
 
     appbar_image = fields.Binary(
-        string='Apps Menu Footer Image',
+        string='Ảnh chân trang menu ứng dụng',
         attachment=True
     )
 
     favicon = fields.Binary(
-        string="Company Favicon",
+        string='Favicon',
         attachment=True
     )
 
     t4_web_title = fields.Char(
-        string='Web Title',
+        string='Tiêu đề trình duyệt',
         default='T4 ERP',
-        help='Custom browser tab title per company.',
+        help='Tiêu đề tab trình duyệt tùy chỉnh theo công ty.',
     )
 
     t4_brand_name = fields.Char(
-        string='Brand Name',
+        string='Tên thương hiệu',
         default='T4 ERP',
-        help='Replace "Odoo" with your brand name across the system.',
+        help='Thay thế "Odoo" bằng tên thương hiệu trên toàn hệ thống.',
     )
 
     t4_url_prefix = fields.Char(
         string='URL Prefix',
         default='',
-        help='Custom URL prefix to replace /odoo/ in the address bar. '
-             'Leave empty to keep /odoo/. Example: "app" → /app/settings',
+        help='Tiền tố URL tùy chỉnh để thay /odoo/ trong thanh địa chỉ. '
+             'Để trống giữ /odoo/. Ví dụ: "app" → /app/settings',
     )
 
     #----------------------------------------------------------
@@ -162,7 +162,7 @@ class ResCompany(models.Model):
                 value = company[fname]
                 if value and not _RE_HEX_COLOR.match(value):
                     raise ValidationError(
-                        _('Invalid color format for %s: "%s". Use hex format like #FF0000.')
+                        _('Định dạng màu không hợp lệ cho %s: "%s". Sử dụng mã hex như #FF0000.')
                         % (fname, value)
                     )
 
@@ -172,7 +172,7 @@ class ResCompany(models.Model):
             prefix = company.t4_url_prefix or ''
             if prefix and not _RE_URL_PREFIX.match(prefix):
                 raise ValidationError(
-                    _('URL Prefix may only contain letters, numbers, hyphens and underscores.')
+                    _('Tiền tố URL chỉ được chứa chữ cái, số, dấu gạch ngang và dấu gạch dưới.')
                 )
 
     #----------------------------------------------------------
@@ -202,7 +202,7 @@ class ResCompany(models.Model):
         return res
 
     background_image = fields.Binary(
-        string='Apps Menu Background Image',
+        string='Ảnh nền menu ứng dụng',
         attachment=True
     )
 
@@ -211,12 +211,12 @@ class ResCompany(models.Model):
     #----------------------------------------------------------
 
     theme_color_brand = fields.Char(
-        string='Brand Color',
+        string='Màu thương hiệu',
         default='#243742',
     )
 
     theme_color_primary = fields.Char(
-        string='Primary Color',
+        string='Màu chính',
         default='#5D8DA8',
     )
 
@@ -225,22 +225,22 @@ class ResCompany(models.Model):
     #----------------------------------------------------------
 
     theme_color_success = fields.Char(
-        string='Success Color',
+        string='Màu Success',
         default='#28A745',
     )
 
     theme_color_info = fields.Char(
-        string='Info Color',
+        string='Màu Info',
         default='#17A2B8',
     )
 
     theme_color_warning = fields.Char(
-        string='Warning Color',
+        string='Màu Warning',
         default='#FFAC00',
     )
 
     theme_color_danger = fields.Char(
-        string='Danger Color',
+        string='Màu Danger',
         default='#DC3545',
     )
 
@@ -250,7 +250,7 @@ class ResCompany(models.Model):
 
     theme_font_family = fields.Selection(
         selection=[
-            ('system', 'System Default'),
+            ('system', 'Mặc định hệ thống'),
             # Sans-serif
             ('inter', 'Inter'),
             ('roboto', 'Roboto'),
@@ -302,7 +302,7 @@ class ResCompany(models.Model):
     theme_home_menu_overlay = fields.Boolean(
         string='Home Menu Overlay',
         default=True,
-        help='Enable the full-screen home menu overlay (ESC key).',
+        help='Bật/tắt màn hình Home Menu toàn trang (phím ESC).',
     )
 
     #----------------------------------------------------------
@@ -310,22 +310,22 @@ class ResCompany(models.Model):
     #----------------------------------------------------------
 
     theme_color_appsmenu_text = fields.Char(
-        string='Apps Menu Text Color',
+        string='Màu chữ menu ứng dụng',
         default='#F8F9FA',
     )
 
     theme_color_appbar_text = fields.Char(
-        string='AppsBar Text Color',
+        string='Màu chữ thanh bên',
         default='#DEE2E6',
     )
 
     theme_color_appbar_active = fields.Char(
-        string='AppsBar Active Color',
+        string='Màu đang chọn thanh bên',
         default='#5D8DA8',
     )
 
     theme_color_appbar_background = fields.Char(
-        string='AppsBar Background Color',
+        string='Màu nền thanh bên',
         default='#111827',
     )
 
@@ -345,5 +345,5 @@ class ResCompany(models.Model):
     theme_view_overrides = fields.Json(
         string='View Theme Overrides',
         default=dict,
-        help='JSON map of CSS custom property overrides from theme editor.',
+        help='Bản đồ JSON các tùy chỉnh CSS từ trình chỉnh sửa giao diện.',
     )

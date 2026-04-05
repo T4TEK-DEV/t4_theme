@@ -3,29 +3,29 @@ from odoo import api, fields, models
 
 class ThemePreset(models.Model):
     _name = 't4_theme.preset'
-    _description = 'Theme Preset'
+    _description = 'Giao diện có sẵn'
     _order = 'sequence, name'
 
-    name = fields.Char(string='Name', required=True)
-    sequence = fields.Integer(string='Sequence', default=10)
-    is_default = fields.Boolean(string='Built-in', default=False, readonly=True)
+    name = fields.Char(string='Tên', required=True)
+    sequence = fields.Integer(string='Thứ tự', default=10)
+    is_default = fields.Boolean(string='Có sẵn', default=False, readonly=True)
     company_id = fields.Many2one(
         'res.company',
-        string='Company',
-        help='If set, preset is only visible to this company. Empty = shared.',
+        string='Công ty',
+        help='Nếu chọn, giao diện chỉ hiện cho công ty này. Để trống = dùng chung.',
     )
 
     # Colors (10 fields)
-    color_brand = fields.Char(string='Brand Color', default='#243742')
-    color_primary = fields.Char(string='Primary Color', default='#5D8DA8')
-    color_success = fields.Char(string='Success Color', default='#28A745')
-    color_info = fields.Char(string='Info Color', default='#17A2B8')
-    color_warning = fields.Char(string='Warning Color', default='#FFAC00')
-    color_danger = fields.Char(string='Danger Color', default='#DC3545')
-    color_appsmenu_text = fields.Char(string='Apps Menu Text', default='#F8F9FA')
-    color_appbar_text = fields.Char(string='Sidebar Text', default='#DEE2E6')
-    color_appbar_active = fields.Char(string='Sidebar Active', default='#5D8DA8')
-    color_appbar_background = fields.Char(string='Sidebar Background', default='#111827')
+    color_brand = fields.Char(string='Màu thương hiệu', default='#243742')
+    color_primary = fields.Char(string='Màu chính', default='#5D8DA8')
+    color_success = fields.Char(string='Màu Success', default='#28A745')
+    color_info = fields.Char(string='Màu Info', default='#17A2B8')
+    color_warning = fields.Char(string='Màu Warning', default='#FFAC00')
+    color_danger = fields.Char(string='Màu Danger', default='#DC3545')
+    color_appsmenu_text = fields.Char(string='Chữ menu ứng dụng', default='#F8F9FA')
+    color_appbar_text = fields.Char(string='Chữ thanh bên', default='#DEE2E6')
+    color_appbar_active = fields.Char(string='Thanh bên đang chọn', default='#5D8DA8')
+    color_appbar_background = fields.Char(string='Nền thanh bên', default='#111827')
 
     # Typography
     font_family = fields.Char(string='Font Family', default='system')
@@ -34,12 +34,12 @@ class ThemePreset(models.Model):
     view_overrides = fields.Json(
         string='View Overrides',
         default=dict,
-        help='CSS overrides grouped by view category.',
+        help='Tùy chỉnh CSS theo từng loại view.',
     )
 
     # Computed preview color for thumbnail
     preview_color = fields.Char(
-        string='Preview Color',
+        string='Màu xem trước',
         compute='_compute_preview_color',
         store=True,
     )

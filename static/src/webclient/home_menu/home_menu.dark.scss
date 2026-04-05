@@ -22,4 +22,7 @@
         border-color: rgba(255,255,255,0.1);
     }
     .t4_hm_toolbar { background: rgba(0,0,0,0.6); }
+    .t4_hm_cell_empty { border-color: rgba(255,255,255,0.08); }
+    .t4_hm_cell_highlight { background: rgba(255,255,255,0.08) !important; }
+    .t4_hm_cell_placeholder { color: rgba(255,255,255,0.1); }
 }

@@ -5,7 +5,6 @@ import { user } from "@web/core/user";
 import { hasTouch, isIosApp, isMacOS } from "@web/core/browser/feature_detection";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { useBus, useService } from "@web/core/utils/hooks";
-import { useSortable } from "@web/core/utils/sortable_owl";
 import { computeAppsAndMenuItems, reorderApps } from "@web/webclient/menus/menu_helpers";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
@@ -22,7 +21,8 @@ import {
     xml,
 } from "@odoo/owl";
 
-// ── Config Helpers ──
+// ── Constants ──
+const DEFAULT_GRID_COLS = 6;
 
 const WIDGET_DEFAULTS = {
     logo: { x: 50, y: 10, scale: 1, visible: true },
@@ -30,24 +30,50 @@ const WIDGET_DEFAULTS = {
     date: { x: 50, y: 140, scale: 1, visible: true },
 };
 
+// ── Config Helpers ──
+
 function parseConfig(raw) {
-    if (!raw) return { appOrder: null, ...structuredClone(WIDGET_DEFAULTS) };
-    if (Array.isArray(raw)) return { appOrder: raw, ...structuredClone(WIDGET_DEFAULTS) };
-    // Migrate old "clock" key to "time" + "date"
+    if (!raw) {
+        return {
+            appOrder: null, appPositions: null, gridCols: DEFAULT_GRID_COLS,
+            ...structuredClone(WIDGET_DEFAULTS),
+        };
+    }
+    if (Array.isArray(raw)) {
+        return {
+            appOrder: raw, appPositions: null, gridCols: DEFAULT_GRID_COLS,
+            ...structuredClone(WIDGET_DEFAULTS),
+        };
+    }
     const legacy = raw.clock || {};
     return {
         appOrder: raw.appOrder || null,
+        appPositions: raw.appPositions || null,
+        gridCols: raw.gridCols || DEFAULT_GRID_COLS,
         logo: { ...WIDGET_DEFAULTS.logo, ...(raw.logo || {}) },
         time: { ...WIDGET_DEFAULTS.time, ...(raw.time || legacy) },
         date: { ...WIDGET_DEFAULTS.date, ...(raw.date || {}) },
     };
 }
 
-function buildConfig(appOrder, logo, time, date) {
-    return { appOrder, logo, time, date };
+function buildConfig(appOrder, appPositions, gridCols, logo, time, date) {
+    return { appOrder, appPositions, gridCols, logo, time, date };
 }
 
-function extractPos(s) { return { x: s.x, y: s.y, scale: s.scale, visible: s.visible }; }
+function generatePositions(apps, gridCols) {
+    const positions = {};
+    apps.forEach((app, idx) => {
+        positions[app.xmlid] = {
+            row: Math.floor(idx / gridCols),
+            col: idx % gridCols,
+        };
+    });
+    return positions;
+}
+
+function extractPos(s) {
+    return { x: s.x, y: s.y, scale: s.scale, visible: s.visible };
+}
 
 // ── Footer for command palette ──
 class FooterComponent extends Component {
@@ -72,14 +98,30 @@ export class HomeMenu extends Component {
         this.dialog = useService("dialog");
         this.orm = useService("orm");
 
-        this.state = useState({ focusedIndex: null, isIosApp: isIosApp() });
+        this.state = useState({
+            focusedIndex: null,
+            isIosApp: isIosApp(),
+            draggingApp: null,
+            highlightRow: -1,
+            highlightCol: -1,
+        });
         this.inputRef = useRef("input");
         this.rootRef = useRef("root");
         this.toolbarRef = useRef("toolbar");
+        this.gridRef = useRef("grid");
 
         // Parse config
         const raw = JSON.parse(user.settings?.homemenu_config || "null");
         const cfg = parseConfig(raw);
+        this._gridCols = cfg.gridCols || DEFAULT_GRID_COLS;
+
+        // Initialize app positions
+        if (cfg.appPositions && Object.keys(cfg.appPositions).length) {
+            this.appPositions = useState({ ...cfg.appPositions });
+        } else {
+            this.appPositions = useState(generatePositions(this.props.apps, this._gridCols));
+        }
+        this._ensureAllAppsPositioned();
 
         // Widget states
         this.logoState = useState({ ...cfg.logo, dragging: false });
@@ -89,26 +131,19 @@ export class HomeMenu extends Component {
 
         if (!this.env.isSmall) this._registerHotkeys();
 
-        useSortable({
-            enable: () => this.hm.editMode,
-            ref: this.rootRef,
-            elements: ".o_draggable",
-            cursor: "move",
-            delay: 200,
-            tolerance: 10,
-            onWillStartDrag: ({ element, addClass }) => addClass(element.children[0], "o_dragged_app"),
-            onDrop: ({ element, previous }) => this._sortAppDrop(element, previous),
-        });
-
         useBus(this.env.bus, "HOME-MENU:EDIT-TOGGLED", () => this.render());
 
-        onWillUpdateProps(() => { this.state.focusedIndex = null; });
+        onWillUpdateProps(() => {
+            this.state.focusedIndex = null;
+            this._ensureAllAppsPositioned();
+        });
         onMounted(() => {
             this._clockInterval = setInterval(() => this._updateClock(), 1000);
             if (!hasTouch()) this._focusInput();
         });
         onWillUnmount(() => {
             if (this._clockInterval) clearInterval(this._clockInterval);
+            this._cleanupDrag();
         });
         onPatched(() => {
             if (this.state.focusedIndex !== null && !this.env.isSmall) {
@@ -116,6 +151,37 @@ export class HomeMenu extends Component {
                 if (el) el.scrollIntoView({ block: "center" });
             }
         });
+    }
+
+    // ── Ensure all apps have positions ──
+    _ensureAllAppsPositioned() {
+        const occupied = new Set(
+            Object.values(this.appPositions).map((p) => `${p.row},${p.col}`)
+        );
+        for (const app of this.props.apps) {
+            if (!this.appPositions[app.xmlid]) {
+                for (let r = 0; ; r++) {
+                    let placed = false;
+                    for (let c = 0; c < this._gridCols; c++) {
+                        const key = `${r},${c}`;
+                        if (!occupied.has(key)) {
+                            this.appPositions[app.xmlid] = { row: r, col: c };
+                            occupied.add(key);
+                            placed = true;
+                            break;
+                        }
+                    }
+                    if (placed) break;
+                }
+            }
+        }
+        // Remove positions for apps that no longer exist
+        const appXmlids = new Set(this.props.apps.map((a) => a.xmlid));
+        for (const xmlid of Object.keys(this.appPositions)) {
+            if (!appXmlids.has(xmlid)) {
+                delete this.appPositions[xmlid];
+            }
+        }
     }
 
     // ── Edit Mode ──
@@ -157,10 +223,34 @@ export class HomeMenu extends Component {
         Object.assign(this.logoState, defs.logo, { dragging: false });
         Object.assign(this.timeState, defs.time, { dragging: false });
         Object.assign(this.dateState, defs.date, { dragging: false });
+        // Reset app positions to default grid
+        const newPositions = generatePositions(this.props.apps, this._gridCols);
+        for (const key of Object.keys(this.appPositions)) {
+            delete this.appPositions[key];
+        }
+        Object.assign(this.appPositions, newPositions);
+        this._saveConfig();
+        this._syncBackendOrder();
+    }
+
+    // ── Compact Apps ──
+    compactApps() {
+        const ordered = this._getOrderFromPositions();
+        const newPositions = {};
+        ordered.forEach((xmlid, idx) => {
+            newPositions[xmlid] = {
+                row: Math.floor(idx / this._gridCols),
+                col: idx % this._gridCols,
+            };
+        });
+        for (const key of Object.keys(this.appPositions)) {
+            delete this.appPositions[key];
+        }
+        Object.assign(this.appPositions, newPositions);
         this._saveConfig();
     }
 
-    // ── Generic Drag ──
+    // ── Generic Widget Drag ──
     _startDrag(widgetState, ev) {
         if (!this.editMode || widgetState.dragging) return;
         ev.preventDefault();
@@ -189,7 +279,7 @@ export class HomeMenu extends Component {
         document.addEventListener('touchend', onEnd);
     }
 
-    // ── Generic Resize ──
+    // ── Generic Widget Resize ──
     _startResize(widgetState, ev) {
         if (!this.editMode) return;
         ev.preventDefault();
@@ -224,7 +314,6 @@ export class HomeMenu extends Component {
 
     // ── Toolbar Drag ──
     onToolbarDrag(ev) {
-        // Only drag from grip or empty area, not from buttons
         if (ev.target.closest('button')) return;
         ev.preventDefault();
         const el = this.toolbarRef.el;
@@ -252,15 +341,210 @@ export class HomeMenu extends Component {
         document.addEventListener('touchend', onEnd);
     }
 
+    // ── Grid Properties ──
+    get gridCols() { return this._gridCols; }
+
+    get gridRows() {
+        const positions = Object.values(this.appPositions);
+        if (!positions.length) return this.editMode ? 2 : 1;
+        const maxRow = Math.max(0, ...positions.map((p) => p.row));
+        return maxRow + (this.editMode ? 2 : 1);
+    }
+
+    get gridStyle() {
+        return `grid-template-columns: repeat(${this.gridCols}, 1fr);`;
+    }
+
+    get gridCells() {
+        const cols = this.gridCols;
+        const rows = this.gridRows;
+        const appByPos = {};
+
+        for (const app of this.props.apps) {
+            const pos = this.appPositions[app.xmlid];
+            if (pos) {
+                appByPos[`${pos.row},${pos.col}`] = app;
+            }
+        }
+
+        // Build display-order index map
+        const sortedApps = this.displayedApps;
+        const appIndexMap = {};
+        sortedApps.forEach((app, idx) => { appIndexMap[app.xmlid] = idx; });
+
+        const cells = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const app = appByPos[`${r},${c}`] || null;
+                if (app || this.editMode) {
+                    cells.push({
+                        row: r,
+                        col: c,
+                        app,
+                        appIndex: app ? (appIndexMap[app.xmlid] ?? -1) : -1,
+                    });
+                }
+            }
+        }
+        return cells;
+    }
+
+    cellStyle(cell) {
+        return `grid-row: ${cell.row + 1}; grid-column: ${cell.col + 1};`;
+    }
+
+    // ── App Grid Drag & Drop ──
+    onAppGridDrag(ev, app) {
+        if (!this.editMode) return;
+        if (ev.target.closest('.t4_edit_icon')) return;
+
+        // Prevent native browser drag on <a>/<img> — critical for custom drag to work
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const isTouch = !!ev.touches;
+        const start = isTouch ? ev.touches[0] : ev;
+        const sx = start.clientX, sy = start.clientY;
+        let moved = false;
+        let ghost = null;
+
+        // Use ev.target.closest() — more reliable than ev.currentTarget in OWL delegation
+        const cellEl = ev.target.closest('.t4_hm_cell');
+        if (!cellEl) return;
+
+        const onMove = (e) => {
+            const pt = e.touches ? e.touches[0] : e;
+            const dx = pt.clientX - sx, dy = pt.clientY - sy;
+
+            if (!moved) {
+                if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+                moved = true;
+                this.state.draggingApp = app.xmlid;
+
+                // Create ghost element
+                ghost = cellEl.cloneNode(true);
+                ghost.classList.add('t4_hm_drag_ghost');
+                ghost.style.cssText = `
+                    position: fixed;
+                    width: ${cellEl.offsetWidth}px;
+                    height: ${cellEl.offsetHeight}px;
+                    pointer-events: none;
+                    z-index: 9999;
+                    opacity: 0.85;
+                    transform: rotate(3deg) scale(1.05);
+                    transition: none;
+                `;
+                document.body.appendChild(ghost);
+            }
+
+            if (isTouch) e.preventDefault();
+
+            if (ghost) {
+                ghost.style.left = (pt.clientX - cellEl.offsetWidth / 2) + 'px';
+                ghost.style.top = (pt.clientY - cellEl.offsetHeight / 2) + 'px';
+            }
+
+            // Find target cell under cursor
+            if (ghost) ghost.style.display = 'none';
+            const el = document.elementFromPoint(pt.clientX, pt.clientY);
+            if (ghost) ghost.style.display = '';
+
+            const targetCell = el?.closest('.t4_hm_cell');
+            if (targetCell) {
+                this.state.highlightRow = parseInt(targetCell.dataset.row);
+                this.state.highlightCol = parseInt(targetCell.dataset.col);
+            } else {
+                this.state.highlightRow = -1;
+                this.state.highlightCol = -1;
+            }
+        };
+
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+
+            if (ghost) {
+                ghost.remove();
+                ghost = null;
+            }
+
+            if (moved && this.state.highlightRow >= 0 && this.state.highlightCol >= 0) {
+                this._moveAppToCell(app.xmlid, this.state.highlightRow, this.state.highlightCol);
+            }
+
+            this.state.draggingApp = null;
+            this.state.highlightRow = -1;
+            this.state.highlightCol = -1;
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+    }
+
+    _moveAppToCell(xmlid, targetRow, targetCol) {
+        const currentPos = this.appPositions[xmlid];
+        if (currentPos && currentPos.row === targetRow && currentPos.col === targetCol) return;
+
+        // Check if target cell is occupied
+        const occupantEntry = Object.entries(this.appPositions).find(
+            ([id, pos]) => pos.row === targetRow && pos.col === targetCol && id !== xmlid
+        );
+
+        if (occupantEntry) {
+            // Swap positions
+            const [occupantId] = occupantEntry;
+            this.appPositions[occupantId] = { row: currentPos.row, col: currentPos.col };
+        }
+
+        this.appPositions[xmlid] = { row: targetRow, col: targetCol };
+        this._saveConfig();
+        this._syncBackendOrder();
+    }
+
+    _cleanupDrag() {
+        const ghost = document.querySelector('.t4_hm_drag_ghost');
+        if (ghost) ghost.remove();
+    }
+
     // ── Save ──
     _saveConfig() {
-        const order = this.props.apps.map((a) => a.xmlid);
-        const cfg = buildConfig(order, extractPos(this.logoState), extractPos(this.timeState), extractPos(this.dateState));
+        const order = this._getOrderFromPositions();
+        const positions = {};
+        for (const [xmlid, pos] of Object.entries(this.appPositions)) {
+            positions[xmlid] = { row: pos.row, col: pos.col };
+        }
+        const cfg = buildConfig(
+            order, positions, this._gridCols,
+            extractPos(this.logoState), extractPos(this.timeState), extractPos(this.dateState)
+        );
         try { user.setUserSettings("homemenu_config", JSON.stringify(cfg)); } catch {}
     }
 
+    _getOrderFromPositions() {
+        return Object.entries(this.appPositions)
+            .sort(([, a], [, b]) => a.row !== b.row ? a.row - b.row : a.col - b.col)
+            .map(([xmlid]) => xmlid);
+    }
+
+    _syncBackendOrder() {
+        const order = this._getOrderFromPositions();
+        this.props.reorderApps(order);
+        this.orm.call("ir.ui.menu", "reorder_apps_sequence", [order]).catch(() => {});
+    }
+
     // ── Apps ──
-    get displayedApps() { return this.props.apps; }
+    get displayedApps() {
+        return [...this.props.apps].sort((a, b) => {
+            const pa = this.appPositions[a.xmlid] || { row: 999, col: 999 };
+            const pb = this.appPositions[b.xmlid] || { row: 999, col: 999 };
+            return pa.row !== pb.row ? pa.row - pb.row : pa.col - pb.col;
+        });
+    }
+
     get maxIconNumber() {
         const w = window.innerWidth;
         return w < 576 ? 3 : w < 768 ? 4 : 6;
@@ -279,37 +563,51 @@ export class HomeMenu extends Component {
     }
 
     _updateFocusedIndex(cmd) {
-        const nbrApps = this.displayedApps.length;
-        const lastIndex = nbrApps - 1;
+        const apps = this.displayedApps;
+        const lastIndex = apps.length - 1;
         if (lastIndex < 0) return;
         if (this.state.focusedIndex === null) { this.state.focusedIndex = 0; return; }
+
         const fi = this.state.focusedIndex;
-        const cols = this.maxIconNumber;
-        const lines = Math.ceil(nbrApps / cols);
-        const curLine = Math.ceil((fi + 1) / cols);
-        let ni;
-        switch (cmd) {
-            case "previousElem": ni = fi - 1; break;
-            case "nextElem": ni = fi + 1; break;
-            case "previousColumn": ni = fi % cols ? fi - 1 : fi + Math.min(lastIndex - fi, cols - 1); break;
-            case "nextColumn": ni = (fi === lastIndex || (fi + 1) % cols === 0) ? (curLine - 1) * cols : fi + 1; break;
-            case "previousLine": ni = curLine === 1 ? Math.min(fi + (lines - 1) * cols, lastIndex) : fi - cols; break;
-            case "nextLine": ni = curLine === lines ? fi % cols : fi + Math.min(cols, lastIndex - fi); break;
+
+        if (cmd === "nextElem") {
+            this.state.focusedIndex = fi >= lastIndex ? 0 : fi + 1;
+            return;
         }
-        this.state.focusedIndex = ni < 0 ? lastIndex : ni > lastIndex ? 0 : ni;
-    }
+        if (cmd === "previousElem") {
+            this.state.focusedIndex = fi <= 0 ? lastIndex : fi - 1;
+            return;
+        }
 
-    _sortAppDrop(element, previous) {
-        const order = this.props.apps.map((a) => a.xmlid);
-        const id = element.children[0].dataset.menuXmlid;
-        order.splice(order.indexOf(id), 1);
-        const prevIdx = previous ? order.indexOf(previous.children[0].dataset.menuXmlid) : -1;
-        order.splice(prevIdx + 1, 0, id);
-        this.props.reorderApps(order);
+        // Grid-based navigation
+        const currentApp = apps[fi];
+        if (!currentApp) return;
+        const currentPos = this.appPositions[currentApp.xmlid];
+        if (!currentPos) return;
 
-        const cfg = buildConfig(order, extractPos(this.logoState), extractPos(this.timeState), extractPos(this.dateState));
-        try { user.setUserSettings("homemenu_config", JSON.stringify(cfg)); } catch {}
-        this.orm.call("ir.ui.menu", "reorder_apps_sequence", [order]).catch(() => {});
+        let targetRow = currentPos.row;
+        let targetCol = currentPos.col;
+
+        switch (cmd) {
+            case "nextColumn": targetCol++; break;
+            case "previousColumn": targetCol--; break;
+            case "nextLine": targetRow++; break;
+            case "previousLine": targetRow--; break;
+        }
+
+        // Find closest app to target position
+        let bestIdx = fi;
+        let bestDist = Infinity;
+        apps.forEach((app, idx) => {
+            const pos = this.appPositions[app.xmlid];
+            if (!pos) return;
+            const dist = Math.abs(pos.row - targetRow) * 1000 + Math.abs(pos.col - targetCol);
+            if (dist < bestDist && dist > 0) {
+                bestDist = dist;
+                bestIdx = idx;
+            }
+        });
+        this.state.focusedIndex = bestIdx;
     }
 
     _registerHotkeys() {

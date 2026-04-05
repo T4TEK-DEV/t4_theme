@@ -449,6 +449,7 @@ export class ThemeSystray extends Component {
             theme_color_appbar_background: "#2C2C33",
             t4_brand_name: "",
             t4_web_title: "",
+            theme_view_overrides: {},
         }]);
         await this.orm.write("res.users", [user.userId], {
             sidebar_type: "large",

@@ -3,3 +3,4 @@ access_t4_theme_demo_user,t4.theme.demo.user,model_t4_theme_demo,base.group_user
 access_t4_theme_demo_tag_user,t4.theme.demo.tag.user,model_t4_theme_demo_tag,base.group_user,1,1,1,1
 access_t4_theme_preset_user,t4.theme.preset.user,model_t4_theme_preset,base.group_user,1,0,0,0
 access_t4_theme_preset_admin,t4.theme.preset.admin,model_t4_theme_preset,base.group_system,1,1,1,1
+access_t4_change_password_wizard,t4.change.password.wizard.user,model_t4_change_password_wizard,base.group_user,1,1,1,1

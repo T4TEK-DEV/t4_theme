@@ -31,6 +31,7 @@
         'views/ir_actions_server_views.xml',
         'views/t4_theme_demo_views.xml',
         'views/theme_settings_action.xml',
+        'views/change_password_wizard_views.xml',
         'data/theme_demo_data.xml',
         'data/theme_preset_data.xml',
     ],

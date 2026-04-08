@@ -1,3 +1,4 @@
+from . import change_password_wizard
 from . import ir_actions_server
 from . import ir_ui_menu
 from . import ir_http

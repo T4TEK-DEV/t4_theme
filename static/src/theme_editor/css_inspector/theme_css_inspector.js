@@ -123,6 +123,9 @@ export class ThemeCssInspector extends Component {
 
     _onMouseMove(ev) {
         if (!this.state.inspecting) return;
+        // Lock hover if an element is currently selected in visual mode
+        if (this.state.mode === 'visual' && this.state.selectedElement) return;
+
         const el = ev.target;
         if (el.closest('.t4_css_inspector, .t4_builder_sidebar')) return;
 
@@ -159,11 +162,18 @@ export class ThemeCssInspector extends Component {
         ev.stopPropagation();
 
         if (this.state.mode === 'visual') {
-            this._selectElementVisual(el);
+            if (this.state.selectedElement === el) {
+                this.deselectElement();
+            } else if (this.state.selectedElement) {
+                // Locked, do nothing
+                return;
+            } else {
+                this._selectElementVisual(el);
+            }
         } else {
             this._openAdvancedPanel(el);
+            this.state.hoveredElement = null;
         }
-        this.state.hoveredElement = null;
     }
 
     // ── Visual Mode: Select element → populate sidebar ──

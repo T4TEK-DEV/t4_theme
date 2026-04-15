@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="t4_theme.ExpandToLevel">
+        <DropdownItem
+            class="'t4_expand_to_level_menu'"
+            onSelected.bind="onExpandClicked"
+        >
+            <i class="fa fa-fw fa-angle-double-down me-1"/>
+            <t t-out="displayLabel"/>
+        </DropdownItem>
+    </t>
+
+</templates>

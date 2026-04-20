@@ -42,4 +42,5 @@ export const collapseAllItem = {
     )
 };
 
-cogMenuRegistry.add('collapse-all-menu', collapseAllItem, { sequence: 2 });
+// Cog menu disabled — buttons hiện inline ở ControlPanel (group/search/control_panel/).
+// cogMenuRegistry.add('collapse-all-menu', collapseAllItem, { sequence: 2 });

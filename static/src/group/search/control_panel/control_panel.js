@@ -37,14 +37,15 @@ patch(ListController.prototype, {
     async onT4ToggleExpand() {
         const root = this.model.root;
         if (this.t4ExpandState.isExpanded) {
-            // Collapse all
-            const collapse = (config, level = 0) => {
+            // Collapse all — fold mọi cấp (cả top-level), nếu không top-level
+            // giữ isFolded=false và lần expand kế sau filter sẽ rỗng.
+            const collapse = (config) => {
                 if (!config.groups) return;
                 for (const k in config.groups) {
                     const g = config.groups[k];
-                    g.isFolded = level > 0;
+                    g.isFolded = true;
                     if (g.list && g.list.groups) {
-                        collapse(g.list, level + 1);
+                        collapse(g.list);
                     }
                 }
             };

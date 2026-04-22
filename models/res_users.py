@@ -6,7 +6,6 @@ from odoo import models, fields, _
 from odoo.exceptions import UserError
 from odoo.http import request
 
-
 def _jsonable(o):
     try:
         json.dumps(o)

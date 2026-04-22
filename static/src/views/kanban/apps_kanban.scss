@@ -1,0 +1,13 @@
+// Odoo 19 core applies `user-select-none` on every `.o_kanban_renderer`
+// (see web/static/src/views/kanban/kanban_renderer.xml) to protect
+// drag-and-drop flows. Drag still works because custom drag handlers
+// call `preventDefault()` on mousedown, which cancels text selection
+// before it starts. Re-enabling selection only changes behavior when
+// the user deliberately double-clicks or drags over text.
+
+.o_kanban_renderer,
+.o_kanban_renderer .o_kanban_record {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+}

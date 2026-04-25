@@ -40,16 +40,20 @@ function _getInitialState() {
     const saved = _loadSidebarState();
     if (saved) {
         const mode = (saved.mode === 'small') ? 'large' : (saved.mode || 'large');
+        const visible = mode === 'hidden'
+            ? false
+            : (saved.visible !== undefined ? !!saved.visible : true);
         return {
-            mode: saved.visible === false ? 'hidden' : mode,
+            mode,
+            visible,
             width: saved.width || DEFAULT_WIDTH,
         };
     }
     const body = document.body;
     if (body.classList.contains('mk_sidebar_type_invisible') || body.classList.contains('mk_sidebar_type_hidden')) {
-        return { mode: 'hidden', width: DEFAULT_WIDTH };
+        return { mode: 'hidden', visible: false, width: DEFAULT_WIDTH };
     }
-    return { mode: 'large', width: DEFAULT_WIDTH };
+    return { mode: 'large', visible: true, width: DEFAULT_WIDTH };
 }
 
 patch(WebClient.prototype, {
@@ -66,7 +70,7 @@ patch(WebClient.prototype, {
         const initial = _getInitialState();
         this.sidebarState = useState({
             mode: initial.mode,
-            visible: initial.mode !== 'hidden',
+            visible: initial.visible,
             width: initial.width || DEFAULT_WIDTH,
         });
 

@@ -55,8 +55,37 @@
                     </div>
                 </div>
 
-                <!-- ====== Theme Presets ====== -->
+                <!-- ====== Personal Mode Toggle ====== -->
                 <div class="t4_section">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="t4_section_label">
+                            <i class="fa fa-user me-2"/>Dùng màu cá nhân
+                        </span>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" class="form-check-input"
+                                t-att-checked="state.personalMode"
+                                t-on-change="onTogglePersonalMode"/>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        <t t-if="state.personalMode">
+                            Đang dùng bộ màu/font riêng của bạn. Lưu sẽ ghi vào tài khoản cá nhân.
+                        </t>
+                        <t t-elif="canEditCompanyTheme">
+                            Đang dùng theme công ty. Lưu sẽ ghi cho cả công ty.
+                        </t>
+                        <t t-else="">
+                            Bật để tùy chỉnh màu/font riêng. Khi tắt, hệ thống dùng theme công ty.
+                        </t>
+                    </small>
+                    <button t-if="state.personalMode" class="btn btn-sm btn-outline-secondary w-100 mt-2"
+                        t-on-click="onClearPersonalColors">
+                        <i class="fa fa-undo me-1"/>Bỏ màu cá nhân, dùng màu công ty
+                    </button>
+                </div>
+
+                <!-- ====== Theme Presets ====== -->
+                <div t-if="canEditColors" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-swatchbook me-2"/>Giao diện có sẵn
                     </span>
@@ -111,7 +140,7 @@
                 </div>
 
                 <!-- ====== Typography ====== -->
-                <div class="t4_section">
+                <div t-if="canEditColors" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-font me-2"/>Typography
                     </span>
@@ -203,7 +232,7 @@
                     </div>
 
                     <!-- Home Menu Overlay -->
-                    <div>
+                    <div t-if="canEditCompanyTheme">
                         <div class="d-flex align-items-center justify-content-between">
                             <small class="text-muted">
                                 Home Menu Overlay
@@ -219,7 +248,7 @@
                     </div>
 
                     <!-- Icon Shape -->
-                    <div class="mt-2">
+                    <div t-if="canEditCompanyTheme" class="mt-2">
                         <small class="text-muted d-block mb-1">Hình dạng icon ứng dụng</small>
                         <div class="btn-group w-100 flex-wrap" role="group">
                             <t t-foreach="iconShapeOptions" t-as="opt" t-key="opt.key">
@@ -234,7 +263,7 @@
                 </div>
 
                 <!-- ====== Brand Colors ====== -->
-                <div class="t4_section">
+                <div t-if="canEditColors" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-tint me-2"/>Màu thương hiệu
                     </span>
@@ -251,7 +280,7 @@
                 </div>
 
                 <!-- ====== Context Colors ====== -->
-                <div class="t4_section">
+                <div t-if="canEditColors" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-circle-o me-2"/>Màu ngữ cảnh
                     </span>
@@ -278,7 +307,7 @@
                 </div>
 
                 <!-- ====== Sidebar Colors ====== -->
-                <div class="t4_section">
+                <div t-if="canEditColors" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-bars me-2"/>Màu thanh bên
                     </span>
@@ -305,7 +334,7 @@
                 </div>
 
                 <!-- ====== Branding ====== -->
-                <div class="t4_section">
+                <div t-if="canEditCompanyTheme" class="t4_section">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-building-o me-2"/>Thương hiệu
                     </span>
@@ -407,7 +436,7 @@
                 </div>
 
                 <!-- ====== Reset to Odoo ====== -->
-                <div class="t4_section">
+                <div t-if="canEditCompanyTheme" class="t4_section">
                     <button class="btn btn-sm btn-outline-danger w-100"
                         t-on-click="onResetToOdoo">
                         <i class="fa fa-refresh me-1"/>Đặt lại mặc định Odoo

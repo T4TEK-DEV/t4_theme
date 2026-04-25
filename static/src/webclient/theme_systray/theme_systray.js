@@ -110,28 +110,43 @@ const COLOR_FIELD_MAP = {
 const SIDEBAR_CLASS_PREFIX = "mk_sidebar_type_";
 
 
-function buildInitialState(company, colors) {
+function pickColor(userColors, companyColors, key, fallback) {
+    if (userColors && userColors[key]) {
+        return userColors[key];
+    }
+    if (companyColors && companyColors[key]) {
+        return companyColors[key];
+    }
+    return fallback;
+}
+
+function buildInitialState(company, colors, options = {}) {
+    const personalMode = !!options.personalMode;
+    const userColors = options.userColors || {};
+    const userFont = options.userFontFamily || "";
+    const overlay = personalMode ? userColors : null;
     return {
         currentPreset: company.theme_preset || "default",
-        colorBrand: colors.color_brand || "#243742",
-        colorPrimary: colors.color_primary || "#5D8DA8",
-        colorSuccess: colors.color_success || "#28A745",
-        colorInfo: colors.color_info || "#17A2B8",
-        colorWarning: colors.color_warning || "#FFAC00",
-        colorDanger: colors.color_danger || "#DC3545",
-        colorAppbarBg: colors.color_appbar_background || "#111827",
-        colorAppbarText: colors.color_appbar_text || "#DEE2E6",
-        colorAppbarActive: colors.color_appbar_active || "#5D8DA8",
-        colorAppsmenuText: colors.color_appsmenu_text || "#F8F9FA",
+        colorBrand: pickColor(overlay, colors, "color_brand", "#243742"),
+        colorPrimary: pickColor(overlay, colors, "color_primary", "#5D8DA8"),
+        colorSuccess: pickColor(overlay, colors, "color_success", "#28A745"),
+        colorInfo: pickColor(overlay, colors, "color_info", "#17A2B8"),
+        colorWarning: pickColor(overlay, colors, "color_warning", "#FFAC00"),
+        colorDanger: pickColor(overlay, colors, "color_danger", "#DC3545"),
+        colorAppbarBg: pickColor(overlay, colors, "color_appbar_background", "#111827"),
+        colorAppbarText: pickColor(overlay, colors, "color_appbar_text", "#DEE2E6"),
+        colorAppbarActive: pickColor(overlay, colors, "color_appbar_active", "#5D8DA8"),
+        colorAppsmenuText: pickColor(overlay, colors, "color_appsmenu_text", "#F8F9FA"),
         sidebarType: session.sidebar_type || "large",
         chatterPosition: session.chatter_position || "side",
         dialogSize: session.dialog_size || "minimize",
-        fontFamily: company.theme_font_family || "system",
+        fontFamily: (personalMode && userFont) ? userFont : (company.theme_font_family || "system"),
         iconShape: company.theme_icon_shape || "rounded_rect",
         homeMenuOverlay: company.theme_home_menu_overlay !== false,
         brandName: company.t4_brand_name || "T4 ERP",
         webTitle: company.t4_web_title || "",
         urlPrefix: company.t4_url_prefix || "",
+        personalMode,
     };
 }
 
@@ -152,8 +167,13 @@ export class ThemeSystray extends Component {
 
         const company = user.activeCompany || {};
         const colors = company.theme_colors || {};
+        const initOptions = {
+            personalMode: !!session.user_theme_use_personal,
+            userColors: session.user_theme_colors || {},
+            userFontFamily: session.user_theme_font_family || "",
+        };
 
-        this.original = buildInitialState(company, colors);
+        this.original = buildInitialState(company, colors, initOptions);
 
         this.state = useState({
             open: false,
@@ -163,7 +183,7 @@ export class ThemeSystray extends Component {
             saving: false,
             needsReload: false,
             fontDropdownOpen: false,
-            ...buildInitialState(company, colors),
+            ...buildInitialState(company, colors, initOptions),
             hasLogo: Boolean(company.has_appsbar_image),
             hasBackground: Boolean(company.has_background_image),
             hasFavicon: Boolean(company.has_favicon),
@@ -399,6 +419,19 @@ export class ThemeSystray extends Component {
         this._markDirty(stateKey);
     }
 
+    onTogglePersonalMode() {
+        this.state.personalMode = !this.state.personalMode;
+        this._markDirty("personalMode");
+    }
+
+    get canEditCompanyTheme() {
+        return user.isSystem;
+    }
+
+    get canEditColors() {
+        return this.canEditCompanyTheme || this.state.personalMode;
+    }
+
     onToggleHomeMenuOverlay() {
         this.state.homeMenuOverlay = !this.state.homeMenuOverlay;
         this._markDirty("homeMenuOverlay");
@@ -461,7 +494,27 @@ export class ThemeSystray extends Component {
     // Reset to stock Odoo
     // =========================================================================
 
+    async onClearPersonalColors() {
+        await this.orm.write("res.users", [user.userId], {
+            theme_use_personal_colors: false,
+            theme_color_brand: false,
+            theme_color_primary: false,
+            theme_color_success: false,
+            theme_color_info: false,
+            theme_color_warning: false,
+            theme_color_danger: false,
+            theme_color_appsmenu_text: false,
+            theme_color_appbar_text: false,
+            theme_color_appbar_active: false,
+            theme_color_appbar_background: false,
+            theme_font_family: false,
+        });
+        this.ui.block();
+        browser.location.reload();
+    }
+
     async onResetToOdoo() {
+        if (!this.canEditCompanyTheme) return;
         const companyId = this.state.companyId;
         await this.orm.call("res.company", "write", [[companyId], {
             theme_preset: "default",
@@ -500,35 +553,51 @@ export class ThemeSystray extends Component {
         if (!this.state.dirty) return;
         this.state.saving = true;
         const companyId = this.state.companyId;
+        const personalMode = this.state.personalMode;
+        const isAdmin = this.canEditCompanyTheme;
 
         try {
             const companyVals = {};
-            // Preset is now saved via individual color fields, no need to save preset key
+            const userVals = {};
+
+            const colorRouteToUser = personalMode || !isAdmin;
             for (const [stateKey, fieldName] of Object.entries(COLOR_FIELD_MAP)) {
-                if (this.dirtyFields.has(stateKey)) {
+                if (!this.dirtyFields.has(stateKey)) continue;
+                if (colorRouteToUser) {
+                    userVals[fieldName] = this.state[stateKey];
+                } else {
                     companyVals[fieldName] = this.state[stateKey];
                 }
             }
             if (this.dirtyFields.has("fontFamily")) {
-                companyVals.theme_font_family = this.state.fontFamily;
+                if (colorRouteToUser) {
+                    userVals.theme_font_family = this.state.fontFamily;
+                } else {
+                    companyVals.theme_font_family = this.state.fontFamily;
+                }
             }
-            if (this.dirtyFields.has("iconShape")) {
-                companyVals.theme_icon_shape = this.state.iconShape;
-            }
-            if (this.dirtyFields.has("homeMenuOverlay")) {
-                companyVals.theme_home_menu_overlay = this.state.homeMenuOverlay;
-            }
-            if (this.dirtyFields.has("urlPrefix")) {
-                companyVals.t4_url_prefix = this.state.urlPrefix;
-            }
-            if (this.dirtyFields.has("brandName")) {
-                companyVals.t4_brand_name = this.state.brandName;
-            }
-            if (this.dirtyFields.has("webTitle")) {
-                companyVals.t4_web_title = this.state.webTitle;
+            if (this.dirtyFields.has("personalMode") || (colorRouteToUser && !personalMode)) {
+                userVals.theme_use_personal_colors = personalMode;
             }
 
-            const userVals = {};
+            if (isAdmin) {
+                if (this.dirtyFields.has("iconShape")) {
+                    companyVals.theme_icon_shape = this.state.iconShape;
+                }
+                if (this.dirtyFields.has("homeMenuOverlay")) {
+                    companyVals.theme_home_menu_overlay = this.state.homeMenuOverlay;
+                }
+                if (this.dirtyFields.has("urlPrefix")) {
+                    companyVals.t4_url_prefix = this.state.urlPrefix;
+                }
+                if (this.dirtyFields.has("brandName")) {
+                    companyVals.t4_brand_name = this.state.brandName;
+                }
+                if (this.dirtyFields.has("webTitle")) {
+                    companyVals.t4_web_title = this.state.webTitle;
+                }
+            }
+
             if (this.dirtyFields.has("sidebarType")) {
                 userVals.sidebar_type = this.state.sidebarType;
             }
@@ -573,7 +642,8 @@ export class ThemeSystray extends Component {
                     color_appbar_text: this.state.colorAppbarText,
                     color_appbar_active: this.state.colorAppbarActive,
                     color_appsmenu_text: this.state.colorAppsmenuText,
-                }
+                },
+                { personalMode: this.state.personalMode }
             );
             this.original.sidebarType = this.state.sidebarType;
             this.original.chatterPosition = this.state.chatterPosition;

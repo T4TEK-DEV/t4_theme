@@ -1,5 +1,6 @@
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
+import { session } from "@web/session";
 
 const CSS_VAR_MAP = {
     color_brand: '--t4-color-brand',
@@ -129,13 +130,20 @@ function loadGoogleFont(fontKey) {
 
 function applyThemeFont(company) {
     const root = document.documentElement;
-    const fontKey = company?.theme_font_family || 'system';
+    const fontKey = getEffectiveFontKey(company);
 
     if (fontKey !== 'system') {
         loadGoogleFont(fontKey);
     }
     const fontStack = FONT_FAMILY_MAP[fontKey] || FONT_FAMILY_MAP.system;
     root.style.setProperty('--t4-font-family', fontStack);
+}
+
+function getEffectiveFontKey(company) {
+    if (session.user_theme_use_personal && session.user_theme_font_family) {
+        return session.user_theme_font_family;
+    }
+    return company?.theme_font_family || 'system';
 }
 
 const ICON_SHAPE_CLASS_PREFIX = 't4-icon-shape-';
@@ -182,7 +190,18 @@ function applyViewOverrides(company) {
 
 function getActiveCompanyColors() {
     const activeCompany = user.activeCompany;
-    return activeCompany?.theme_colors || null;
+    const companyColors = activeCompany?.theme_colors || null;
+    if (!session.user_theme_use_personal) {
+        return companyColors;
+    }
+    const userColors = session.user_theme_colors || {};
+    const merged = { ...(companyColors || {}) };
+    for (const [key, value] of Object.entries(userColors)) {
+        if (value) {
+            merged[key] = value;
+        }
+    }
+    return merged;
 }
 
 export const FONT_FAMILY_MAP_EXPORT = FONT_FAMILY_MAP;

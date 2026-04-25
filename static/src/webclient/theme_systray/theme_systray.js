@@ -696,6 +696,10 @@ export class ThemeSystray extends Component {
     get isHomeEditMode() {
         return this.hm ? this.hm.editMode : false;
     }
+
+    get isSuperAdmin() {
+        return user.isSystem;
+    }
 }
 
 registry.category("systray").add(

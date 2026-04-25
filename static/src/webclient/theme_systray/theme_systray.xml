@@ -23,9 +23,9 @@
                 <button class="btn btn-sm btn-close" t-on-click="closePanel"/>
             </div>
 
-            <div class="px-3 py-2 border-bottom">
+            <div t-if="isSuperAdmin or isOnHomeMenu" class="px-3 py-2 border-bottom">
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary flex-fill"
+                    <button t-if="isSuperAdmin" class="btn btn-sm btn-outline-primary flex-fill"
                         t-on-click="onOpenThemeSettings">
                         <i class="fa fa-paint-brush me-1"/>Sửa CSS
                     </button>

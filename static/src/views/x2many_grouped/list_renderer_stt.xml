@@ -4,8 +4,18 @@
     <t t-name="t4_theme.ListRendererSTTHead"
        t-inherit="web.ListRenderer"
        t-inherit-mode="extension">
+        <!-- No handle column: STT is the first cell after the optional selector. -->
         <xpath expr="//thead/tr/t[@t-foreach='columns']" position="before">
-            <th t-if="props.t4WithRowNumber"
+            <th t-if="props.t4WithRowNumber and !withHandleColumn"
+                class="o_t4_stt_col text-center align-middle"
+                tabindex="-1"
+                t-on-keydown="(ev) => this.onCellKeydown(ev)">
+                STT
+            </th>
+        </xpath>
+        <!-- Handle column present: STT renders right after the handle <th>. -->
+        <xpath expr="//thead/tr/t[@t-foreach='columns']" position="inside">
+            <th t-if="props.t4WithRowNumber and column.widget === 'handle'"
                 class="o_t4_stt_col text-center align-middle"
                 tabindex="-1"
                 t-on-keydown="(ev) => this.onCellKeydown(ev)">
@@ -17,8 +27,18 @@
     <t t-name="t4_theme.ListRendererSTTRow"
        t-inherit="web.ListRenderer.RecordRow"
        t-inherit-mode="extension">
+        <!-- No handle column: STT cell is the first after the optional selector. -->
         <xpath expr="//t[@t-foreach='getColumns(record)']" position="before">
-            <td t-if="props.t4WithRowNumber"
+            <td t-if="props.t4WithRowNumber and !withHandleColumn"
+                class="o_t4_stt_cell text-center align-middle text-muted"
+                t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
+                tabindex="-1">
+                <t t-esc="t4GetRowNumber(record)"/>
+            </td>
+        </xpath>
+        <!-- Handle column present: STT cell renders right after the handle <td>. -->
+        <xpath expr="//t[@t-foreach='getColumns(record)']" position="inside">
+            <td t-if="props.t4WithRowNumber and column.widget === 'handle'"
                 class="o_t4_stt_cell text-center align-middle text-muted"
                 t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
                 tabindex="-1">

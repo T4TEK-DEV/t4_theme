@@ -46,7 +46,8 @@ Field group-by **không bắt buộc** phải nằm trong `<list>`. Nếu ngoài
 chỉ thấy header group nhưng không thấy column tương ứng — vẫn group đúng theo
 `record.data[field]`.
 
-Cũng accept tên cũ `list_groupby` (string hoặc array một phần tử).
+Cũng accept các alias: `list_groupby`, `list_groups` (đều là string hoặc array
+một phần tử). Patch sẽ pick key đầu tiên có giá trị.
 
 ## Aggregates
 

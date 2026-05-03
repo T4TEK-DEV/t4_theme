@@ -14,10 +14,11 @@ patch(X2ManyField.prototype, {
     },
 
     /**
-     * Read `list_groupbys` (or fallback `list_groupby`) from the field context.
-     * Accepts an array of field names (`['field_a']`) or a single string
-     * (`'field_a'`). Returns only fields that actually exist on the relational
-     * model so an invalid value does not break the renderer.
+     * Read group-by config from the field context. Accepts any of
+     * `list_groupbys`, `list_groupby`, `list_groups` (alias forgiveness).
+     * Value may be an array of field names (`['field_a']`) or a single string.
+     * Returns only fields that actually exist on the relational model so an
+     * invalid value does not break the renderer.
      *
      * @returns {string[]}
      */
@@ -26,9 +27,12 @@ patch(X2ManyField.prototype, {
             return [];
         }
         const ctx = this.props.context || {};
-        let raw = ctx.list_groupbys;
-        if (raw === undefined || raw === null) {
-            raw = ctx.list_groupby;
+        let raw;
+        for (const key of ["list_groupbys", "list_groupby", "list_groups"]) {
+            if (ctx[key] !== undefined && ctx[key] !== null) {
+                raw = ctx[key];
+                break;
+            }
         }
         if (typeof raw === "string") {
             raw = [raw];

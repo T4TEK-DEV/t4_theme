@@ -2,7 +2,7 @@
 
 import { patch } from "@web/core/utils/patch";
 import { X2ManyField } from "@web/views/fields/x2many/x2many_field";
-import { useState } from "@odoo/owl";
+import { useState, onWillRender } from "@odoo/owl";
 import { wrapListWithGroups } from "./x2many_grouped_adapter";
 
 const T4_GROUPED_FOLD_STATES = Symbol("t4ThemeX2mFoldStates");
@@ -14,6 +14,7 @@ const T4_GROUPED_CACHE = Symbol("t4ThemeX2mGroupedCache");
 const T4_DEBUG_PATCH = {
     setupCalls: 0,
     rendererPropsCalls: 0,
+    componentRenders: 0,
     cacheHits: 0,
     cacheMisses: 0,
     lastFlushAt: 0,
@@ -24,18 +25,24 @@ function t4DebugPatchFlush() {
         return;
     }
     T4_DEBUG_PATCH.lastFlushAt = now;
+    const propsPerRender =
+        T4_DEBUG_PATCH.componentRenders > 0
+            ? (T4_DEBUG_PATCH.rendererPropsCalls / T4_DEBUG_PATCH.componentRenders).toFixed(1)
+            : "n/a";
     // eslint-disable-next-line no-console
-    console.log("[t4-x2m] patch counters:", {
-        setupCalls: T4_DEBUG_PATCH.setupCalls,
-        rendererProps: T4_DEBUG_PATCH.rendererPropsCalls,
-        cacheHits: T4_DEBUG_PATCH.cacheHits,
-        cacheMisses: T4_DEBUG_PATCH.cacheMisses,
-    });
+    console.log(
+        `[t4-x2m] patch counters: setup=${T4_DEBUG_PATCH.setupCalls} ` +
+            `componentRenders=${T4_DEBUG_PATCH.componentRenders} ` +
+            `rendererProps=${T4_DEBUG_PATCH.rendererPropsCalls} ` +
+            `(${propsPerRender}/render) ` +
+            `hits=${T4_DEBUG_PATCH.cacheHits} miss=${T4_DEBUG_PATCH.cacheMisses}`
+    );
 }
 window.__t4DebugX2mPatch = T4_DEBUG_PATCH;
 window.__t4DebugX2mPatchReset = () => {
     T4_DEBUG_PATCH.setupCalls = 0;
     T4_DEBUG_PATCH.rendererPropsCalls = 0;
+    T4_DEBUG_PATCH.componentRenders = 0;
     T4_DEBUG_PATCH.cacheHits = 0;
     T4_DEBUG_PATCH.cacheMisses = 0;
     T4_DEBUG_PATCH.lastFlushAt = 0;
@@ -68,6 +75,12 @@ patch(X2ManyField.prototype, {
         console.log(
             "[t4-x2m] setup #" + T4_DEBUG_PATCH.setupCalls + " field=" + this.props.name
         );
+        // Count actual component renders separately from rendererProps getter
+        // accesses. Ratio (rendererProps / componentRenders) tells us whether
+        // OWL's t-props is calling the getter once per render or many times.
+        onWillRender(() => {
+            T4_DEBUG_PATCH.componentRenders++;
+        });
     },
 
     /**

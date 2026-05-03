@@ -21,10 +21,13 @@ function t4DebugFlush(label) {
     const top = Object.entries(T4_DEBUG.proxyGets)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8);
+    // Format as plain text so DevTools shows prop names directly without
+    // having to expand each Array(2). Example output:
+    //   "records=12345  isGrouped=11000  fields=10500 ..."
+    const formatted = top.map(([k, v]) => `${k}=${v}`).join("  ");
     // eslint-disable-next-line no-console
     console.log(
-        `[t4-x2m] ${label} | wrapListWithGroups calls=${T4_DEBUG.wrapCalls} | top proxy gets:`,
-        top
+        `[t4-x2m] ${label} | wrapCalls=${T4_DEBUG.wrapCalls} | TOP: ${formatted}`
     );
 }
 window.__t4DebugX2m = T4_DEBUG;

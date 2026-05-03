@@ -1,26 +1,22 @@
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.
 .o_field_x2many_list .o_list_table.o_list_table_grouped {
-    // Group header: push the group label flush against the left edge, more
-    // visual weight, no leading indent so it stands clearly outside its rows.
+    // Pull the group label out to the left so it visually sits outside the
+    // record column. Use translate so we don't shift the cell box (column
+    // alignment of the records below stays intact).
     .o_group_header {
         background-color: var(--o-list-group-header-bg, #f0f4ff);
 
         > th.o_group_name {
-            padding-left: 8px;
             font-weight: 700;
+            > div {
+                transform: translateX(-16px);
+            }
         }
 
         td,
         th {
             border-top: 1px solid var(--o-list-group-header-border, #d6e0ff);
         }
-    }
-
-    // Indent the rows belonging to a group so they sit visually inside the
-    // group header (about 1 caret + 1 char-width gap).
-    > tbody > tr.o_data_row > td:first-of-type,
-    > tbody > tr.o_data_row > th:first-of-type {
-        padding-left: 28px;
     }
 
     // Hide group config menu cog icon since x2many grouping is purely client-side

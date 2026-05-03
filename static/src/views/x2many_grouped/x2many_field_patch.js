@@ -88,4 +88,17 @@ patch(X2ManyField.prototype, {
         }
         return raw.filter((name) => typeof name === "string" && name in list.fields);
     },
+
+    /**
+     * Tell the inner ListRenderer to draw a leading "STT" (sequence number)
+     * column for every list view embedded in a form view. The cell value
+     * accounts for `list.offset` so pagination produces continuous numbers.
+     */
+    get rendererProps() {
+        const props = super.rendererProps;
+        if (this.props.viewMode === "list") {
+            props.t4WithRowNumber = true;
+        }
+        return props;
+    },
 });

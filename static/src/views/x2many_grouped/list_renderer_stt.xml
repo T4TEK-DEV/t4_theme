@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="t4_theme.ListRendererSTTHead"
+       t-inherit="web.ListRenderer"
+       t-inherit-mode="extension">
+        <xpath expr="//thead/tr/t[@t-foreach='columns']" position="before">
+            <th t-if="props.t4WithRowNumber"
+                class="o_t4_stt_col text-center align-middle"
+                tabindex="-1"
+                t-on-keydown="(ev) => this.onCellKeydown(ev)">
+                STT
+            </th>
+        </xpath>
+    </t>
+
+    <t t-name="t4_theme.ListRendererSTTRow"
+       t-inherit="web.ListRenderer.RecordRow"
+       t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='getColumns(record)']" position="before">
+            <td t-if="props.t4WithRowNumber"
+                class="o_t4_stt_cell text-center align-middle text-muted"
+                t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
+                tabindex="-1">
+                <t t-esc="t4GetRowNumber(record)"/>
+            </td>
+        </xpath>
+    </t>
+
+    <t t-name="t4_theme.ListRendererSTTGroupRow"
+       t-inherit="web.ListRenderer.GroupRow"
+       t-inherit-mode="extension">
+        <xpath expr="//th[hasclass('o_group_name')]" position="attributes">
+            <attribute name="t-att-colspan">getGroupNameCellColSpan(group) + (props.t4WithRowNumber ? 1 : 0)</attribute>
+        </xpath>
+    </t>
+
+</templates>

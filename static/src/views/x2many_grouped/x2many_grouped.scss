@@ -1,3 +1,21 @@
+// Leading row-number column injected into every x2many list view in form
+// views (see list_renderer_stt.xml + list_renderer_patch.js).
+.o_field_x2many_list .o_list_table {
+    .o_t4_stt_col,
+    .o_t4_stt_cell {
+        width: 3rem;
+        min-width: 3rem;
+        max-width: 3.5rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_t4_stt_col {
+        font-weight: 600;
+    }
+    .o_t4_stt_cell {
+        color: var(--o-list-row-number-color, #6c757d);
+    }
+}
+
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.
 .o_field_x2many_list .o_list_table.o_list_table_grouped {
     // Pull the group label out to the left so it visually sits outside the

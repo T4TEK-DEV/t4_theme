@@ -1,45 +1,11 @@
 /** @odoo-module **/
 
 import { AGGREGATABLE_FIELD_TYPES } from "@web/model/relational_model/utils";
-import { markRaw } from "@odoo/owl";
+import { toRaw } from "@odoo/owl";
 
 const FOLD_PLACEHOLDER = "__t4_x2m_grouped_fold__";
-
-// =============================================================================
-// DEBUG instrumentation — REMOVE after diagnosing render-loop
-// =============================================================================
-const T4_DEBUG = {
-    wrapCalls: 0,
-    proxyGets: {},
-    lastFlushAt: 0,
-};
-function t4DebugFlush(label) {
-    const now = performance.now();
-    if (now - T4_DEBUG.lastFlushAt < 500) {
-        return;
-    }
-    T4_DEBUG.lastFlushAt = now;
-    const top = Object.entries(T4_DEBUG.proxyGets)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-    // Format as plain text so DevTools shows prop names directly without
-    // having to expand each Array(2). Example output:
-    //   "records=12345  isGrouped=11000  fields=10500 ..."
-    const formatted = top.map(([k, v]) => `${k}=${v}`).join("  ");
-    // eslint-disable-next-line no-console
-    console.log(
-        `[t4-x2m] ${label} | wrapCalls=${T4_DEBUG.wrapCalls} | TOP: ${formatted}`
-    );
-}
-window.__t4DebugX2m = T4_DEBUG;
-window.__t4DebugX2mReset = () => {
-    T4_DEBUG.wrapCalls = 0;
-    T4_DEBUG.proxyGets = {};
-    T4_DEBUG.lastFlushAt = 0;
-    // eslint-disable-next-line no-console
-    console.log("[t4-x2m] counters reset");
-};
-// =============================================================================
+const T4_GROUPING_TAG = Symbol.for("t4ThemeX2mGroupingInstalled");
+const GROUPING_KEYS = ["isGrouped", "groups", "groupBy", "groupByField"];
 
 function readGroupKey(value, field) {
     if (value === null || value === undefined || value === false || value === "") {
@@ -66,7 +32,6 @@ function readGroupKey(value, field) {
             return { key: `dt_${value}`, display: String(value) };
         case "many2many":
         case "one2many":
-            // Best-effort: group by id list serialization
             return {
                 key: `m2m_${Array.isArray(value) ? value.join("-") : String(value)}`,
                 display: Array.isArray(value) ? value.join(", ") : String(value),
@@ -98,9 +63,7 @@ function computeGroupAggregates(records, fields, archInfoColumns) {
         if (!func) {
             continue;
         }
-        const values = records
-            .map((r) => r.data[column.name])
-            .filter((v) => v || v === 0);
+        const values = records.map((r) => r.data[column.name]).filter((v) => v || v === 0);
         if (!values.length) {
             continue;
         }
@@ -124,14 +87,14 @@ function computeGroupAggregates(records, fields, archInfoColumns) {
     return aggregates;
 }
 
-function buildGroups(staticList, fieldName, foldState, archInfoColumns) {
-    const field = staticList.fields[fieldName];
+function buildGroups(rawList, fieldName, foldState, archInfoColumns) {
+    const field = rawList.fields[fieldName];
     if (!field) {
         return null;
     }
     const buckets = new Map();
     const order = [];
-    for (const record of staticList.records) {
+    for (const record of rawList.records) {
         const value = record.data[fieldName];
         const { key, display } = readGroupKey(value, field);
         if (!buckets.has(key)) {
@@ -149,35 +112,31 @@ function buildGroups(staticList, fieldName, foldState, archInfoColumns) {
             string: field.string || fieldName,
             type: field.type,
         };
-        const aggregates = computeGroupAggregates(
-            groupRecords,
-            staticList.fields,
-            archInfoColumns
-        );
+        const aggregates = computeGroupAggregates(groupRecords, rawList.fields, archInfoColumns);
         const subList = {
             records: groupRecords,
             isGrouped: false,
             groupBy: [],
             groupByField,
-            model: staticList.model,
-            fields: staticList.fields,
-            activeFields: staticList.activeFields,
-            resModel: staticList.resModel,
+            model: rawList.model,
+            fields: rawList.fields,
+            activeFields: rawList.activeFields,
+            resModel: rawList.resModel,
             offset: 0,
             limit: Math.max(groupRecords.length, 1),
             count: groupRecords.length,
-            evalContext: staticList.evalContext,
+            evalContext: rawList.evalContext,
             selection: [],
-            handleField: staticList.handleField,
-            orderBy: staticList.orderBy,
+            handleField: rawList.handleField,
+            orderBy: rawList.orderBy,
             isDomainSelected: false,
             get editedRecord() {
                 return groupRecords.find((r) => r.isInEdition);
             },
             canResequence: () => false,
             load: async () => {},
-            leaveEditMode: (...args) => staticList.leaveEditMode(...args),
-            sortBy: (...args) => staticList.sortBy(...args),
+            leaveEditMode: (...args) => rawList.leaveEditMode(...args),
+            sortBy: (...args) => rawList.sortBy(...args),
         };
         return {
             id: groupId,
@@ -186,7 +145,7 @@ function buildGroups(staticList, fieldName, foldState, archInfoColumns) {
             aggregates,
             value: false,
             groupByField,
-            record: { resId: false, isNew: false, evalContext: staticList.evalContext },
+            record: { resId: false, isNew: false, evalContext: rawList.evalContext },
             list: subList,
             get isFolded() {
                 return !!foldState[groupId];
@@ -205,7 +164,7 @@ function buildGroups(staticList, fieldName, foldState, archInfoColumns) {
                         groupContext[`default_${fieldName}`] = defaultValue;
                     }
                 }
-                return staticList.addNewRecord({
+                return rawList.addNewRecord({
                     ...params,
                     context: { ...groupContext, ...(params.context || {}) },
                     position: topPosition ? "top" : "bottom",
@@ -215,7 +174,24 @@ function buildGroups(staticList, fieldName, foldState, archInfoColumns) {
     });
 }
 
-export function wrapListWithGroups(staticList, groupByFields, foldState, archInfoColumns) {
+/**
+ * Install client-side grouping directly on the StaticList instance.
+ *
+ * Why this approach (vs Proxy wrapping):
+ *   Wrapping the StaticList in a Proxy and passing it as `props.list` confused
+ *   OWL's reactive system. Even with markRaw and aggressive caching, OWL was
+ *   re-rendering X2ManyField ~3000 times per second (CPU >20%). The cause
+ *   appeared to be subscription churn around the foreign Proxy identity.
+ *
+ *   By defining `isGrouped` / `groups` / `groupBy` / `groupByField` directly
+ *   on the StaticList instance via `Object.defineProperty` on the *raw*
+ *   target (toRaw), the staticList object identity that ListRenderer sees is
+ *   exactly the same one OWL has always tracked. No proxy layer, no
+ *   subscription churn, no loop.
+ *
+ * Returns an uninstaller function — call it on component unmount.
+ */
+export function attachGroupingToList(staticList, groupByFields, foldState, archInfoColumns) {
     if (!staticList || !Array.isArray(groupByFields) || !groupByFields.length) {
         return null;
     }
@@ -223,16 +199,13 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
     if (!fieldName || !(fieldName in staticList.fields)) {
         return null;
     }
-    T4_DEBUG.wrapCalls++;
-    // eslint-disable-next-line no-console
-    console.log("[t4-x2m] wrapListWithGroups #" + T4_DEBUG.wrapCalls, {
-        records: staticList.records.length,
-        fieldName,
-    });
-    const groups = buildGroups(staticList, fieldName, foldState, archInfoColumns);
-    if (!groups || !groups.length) {
-        return null;
+    const rawList = toRaw(staticList);
+    if (rawList[T4_GROUPING_TAG]) {
+        // Already attached by another X2ManyField for the same list; reuse.
+        // (Shouldn't normally happen because each field has its own list.)
+        return () => {};
     }
+
     const field = staticList.fields[fieldName];
     const groupByField = {
         name: fieldName,
@@ -240,49 +213,74 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
         type: field.type,
     };
     const groupBy = [fieldName];
-    // Per-proxy bound function cache — avoid recreating bound copies for the
-    // many method reads ListRenderer + OWL reactivity perform on each tick.
-    const boundCache = new WeakMap();
-    // markRaw tells OWL's reactive() not to wrap our Proxy in another reactive
-    // layer. Without this, OWL was creating subscription chains around every
-    // property access on our Proxy and re-rendering X2ManyField ~3000 times
-    // per second (CPU 50%). Re-renders still happen via the normal reactive
-    // read on `this.props.record.data[name]` upstream, so saves/discards and
-    // record updates continue to flow correctly.
-    return markRaw(new Proxy(staticList, {
-        get(target, prop) {
-            if (typeof prop === "string") {
-                T4_DEBUG.proxyGets[prop] = (T4_DEBUG.proxyGets[prop] || 0) + 1;
-                t4DebugFlush("proxy.get tick");
+
+    let cachedGroups = null;
+    let cacheSig = null;
+
+    function currentSignature() {
+        const records = rawList.records;
+        let sig = `${records.length}`;
+        for (const r of records) {
+            const id = r.resId || r._virtualId || r.id;
+            const v = r.data ? r.data[fieldName] : undefined;
+            const vKey =
+                v && typeof v === "object"
+                    ? `o${v.id ?? ""}`
+                    : v === false
+                    ? "f"
+                    : String(v);
+            sig += `|${id}=${vKey}`;
+        }
+        return sig;
+    }
+
+    function getOrBuildGroups() {
+        const sig = currentSignature();
+        if (sig !== cacheSig) {
+            cachedGroups = buildGroups(rawList, fieldName, foldState, archInfoColumns) || [];
+            cacheSig = sig;
+        }
+        return cachedGroups;
+    }
+
+    Object.defineProperty(rawList, T4_GROUPING_TAG, {
+        value: true,
+        configurable: true,
+        enumerable: false,
+        writable: false,
+    });
+    Object.defineProperty(rawList, "isGrouped", {
+        configurable: true,
+        enumerable: true,
+        get: () => true,
+    });
+    Object.defineProperty(rawList, "groups", {
+        configurable: true,
+        enumerable: true,
+        get: getOrBuildGroups,
+    });
+    Object.defineProperty(rawList, "groupBy", {
+        configurable: true,
+        enumerable: true,
+        get: () => groupBy,
+    });
+    Object.defineProperty(rawList, "groupByField", {
+        configurable: true,
+        enumerable: true,
+        get: () => groupByField,
+    });
+
+    return () => {
+        for (const key of GROUPING_KEYS) {
+            // Use try/catch — if the property has already been redefined or
+            // the list is being torn down by Odoo, we still want a clean
+            // uninstall.
+            try {
+                delete rawList[key];
+            } catch (e) {
+                // ignore
             }
-            if (prop === "isGrouped") {
-                return true;
-            }
-            if (prop === "groups") {
-                return groups;
-            }
-            if (prop === "groupBy") {
-                return groupBy;
-            }
-            if (prop === "groupByField") {
-                return groupByField;
-            }
-            // CRUCIAL: pass `target` (not `receiver`) as the receiver so that
-            // any getter on StaticList.prototype (e.g. `editedRecord`,
-            // `evalContext`, `currentIds`) runs with `this === target`. If we
-            // forwarded `this === proxy`, every nested `this.records` /
-            // `this.config` access would re-enter this trap, causing an
-            // exponential blow-up that froze the form view.
-            const value = Reflect.get(target, prop, target);
-            if (typeof value === "function") {
-                let bound = boundCache.get(value);
-                if (!bound) {
-                    bound = value.bind(target);
-                    boundCache.set(value, bound);
-                }
-                return bound;
-            }
-            return value;
-        },
-    }));
+        }
+        delete rawList[T4_GROUPING_TAG];
+    };
 }

@@ -27,12 +27,4 @@
         </xpath>
     </t>
 
-    <t t-name="t4_theme.ListRendererSTTGroupRow"
-       t-inherit="web.ListRenderer.GroupRow"
-       t-inherit-mode="extension">
-        <xpath expr="//th[hasclass('o_group_name')]" position="attributes">
-            <attribute name="t-att-colspan">getGroupNameCellColSpan(group) + (props.t4WithRowNumber ? 1 : 0)</attribute>
-        </xpath>
-    </t>
-
 </templates>

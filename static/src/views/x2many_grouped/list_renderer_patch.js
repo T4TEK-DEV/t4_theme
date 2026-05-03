@@ -27,4 +27,14 @@ patch(ListRenderer.prototype, {
         const idx = baseList.records.indexOf(record);
         return (idx >= 0 ? idx : 0) + offset + 1;
     },
+
+    /**
+     * When the leading STT column is rendered, the group-name <th> needs to
+     * span one more cell so the rest of the group header alignment is
+     * preserved.
+     */
+    getGroupNameCellColSpan(group) {
+        const base = super.getGroupNameCellColSpan(group);
+        return this.props.t4WithRowNumber ? base + 1 : base;
+    },
 });

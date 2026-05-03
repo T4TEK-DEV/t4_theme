@@ -46,12 +46,30 @@ function computeGroupAggregates(records, fields, archInfoColumns) {
     if (!archInfoColumns) {
         return aggregates;
     }
+    // Track currency fields used by monetary columns. ListRenderer's
+    // computeAggregates / getFieldCurrencies expects `group.aggregates[ccy]`
+    // to be an array of currency ids for grouped lists (mirrors the server's
+    // read_group response). Without this, ListRenderer crashes with
+    // `Cannot read properties of undefined (reading 'forEach')`.
+    const currencyFields = new Set();
     for (const column of archInfoColumns) {
         if (column.type !== "field") {
             continue;
         }
         const field = fields[column.name];
-        if (!field || !AGGREGATABLE_FIELD_TYPES.includes(field.type)) {
+        if (!field) {
+            continue;
+        }
+        if (field.type === "monetary" || column.widget === "monetary") {
+            const ccy =
+                (column.options && column.options.currency_field) ||
+                field.currency_field ||
+                "currency_id";
+            if (ccy) {
+                currencyFields.add(ccy);
+            }
+        }
+        if (!AGGREGATABLE_FIELD_TYPES.includes(field.type)) {
             continue;
         }
         const attrs = column.attrs || {};
@@ -83,6 +101,23 @@ function computeGroupAggregates(records, fields, archInfoColumns) {
                 break;
         }
         aggregates[column.name] = result;
+    }
+    for (const ccy of currencyFields) {
+        if (!(ccy in fields)) {
+            // currency field not on the model — fall back to empty array so
+            // ListRenderer's forEach doesn't crash.
+            aggregates[ccy] = [];
+            continue;
+        }
+        const ids = new Set();
+        for (const r of records) {
+            const v = r.data ? r.data[ccy] : undefined;
+            if (v == null || v === false) {
+                continue;
+            }
+            ids.add(typeof v === "object" ? v.id : v);
+        }
+        aggregates[ccy] = Array.from(ids);
     }
     return aggregates;
 }

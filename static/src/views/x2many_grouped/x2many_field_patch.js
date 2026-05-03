@@ -95,6 +95,12 @@ patch(X2ManyField.prototype, {
         if (this.props.viewMode !== "list") {
             return [];
         }
+        // Runtime kill switch: type `window.__t4SkipX2mGrouping = true` then
+        // re-open the form view to fully bypass our patch and confirm whether
+        // it is the source of a perf issue.
+        if (typeof window !== "undefined" && window.__t4SkipX2mGrouping) {
+            return [];
+        }
         const ctx = this.props.context || {};
         let raw = ctx.list_groupbys;
         if (typeof raw === "string") {

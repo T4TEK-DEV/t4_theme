@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { AGGREGATABLE_FIELD_TYPES } from "@web/model/relational_model/utils";
+import { markRaw } from "@odoo/owl";
 
 const FOLD_PLACEHOLDER = "__t4_x2m_grouped_fold__";
 
@@ -242,7 +243,13 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
     // Per-proxy bound function cache — avoid recreating bound copies for the
     // many method reads ListRenderer + OWL reactivity perform on each tick.
     const boundCache = new WeakMap();
-    return new Proxy(staticList, {
+    // markRaw tells OWL's reactive() not to wrap our Proxy in another reactive
+    // layer. Without this, OWL was creating subscription chains around every
+    // property access on our Proxy and re-rendering X2ManyField ~3000 times
+    // per second (CPU 50%). Re-renders still happen via the normal reactive
+    // read on `this.props.record.data[name]` upstream, so saves/discards and
+    // record updates continue to flow correctly.
+    return markRaw(new Proxy(staticList, {
         get(target, prop) {
             if (typeof prop === "string") {
                 T4_DEBUG.proxyGets[prop] = (T4_DEBUG.proxyGets[prop] || 0) + 1;
@@ -277,5 +284,5 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
             }
             return value;
         },
-    });
+    }));
 }

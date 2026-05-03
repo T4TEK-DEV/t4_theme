@@ -196,8 +196,12 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
         string: field.string || fieldName,
         type: field.type,
     };
+    const groupBy = [fieldName];
+    // Per-proxy bound function cache — avoid recreating bound copies for the
+    // many method reads ListRenderer + OWL reactivity perform on each tick.
+    const boundCache = new WeakMap();
     return new Proxy(staticList, {
-        get(target, prop, receiver) {
+        get(target, prop) {
             if (prop === "isGrouped") {
                 return true;
             }
@@ -205,14 +209,25 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
                 return groups;
             }
             if (prop === "groupBy") {
-                return [fieldName];
+                return groupBy;
             }
             if (prop === "groupByField") {
                 return groupByField;
             }
-            const value = Reflect.get(target, prop, receiver);
+            // CRUCIAL: pass `target` (not `receiver`) as the receiver so that
+            // any getter on StaticList.prototype (e.g. `editedRecord`,
+            // `evalContext`, `currentIds`) runs with `this === target`. If we
+            // forwarded `this === proxy`, every nested `this.records` /
+            // `this.config` access would re-enter this trap, causing an
+            // exponential blow-up that froze the form view.
+            const value = Reflect.get(target, prop, target);
             if (typeof value === "function") {
-                return value.bind(target);
+                let bound = boundCache.get(value);
+                if (!bound) {
+                    bound = value.bind(target);
+                    boundCache.set(value, bound);
+                }
+                return bound;
             }
             return value;
         },

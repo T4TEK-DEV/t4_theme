@@ -6,11 +6,29 @@ import { useState } from "@odoo/owl";
 import { wrapListWithGroups } from "./x2many_grouped_adapter";
 
 const T4_GROUPED_FOLD_STATES = Symbol("t4ThemeX2mFoldStates");
+const T4_GROUPED_CACHE = Symbol("t4ThemeX2mGroupedCache");
+
+function buildSignature(staticList, groupByFields) {
+    const records = staticList.records || [];
+    // Cheap signature: count + concatenation of record ids + group field
+    // values. Avoids JSON.stringify and references record object identities.
+    let sig = `${groupByFields.join("|")}::${records.length}`;
+    const fieldName = groupByFields[0];
+    for (const r of records) {
+        const id = r.resId || r._virtualId || r.id;
+        const v = r.data ? r.data[fieldName] : undefined;
+        const vKey =
+            v && typeof v === "object" ? `o${v.id ?? ""}` : v === false ? "f" : String(v);
+        sig += `|${id}=${vKey}`;
+    }
+    return sig;
+}
 
 patch(X2ManyField.prototype, {
     setup() {
         super.setup();
         this[T4_GROUPED_FOLD_STATES] = useState({});
+        this[T4_GROUPED_CACHE] = { signature: null, list: null, wrapped: null };
     },
 
     /**
@@ -46,14 +64,31 @@ patch(X2ManyField.prototype, {
         if (!groupByFields.length) {
             return props;
         }
+        const list = this.list;
+        const cache = this[T4_GROUPED_CACHE];
+        const signature = buildSignature(list, groupByFields);
+        // Reuse the same Proxy + groups objects when records haven't changed
+        // since last render. This keeps prop identity stable for ListRenderer
+        // and avoids rebuilding aggregates on every reactive read.
+        if (cache.list === list && cache.signature === signature && cache.wrapped) {
+            props.list = cache.wrapped;
+            return props;
+        }
         const wrapped = wrapListWithGroups(
-            this.list,
+            list,
             groupByFields,
             this[T4_GROUPED_FOLD_STATES],
             props.archInfo && props.archInfo.columns
         );
         if (wrapped) {
+            cache.list = list;
+            cache.signature = signature;
+            cache.wrapped = wrapped;
             props.list = wrapped;
+        } else {
+            cache.list = null;
+            cache.signature = null;
+            cache.wrapped = null;
         }
         return props;
     },

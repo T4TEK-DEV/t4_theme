@@ -117,6 +117,21 @@ def _patch_session_info():
             result['sidebar_type'] = self.env.user.sidebar_type
             result['chatter_position'] = self.env.user.chatter_position
             result['dialog_size'] = self.env.user.dialog_size
+            user = self.env.user
+            result['user_theme_use_personal'] = bool(user.theme_use_personal_colors)
+            result['user_theme_font_family'] = user.theme_font_family or ''
+            result['user_theme_colors'] = {
+                'color_brand': user.theme_color_brand or '',
+                'color_primary': user.theme_color_primary or '',
+                'color_success': user.theme_color_success or '',
+                'color_info': user.theme_color_info or '',
+                'color_warning': user.theme_color_warning or '',
+                'color_danger': user.theme_color_danger or '',
+                'color_appsmenu_text': user.theme_color_appsmenu_text or '',
+                'color_appbar_text': user.theme_color_appbar_text or '',
+                'color_appbar_active': user.theme_color_appbar_active or '',
+                'color_appbar_background': user.theme_color_appbar_background or '',
+            }
             result['pager_autoload_interval'] = int(
                 self.env['ir.config_parameter'].sudo().get_param(
                     'muk_web_refresh.pager_autoload_interval', default=30000

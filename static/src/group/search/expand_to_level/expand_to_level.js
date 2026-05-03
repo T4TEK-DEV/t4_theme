@@ -74,19 +74,6 @@ function makeLevelItem(level, label) {
     };
 }
 
-// Đăng ký 4 menu item: Level 1, 2, 3, All
-cogMenuRegistry.add(
-    't4-expand-level-1',
-    makeLevelItem(1, 'Mở đến cấp 1'),
-    { sequence: 3 },
-);
-cogMenuRegistry.add(
-    't4-expand-level-2',
-    makeLevelItem(2, 'Mở đến cấp 2'),
-    { sequence: 4 },
-);
-cogMenuRegistry.add(
-    't4-expand-level-3',
-    makeLevelItem(3, 'Mở đến cấp 3'),
-    { sequence: 5 },
-);
+// Cog menu registration disabled — buttons hiện inline ở ControlPanel
+// (xem t4_theme/static/src/group/search/control_panel/).
+// Giữ component để tham khảo / unit test, không đăng ký cogMenu nữa.

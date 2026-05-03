@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 
 class ThemeEditorController(http.Controller):
 
-    @http.route('/t4_theme/save_overrides', type='json', auth='user')
+    @http.route('/t4_theme/save_overrides', type='jsonrpc', auth='user')
     def save_overrides(self, overrides):
         """Save view theme overrides without triggering ORM bus notifications.
         Uses direct SQL to avoid cache invalidation and page reload.
@@ -32,7 +32,7 @@ class ThemeEditorController(http.Controller):
             _logger.exception('Theme editor save failed: %s', e)
             return {'status': 'error', 'message': 'Save failed'}
 
-    @http.route('/t4_theme/presets', type='json', auth='user')
+    @http.route('/t4_theme/presets', type='jsonrpc', auth='user')
     def get_presets(self):
         """Return all presets (built-in + company-specific)."""
         Preset = request.env['t4_theme.preset']
@@ -61,7 +61,7 @@ class ThemeEditorController(http.Controller):
             'view_overrides': p.view_overrides or {},
         } for p in presets]
 
-    @http.route('/t4_theme/export_theme', type='json', auth='user')
+    @http.route('/t4_theme/export_theme', type='jsonrpc', auth='user')
     def export_theme(self):
         """Export current company theme config as structured JSON."""
         company = request.env.user.company_id
@@ -83,7 +83,7 @@ class ThemeEditorController(http.Controller):
         })
         return temp.to_export_dict()
 
-    @http.route('/t4_theme/import_theme', type='json', auth='user')
+    @http.route('/t4_theme/import_theme', type='jsonrpc', auth='user')
     def import_theme(self, theme_data):
         """Import a theme JSON and create a new preset."""
         if not theme_data or not isinstance(theme_data, dict):
@@ -106,7 +106,7 @@ class ThemeEditorController(http.Controller):
             _logger.exception('Theme import failed: %s', e)
             return {'success': False, 'error': str(e)}
 
-    @http.route('/t4_theme/preset/save_current', type='json', auth='user')
+    @http.route('/t4_theme/preset/save_current', type='jsonrpc', auth='user')
     def preset_save_current(self, name):
         """Save current company config as a new preset."""
         if not name or not name.strip():
@@ -135,7 +135,7 @@ class ThemeEditorController(http.Controller):
 
     # ── Home Menu Icon Editing ──────────────────────────────────────────
 
-    @http.route('/t4_theme/edit_menu_icon', type='json', auth='user')
+    @http.route('/t4_theme/edit_menu_icon', type='jsonrpc', auth='user')
     def edit_menu_icon(self, menu_id, icon):
         """Edit menu icon. Requires admin/settings group.
         icon can be:
@@ -178,7 +178,7 @@ class ThemeEditorController(http.Controller):
         else:
             raise ValueError('Invalid icon format')
 
-    @http.route('/t4_theme/set_background_image', type='json', auth='user')
+    @http.route('/t4_theme/set_background_image', type='jsonrpc', auth='user')
     def set_background_image(self, attachment_id):
         """Set home menu background image for current company."""
         if not request.env.user.has_group('base.group_erp_manager'):
@@ -189,7 +189,7 @@ class ThemeEditorController(http.Controller):
             return {'success': True}
         return {'success': False, 'error': 'Attachment not found'}
 
-    @http.route('/t4_theme/reset_background_image', type='json', auth='user')
+    @http.route('/t4_theme/reset_background_image', type='jsonrpc', auth='user')
     def reset_background_image(self):
         """Reset home menu background image."""
         if not request.env.user.has_group('base.group_erp_manager'):
@@ -200,7 +200,7 @@ class ThemeEditorController(http.Controller):
             return {'success': True}
         return {'success': False, 'error': 'Access denied'}
 
-    @http.route('/t4_theme/preset/delete', type='json', auth='user')
+    @http.route('/t4_theme/preset/delete', type='jsonrpc', auth='user')
     def preset_delete(self, preset_id):
         """Delete a custom preset. Built-in presets cannot be deleted."""
         preset = request.env['t4_theme.preset'].browse(preset_id)

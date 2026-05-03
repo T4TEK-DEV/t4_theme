@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- web.ListView.Buttons là template trống (slot cho custom buttons).
+         Dùng xpath="." position="inside" để inject content vào root <t>. -->
+    <t t-inherit="web.ListView.Buttons" t-inherit-mode="extension">
+        <xpath expr="." position="inside">
+            <span t-if="model.root.isGrouped"
+                  role="button"
+                  t-attf-class="btn d-flex align-items-center px-2 ms-1 t4-toggle-group-btn {{ t4ExpandState.isExpanded ? 'btn-primary' : 'btn-secondary' }}"
+                  data-hotkey="m"
+                  t-att-data-tooltip="t4ExpandLabel"
+                  t-on-click="onT4ToggleExpand"
+                  style="transition: all 0.3s ease;">
+                <i t-if="!t4ExpandState.isExpanded" class="fa fa-expand me-1"/>
+                <i t-if="t4ExpandState.isExpanded" class="fa fa-compress me-1"/>
+                
+                <span class="d-none d-md-inline" t-out="t4ExpandLabel"/>
+            </span>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,44 @@
+// Leading row-number column injected into every x2many list view in form
+// views (see list_renderer_stt.xml + list_renderer_patch.js).
+.o_field_x2many_list .o_list_table {
+    .o_t4_stt_col,
+    .o_t4_stt_cell {
+        width: 3rem;
+        min-width: 3rem;
+        max-width: 3.5rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_t4_stt_col {
+        font-weight: 600;
+    }
+    .o_t4_stt_cell {
+        color: var(--o-list-row-number-color, #6c757d);
+    }
+}
+
+// Visual tweaks for x2many list views rendered in grouped mode inside form views.
+.o_field_x2many_list .o_list_table.o_list_table_grouped {
+    // Pull the group label out to the left so it visually sits outside the
+    // record column. Use translate so we don't shift the cell box (column
+    // alignment of the records below stays intact).
+    .o_group_header {
+        background-color: var(--o-list-group-header-bg, #f0f4ff);
+
+        > th.o_group_name {
+            font-weight: 700;
+            > div {
+                transform: translateX(-16px);
+            }
+        }
+
+        td,
+        th {
+            border-top: 1px solid var(--o-list-group-header-border, #d6e0ff);
+        }
+    }
+
+    // Hide group config menu cog icon since x2many grouping is purely client-side
+    .o_group_header .o_group_config_menu {
+        display: none;
+    }
+}

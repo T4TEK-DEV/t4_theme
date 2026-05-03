@@ -1,0 +1,15 @@
+// Visual tweaks for x2many list views rendered in grouped mode inside form views.
+.o_field_x2many_list .o_list_table.o_list_table_grouped {
+    .o_group_header {
+        background-color: var(--o-list-group-header-bg, #f0f4ff);
+        td,
+        th {
+            border-top: 1px solid var(--o-list-group-header-border, #d6e0ff);
+        }
+    }
+
+    // Hide group config menu cog icon since x2many grouping is purely client-side
+    .o_group_header .o_group_config_menu {
+        display: none;
+    }
+}

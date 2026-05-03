@@ -286,6 +286,10 @@
             ('remove', 't4_theme/static/src/webclient/home_menu/home_menu.dark.scss'),
             ('remove', 't4_theme/static/src/webclient/home_menu/home_menu_background.dark.scss'),
             't4_theme/static/src/views/**/*.scss',
+
+            # --- X2Many client-side grouping (context: list_groupbys) ---
+            't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',
+            't4_theme/static/src/views/x2many_grouped/x2many_field_patch.js',
         ],
         # ============================================================
         # Unit Tests

@@ -8,6 +8,40 @@ import { wrapListWithGroups } from "./x2many_grouped_adapter";
 const T4_GROUPED_FOLD_STATES = Symbol("t4ThemeX2mFoldStates");
 const T4_GROUPED_CACHE = Symbol("t4ThemeX2mGroupedCache");
 
+// =============================================================================
+// DEBUG instrumentation — REMOVE after diagnosing render-loop
+// =============================================================================
+const T4_DEBUG_PATCH = {
+    setupCalls: 0,
+    rendererPropsCalls: 0,
+    cacheHits: 0,
+    cacheMisses: 0,
+    lastFlushAt: 0,
+};
+function t4DebugPatchFlush() {
+    const now = performance.now();
+    if (now - T4_DEBUG_PATCH.lastFlushAt < 500) {
+        return;
+    }
+    T4_DEBUG_PATCH.lastFlushAt = now;
+    // eslint-disable-next-line no-console
+    console.log("[t4-x2m] patch counters:", {
+        setupCalls: T4_DEBUG_PATCH.setupCalls,
+        rendererProps: T4_DEBUG_PATCH.rendererPropsCalls,
+        cacheHits: T4_DEBUG_PATCH.cacheHits,
+        cacheMisses: T4_DEBUG_PATCH.cacheMisses,
+    });
+}
+window.__t4DebugX2mPatch = T4_DEBUG_PATCH;
+window.__t4DebugX2mPatchReset = () => {
+    T4_DEBUG_PATCH.setupCalls = 0;
+    T4_DEBUG_PATCH.rendererPropsCalls = 0;
+    T4_DEBUG_PATCH.cacheHits = 0;
+    T4_DEBUG_PATCH.cacheMisses = 0;
+    T4_DEBUG_PATCH.lastFlushAt = 0;
+};
+// =============================================================================
+
 function buildSignature(staticList, groupByFields) {
     const records = staticList.records || [];
     // Cheap signature: count + concatenation of record ids + group field
@@ -29,6 +63,11 @@ patch(X2ManyField.prototype, {
         super.setup();
         this[T4_GROUPED_FOLD_STATES] = useState({});
         this[T4_GROUPED_CACHE] = { signature: null, list: null, wrapped: null };
+        T4_DEBUG_PATCH.setupCalls++;
+        // eslint-disable-next-line no-console
+        console.log(
+            "[t4-x2m] setup #" + T4_DEBUG_PATCH.setupCalls + " field=" + this.props.name
+        );
     },
 
     /**
@@ -64,6 +103,7 @@ patch(X2ManyField.prototype, {
         if (!groupByFields.length) {
             return props;
         }
+        T4_DEBUG_PATCH.rendererPropsCalls++;
         const list = this.list;
         const cache = this[T4_GROUPED_CACHE];
         const signature = buildSignature(list, groupByFields);
@@ -71,9 +111,20 @@ patch(X2ManyField.prototype, {
         // since last render. This keeps prop identity stable for ListRenderer
         // and avoids rebuilding aggregates on every reactive read.
         if (cache.list === list && cache.signature === signature && cache.wrapped) {
+            T4_DEBUG_PATCH.cacheHits++;
+            t4DebugPatchFlush();
             props.list = cache.wrapped;
             return props;
         }
+        T4_DEBUG_PATCH.cacheMisses++;
+        // eslint-disable-next-line no-console
+        console.log("[t4-x2m] rendererProps cache MISS", {
+            field: this.props.name,
+            recordCount: list.records ? list.records.length : 0,
+            sigPreview: signature.slice(0, 120),
+            sameList: cache.list === list,
+            sameSig: cache.signature === signature,
+        });
         const wrapped = wrapListWithGroups(
             list,
             groupByFields,
@@ -90,6 +141,7 @@ patch(X2ManyField.prototype, {
             cache.signature = null;
             cache.wrapped = null;
         }
+        t4DebugPatchFlush();
         return props;
     },
 });

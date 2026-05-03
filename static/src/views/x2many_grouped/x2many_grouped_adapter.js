@@ -4,6 +4,39 @@ import { AGGREGATABLE_FIELD_TYPES } from "@web/model/relational_model/utils";
 
 const FOLD_PLACEHOLDER = "__t4_x2m_grouped_fold__";
 
+// =============================================================================
+// DEBUG instrumentation — REMOVE after diagnosing render-loop
+// =============================================================================
+const T4_DEBUG = {
+    wrapCalls: 0,
+    proxyGets: {},
+    lastFlushAt: 0,
+};
+function t4DebugFlush(label) {
+    const now = performance.now();
+    if (now - T4_DEBUG.lastFlushAt < 500) {
+        return;
+    }
+    T4_DEBUG.lastFlushAt = now;
+    const top = Object.entries(T4_DEBUG.proxyGets)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+    // eslint-disable-next-line no-console
+    console.log(
+        `[t4-x2m] ${label} | wrapListWithGroups calls=${T4_DEBUG.wrapCalls} | top proxy gets:`,
+        top
+    );
+}
+window.__t4DebugX2m = T4_DEBUG;
+window.__t4DebugX2mReset = () => {
+    T4_DEBUG.wrapCalls = 0;
+    T4_DEBUG.proxyGets = {};
+    T4_DEBUG.lastFlushAt = 0;
+    // eslint-disable-next-line no-console
+    console.log("[t4-x2m] counters reset");
+};
+// =============================================================================
+
 function readGroupKey(value, field) {
     if (value === null || value === undefined || value === false || value === "") {
         return { key: FOLD_PLACEHOLDER, display: field.string ? `${field.string}: -` : "-" };
@@ -186,6 +219,12 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
     if (!fieldName || !(fieldName in staticList.fields)) {
         return null;
     }
+    T4_DEBUG.wrapCalls++;
+    // eslint-disable-next-line no-console
+    console.log("[t4-x2m] wrapListWithGroups #" + T4_DEBUG.wrapCalls, {
+        records: staticList.records.length,
+        fieldName,
+    });
     const groups = buildGroups(staticList, fieldName, foldState, archInfoColumns);
     if (!groups || !groups.length) {
         return null;
@@ -202,6 +241,10 @@ export function wrapListWithGroups(staticList, groupByFields, foldState, archInf
     const boundCache = new WeakMap();
     return new Proxy(staticList, {
         get(target, prop) {
+            if (typeof prop === "string") {
+                T4_DEBUG.proxyGets[prop] = (T4_DEBUG.proxyGets[prop] || 0) + 1;
+                t4DebugFlush("proxy.get tick");
+            }
             if (prop === "isGrouped") {
                 return true;
             }

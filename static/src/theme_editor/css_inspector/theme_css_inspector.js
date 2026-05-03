@@ -123,7 +123,6 @@ export class ThemeCssInspector extends Component {
 
     _onMouseMove(ev) {
         if (!this.state.inspecting) return;
-
         // Lock hover if an element is currently selected in visual mode
         if (this.state.mode === 'visual' && this.state.selectedElement) return;
 

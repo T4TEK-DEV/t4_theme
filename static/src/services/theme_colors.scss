@@ -5,7 +5,9 @@
 // ============================================================
 
 // --- Typography ---
-// Apply font-family globally so all UI elements inherit
+// Apply font-family globally so all UI elements inherit.
+// Exclude elements carrying icon classes (FontAwesome `.fa`/`fa-*`, Odoo Icons
+// `.oi`/`oi-*`) so their icon font is not clobbered by !important.
 body,
 .o_web_client,
 .o_action_manager,
@@ -20,7 +22,8 @@ body,
 .toast,
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6,
-input, textarea, select, button {
+input, textarea, select,
+button:not(.fa):not(.oi):not([class*="fa-"]):not([class*="oi-"]) {
     font-family: var(--t4-font-family, inherit) !important;
 }
 

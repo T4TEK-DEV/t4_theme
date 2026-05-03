@@ -42,4 +42,5 @@ export const expandAllItem = {
     )
 };
 
-cogMenuRegistry.add('expand-all-menu', expandAllItem, { sequence: 1 });
+// Cog menu disabled — buttons hiện inline ở ControlPanel (group/search/control_panel/).
+// cogMenuRegistry.add('expand-all-menu', expandAllItem, { sequence: 1 });

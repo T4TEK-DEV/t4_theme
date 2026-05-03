@@ -8,7 +8,7 @@
     <!-- 1. Login Page — "Powered by Odoo" footer -->
     <template id="t4_login_debrand" inherit_id="web.login_layout" name="T4 Debrand Login">
         <xpath expr="//div[hasclass('text-center')]//a[contains(@href,'odoo.com')]" position="replace">
-            <span t-out="request.env.company.t4_brand_name or 'T4 ERP'"/>
+             <span>Powered by <t t-out="request.env.company.t4_brand_name or 'T4 ERP'"/> </span>
         </xpath>
     </template>
 

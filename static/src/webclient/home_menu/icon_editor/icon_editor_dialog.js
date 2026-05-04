@@ -42,8 +42,14 @@ export class IconEditorDialog extends Component {
     setup() {
         this.menus = useService('menu');
         this.orm = useService('orm');
+        this.notification = useService('notification');
         this.initialAppData = { ...this.props.editedAppData };
-        this.editedAppData = useState({ ...this.props.editedAppData });
+        this.editedAppData = useState({
+            iconClass: 'fa fa-home',
+            color: '#FFFFFF',
+            backgroundColor: '#875A7B',
+            ...this.props.editedAppData,
+        });
         this.state = useState({
             activeTab: this.props.editedAppData.type || 'custom_icon',
         });
@@ -96,17 +102,29 @@ export class IconEditorDialog extends Component {
         if (this.editedAppData.type === 'base64' && this.editedAppData.uploaded_attachment_id) {
             iconValue = this.editedAppData.uploaded_attachment_id;
         } else if (this.editedAppData.type === 'custom_icon') {
-            const { iconClass, color, backgroundColor } = this.editedAppData;
+            const iconClass = this.editedAppData.iconClass || 'fa fa-home';
+            const color = this.editedAppData.color || '#FFFFFF';
+            const backgroundColor = this.editedAppData.backgroundColor || '#875A7B';
             iconValue = [iconClass, color, backgroundColor];
         }
 
-        if (iconValue) {
-            await rpc('/t4_theme/edit_menu_icon', {
-                icon: iconValue,
-                menu_id: appId,
-            });
-            await this.menus.reload();
+        if (!iconValue) {
+            this.props.close();
+            return;
         }
+
+        const result = await rpc('/t4_theme/edit_menu_icon', {
+            icon: iconValue,
+            menu_id: appId,
+        });
+        if (!result || !result.success) {
+            this.notification.add(
+                (result && result.error) || 'Lưu biểu tượng thất bại',
+                { type: 'danger' },
+            );
+            return;
+        }
+        await this.menus.reload();
         this.props.close();
     }
 }

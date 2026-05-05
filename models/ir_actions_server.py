@@ -19,8 +19,8 @@ class IrActionsServer(models.Model):
     refresh_view_types = fields.Char(
         string='View Types',
         help=(
-            'Danh sách loại view cách nhau bằng dấu phẩy (vd: list, kanban). '
-            'Để trống để tải lại tất cả.'
+            'Các kiểu hiển thị (ví dụ: dạng danh sách, dạng bảng) được phân tách bằng dấu phẩy. '
+            'Để trống nếu muốn áp dụng cho tất cả.'
         ),
     )
 

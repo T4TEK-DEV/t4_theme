@@ -154,7 +154,7 @@ class ResUsers(models.Model):
     theme_use_personal_colors = fields.Boolean(
         string='Dùng màu cá nhân',
         default=False,
-        help='Bật để dùng bộ màu/font cá nhân thay vì theme công ty.',
+        help='Bật để sử dụng thiết lập màu sắc và phông chữ của riêng bạn thay vì dùng cấu hình chung của công ty.',
     )
 
     theme_color_brand = fields.Char(string='Màu thương hiệu (cá nhân)')
@@ -170,7 +170,7 @@ class ResUsers(models.Model):
 
     theme_font_family = fields.Char(
         string='Font Family (cá nhân)',
-        help='Khóa font cá nhân, để trống thì dùng theo công ty.',
+        help='Chọn phông chữ riêng của bạn, hoặc để trống để sử dụng phông chữ chung của công ty.',
     )
 
     #----------------------------------------------------------

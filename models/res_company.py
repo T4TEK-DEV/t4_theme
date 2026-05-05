@@ -141,14 +141,13 @@ class ResCompany(models.Model):
     t4_brand_name = fields.Char(
         string='Tên thương hiệu',
         default='T4 ERP',
-        help='Thay thế "Odoo" bằng tên thương hiệu trên toàn hệ thống.',
+        help='Thay thế tên hệ thống mặc định bằng tên thương hiệu của bạn trên toàn bộ ứng dụng.',
     )
 
     t4_url_prefix = fields.Char(
         string='URL Prefix',
         default='',
-        help='Tiền tố URL tùy chỉnh để thay /odoo/ trong thanh địa chỉ. '
-             'Để trống giữ /odoo/. Ví dụ: "app" → /app/settings',
+        help='Tùy chỉnh đường dẫn địa chỉ mặc định. Để trống nếu muốn giữ nguyên đường dẫn gốc.',
     )
 
     #----------------------------------------------------------
@@ -314,7 +313,7 @@ class ResCompany(models.Model):
     theme_home_menu_overlay = fields.Boolean(
         string='Home Menu Overlay',
         default=True,
-        help='Bật/tắt màn hình Home Menu toàn trang (phím ESC).',
+        help='Cho phép hiển thị hoặc ẩn màn hình menu chính toàn trang (có thể dùng phím ESC).',
     )
 
     #----------------------------------------------------------
@@ -357,5 +356,5 @@ class ResCompany(models.Model):
     theme_view_overrides = fields.Json(
         string='View Theme Overrides',
         default=dict,
-        help='Bản đồ JSON các tùy chỉnh CSS từ trình chỉnh sửa giao diện.',
+        help='Cấu hình hiển thị giao diện tùy chỉnh.',
     )

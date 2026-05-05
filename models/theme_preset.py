@@ -12,7 +12,7 @@ class ThemePreset(models.Model):
     company_id = fields.Many2one(
         'res.company',
         string='Công ty',
-        help='Nếu chọn, giao diện chỉ hiện cho công ty này. Để trống = dùng chung.',
+        help='Nếu được chọn, giao diện này chỉ hiển thị cho công ty tương ứng. Nếu để trống, giao diện sẽ được dùng chung cho tất cả.',
     )
 
     # Colors (10 fields)
@@ -34,7 +34,7 @@ class ThemePreset(models.Model):
     view_overrides = fields.Json(
         string='View Overrides',
         default=dict,
-        help='Tùy chỉnh CSS theo từng loại view.',
+        help='Cấu hình hiển thị theo từng dạng giao diện.',
     )
 
     # Computed preview color for thumbnail

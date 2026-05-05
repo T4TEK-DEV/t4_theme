@@ -29,6 +29,23 @@ patch(ListRenderer.prototype, {
     },
 
     /**
+     * Account for the leading STT column in the total column count.
+     *
+     * `nbCols` is consumed by 3 templates in web's list_renderer.xml:
+     *   - empty filler rows (`<td t-att-colspan="nbCols">`)
+     *   - the ungrouped "Add a line" row
+     *   - the grouped "Add a line" row
+     *
+     * Without this override the filler/add-line rows render with a colspan
+     * that is one cell short, leaving a visible gap on the right edge of
+     * x2many lists where the STT column was injected.
+     */
+    get nbCols() {
+        const base = super.nbCols;
+        return this.props.t4WithRowNumber ? base + 1 : base;
+    },
+
+    /**
      * When the leading STT column is rendered, the group-name <th> needs to
      * span one more cell so the rest of the group header alignment is
      * preserved.

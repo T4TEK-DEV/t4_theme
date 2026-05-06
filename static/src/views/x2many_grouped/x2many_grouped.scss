@@ -16,6 +16,35 @@
     }
 }
 
+// Resequence drag UX
+//
+// Odoo upstream pins the dragged <tr> with `position: fixed` and switches
+// it to `display: flex` (web/list_renderer.scss .o_data_row.o_dragged).
+// `left` is updated each pointermove to `cursor.x - clickOffset.x`
+// (draggable_hook_builder.js updateElementPosition), so any horizontal
+// cursor drift visibly shifts the floating row out of column alignment.
+// The handle widget itself is just an icon — there is no built-in axis
+// lock, and copying header widths in sortStart only fixes cell sizes, not
+// the row's left position.
+//
+// Modern pattern: hide the floating row entirely and let the placeholder
+// (already inserted in-flow at the drop target) show where the row lands.
+// The placeholder is the source <tr> cloned without children and given
+// `visibility: hidden + display: table-row` by Sortable. We just override
+// its visibility and add a highlight so users see the drop slot.
+.o_field_x2many_list {
+    .o_data_row.o_dragged {
+        visibility: hidden;
+    }
+
+    tr.o_data_row.d-table-row {
+        visibility: visible !important;
+        background: rgba(13, 110, 253, 0.08);
+        outline: 2px dashed rgba(13, 110, 253, 0.45);
+        outline-offset: -2px;
+    }
+}
+
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.
 .o_field_x2many_list .o_list_table.o_list_table_grouped {
     // Pull the group label out to the left so it visually sits outside the

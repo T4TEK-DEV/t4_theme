@@ -16,24 +16,27 @@
     }
 }
 
-// Resequence drag UX — horizontal axis lock
+// Resequence drag UX — snap floating row to placeholder slot
 //
 // Odoo upstream pins the dragged <tr> with `position: fixed` and updates
-// `left` each pointermove to `cursor.x - clickOffset.x`
-// (draggable_hook_builder.js updateElementPosition). Any horizontal
-// cursor drift visibly shifts the floating row out of column alignment
-// because there is no built-in axis lock.
+// `left` / `top` each pointermove to `cursor.{x,y} - clickOffset.{x,y}`
+// (draggable_hook_builder.js updateElementPosition). Any cursor drift
+// visibly desyncs the row from both the column grid and the row slot the
+// user is hovering, since there is no built-in axis lock.
 //
-// We override `left` to the CSS variable `--t4-drag-locked-x` which the
-// patched ListRenderer.sortStart sets to the table's viewport left edge
-// (see list_renderer_patch.js). The row then tracks the cursor only on
-// the Y axis — vertical position still drives drop-target selection,
-// while the column alignment stays intact.
+// The patched ListRenderer.sortStart sets two CSS variables on the
+// dragged element (see list_renderer_patch.js):
+//   --t4-drag-locked-x : table's viewport left edge (constant per drag)
+//   --t4-drag-locked-y : current placeholder's viewport top edge,
+//                        refreshed via rAF on each pointermove
 //
-// Cell widths are already locked by Odoo's own sortStart, which copies
-// each <th>'s computed width down to the matching <td>.
+// `!important` here wins over Odoo's inline `left/top: ...px`, so the
+// floating row visually snaps to the placeholder slot. Cell widths are
+// still copied from headers by Odoo's own sortStart, preserving column
+// proportions.
 .o_field_x2many_list .o_data_row.o_dragged {
     left: var(--t4-drag-locked-x, auto) !important;
+    top: var(--t4-drag-locked-y, auto) !important;
 }
 
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.

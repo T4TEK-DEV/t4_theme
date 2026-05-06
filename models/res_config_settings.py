@@ -135,6 +135,25 @@ class ResConfigSettings(models.TransientModel):
     )
 
     #----------------------------------------------------------
+    # Fields - Layout (per-company defaults)
+    #----------------------------------------------------------
+
+    sidebar_type = fields.Selection(
+        related='company_id.sidebar_type',
+        readonly=False,
+    )
+
+    chatter_position = fields.Selection(
+        related='company_id.chatter_position',
+        readonly=False,
+    )
+
+    dialog_size = fields.Selection(
+        related='company_id.dialog_size',
+        readonly=False,
+    )
+
+    #----------------------------------------------------------
     # Action
     #----------------------------------------------------------
 

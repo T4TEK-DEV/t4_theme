@@ -534,12 +534,10 @@ export class ThemeSystray extends Component {
             t4_brand_name: "",
             t4_web_title: "",
             theme_view_overrides: {},
-        }]);
-        await this.orm.write("res.users", [user.userId], {
             sidebar_type: "large",
             chatter_position: "bottom",
             dialog_size: "minimize",
-        });
+        }]);
         localStorage.removeItem("t4_sidebar");
         this.ui.block();
         browser.location.reload();
@@ -598,14 +596,16 @@ export class ThemeSystray extends Component {
                 }
             }
 
-            if (this.dirtyFields.has("sidebarType")) {
-                userVals.sidebar_type = this.state.sidebarType;
-            }
-            if (this.dirtyFields.has("chatterPosition")) {
-                userVals.chatter_position = this.state.chatterPosition;
-            }
-            if (this.dirtyFields.has("dialogSize")) {
-                userVals.dialog_size = this.state.dialogSize;
+            if (isAdmin) {
+                if (this.dirtyFields.has("sidebarType")) {
+                    companyVals.sidebar_type = this.state.sidebarType;
+                }
+                if (this.dirtyFields.has("chatterPosition")) {
+                    companyVals.chatter_position = this.state.chatterPosition;
+                }
+                if (this.dirtyFields.has("dialogSize")) {
+                    companyVals.dialog_size = this.state.dialogSize;
+                }
             }
 
             const promises = [];

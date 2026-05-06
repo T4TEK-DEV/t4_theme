@@ -114,10 +114,16 @@ def _patch_session_info():
                             'color_appbar_background': company.theme_color_appbar_background or '#111827',
                         },
                     })
-            result['sidebar_type'] = self.env.user.sidebar_type
-            result['chatter_position'] = self.env.user.chatter_position
-            result['dialog_size'] = self.env.user.dialog_size
             user = self.env.user
+            if user.has_group('base.group_system'):
+                result['sidebar_type'] = user.sidebar_type
+                result['chatter_position'] = user.chatter_position
+                result['dialog_size'] = user.dialog_size
+            else:
+                company = user.company_id
+                result['sidebar_type'] = company.sidebar_type or 'large'
+                result['chatter_position'] = company.chatter_position or 'side'
+                result['dialog_size'] = company.dialog_size or 'minimize'
             result['user_theme_use_personal'] = bool(user.theme_use_personal_colors)
             result['user_theme_font_family'] = user.theme_font_family or ''
             result['user_theme_colors'] = {

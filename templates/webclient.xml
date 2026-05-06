@@ -5,7 +5,7 @@
     <!-- AppsBar: Add sidebar class to body -->
     <template id="webclient_bootstrap" name="Web Client" inherit_id="web.webclient_bootstrap">
         <xpath expr="//t[@t-set='body_classname']" position="after">
-            <t t-set="body_sidebar_classname" t-value="'mk_sidebar_type_' + request.env.user.sidebar_type or 'large'"/>
+            <t t-set="body_sidebar_classname" t-value="'mk_sidebar_type_' + (request.env.user.sidebar_type if request.env.user.has_group('base.group_system') else (request.env.user.company_id.sidebar_type or 'large'))"/>
             <t t-set="body_classname" t-value="'%s %s' % (body_classname, body_sidebar_classname)"/>
         </xpath>
     </template>

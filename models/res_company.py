@@ -358,3 +358,37 @@ class ResCompany(models.Model):
         default=dict,
         help='Cấu hình hiển thị giao diện tùy chỉnh.',
     )
+
+    #----------------------------------------------------------
+    # Fields - Layout (per-company defaults for non-admin users)
+    #----------------------------------------------------------
+
+    sidebar_type = fields.Selection(
+        selection=[
+            ('invisible', 'Ẩn'),
+            ('large', 'Hiện'),
+        ],
+        string='Kiểu thanh bên (công ty)',
+        default='large',
+        required=True,
+    )
+
+    chatter_position = fields.Selection(
+        selection=[
+            ('side', 'Bên cạnh'),
+            ('bottom', 'Phía dưới'),
+        ],
+        string='Vị trí Chatter (công ty)',
+        default='side',
+        required=True,
+    )
+
+    dialog_size = fields.Selection(
+        selection=[
+            ('minimize', 'Thu nhỏ'),
+            ('maximize', 'Phóng to'),
+        ],
+        string='Kích thước Dialog (công ty)',
+        default='minimize',
+        required=True,
+    )

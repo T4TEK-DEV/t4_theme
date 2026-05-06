@@ -28,6 +28,8 @@ _USER_THEME_PERSONAL_FIELDS = _USER_THEME_COLOR_FIELDS + [
     'theme_font_family',
 ]
 
+_USER_LAYOUT_FIELDS = ('sidebar_type', 'chatter_position', 'dialog_size')
+
 def _jsonable(o):
     try:
         json.dumps(o)
@@ -195,3 +197,13 @@ class ResUsers(models.Model):
     @check_identity
     def custom_preference_change_password(self):
         pass
+
+    #----------------------------------------------------------
+    # CRUD
+    #----------------------------------------------------------
+
+    def write(self, vals):
+        if any(f in vals for f in _USER_LAYOUT_FIELDS) \
+                and not self.env.user.has_group('base.group_system'):
+            vals = {k: v for k, v in vals.items() if k not in _USER_LAYOUT_FIELDS}
+        return super().write(vals)

@@ -183,7 +183,7 @@
                 </div>
 
                 <!-- ====== Layout Options ====== -->
-                <div class="t4_section">
+                <div class="t4_section" t-if="canEditCompanyTheme">
                     <span class="t4_section_label d-block mb-2">
                         <i class="fa fa-columns me-2"/>Bố cục
                     </span>

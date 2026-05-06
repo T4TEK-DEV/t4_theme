@@ -16,24 +16,40 @@
     }
 }
 
-// Resequence drag UX — horizontal axis lock
+// Resequence drag UX — horizontal axis lock + containing-block offset fix
 //
 // Odoo upstream pins the dragged <tr> with `position: fixed` and updates
-// `left` each pointermove to `cursor.x - clickOffset.x`
-// (draggable_hook_builder.js updateElementPosition). Any horizontal
-// cursor drift visibly shifts the floating row out of column alignment
-// because there is no built-in axis lock.
+// `left`/`top` each pointermove to `cursor.{x,y} - clickOffset.{x,y}`
+// (draggable_hook_builder.js updateElementPosition). Two problems we
+// correct here:
 //
-// We override `left` to the CSS variable `--t4-drag-locked-x` which the
-// patched ListRenderer.sortStart sets to the table's viewport left edge
-// (see list_renderer_patch.js). The row then tracks the cursor only on
-// the Y axis — vertical position still drives drop-target selection,
-// while the column alignment stays intact.
+//   1. Horizontal cursor drift visibly shifts the row out of column
+//      alignment because there is no built-in X-axis lock.
+//   2. When any ancestor has CSS that creates a containing block for
+//      `position: fixed` (transform/filter/perspective/contain/
+//      will-change), the row's inline `top`/`left` resolve relative to
+//      that ancestor instead of the viewport, so the row visibly drifts
+//      away from the cursor (cursor coords stay viewport-relative).
+//
+// The patched ListRenderer.sortStart (list_renderer_patch.js):
+//   - sets --t4-drag-locked-x to the table's viewport left edge;
+//   - measures the resolved rect against the asked-for left/top once at
+//     drag start, exposing the diff as --t4-drag-cb-offset-{x,y}.
+//
+// We then:
+//   - override `left` with the locked X (column alignment intact, Y still
+//     drives drop-target selection);
+//   - apply a `transform: translate(...)` that counters the
+//     containing-block offset, snapping the row back onto the cursor.
 //
 // Cell widths are already locked by Odoo's own sortStart, which copies
 // each <th>'s computed width down to the matching <td>.
 .o_field_x2many_list .o_data_row.o_dragged {
     left: var(--t4-drag-locked-x, auto) !important;
+    transform: translate(
+        var(--t4-drag-cb-offset-x, 0),
+        var(--t4-drag-cb-offset-y, 0)
+    ) !important;
 }
 
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.

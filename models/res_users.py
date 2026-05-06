@@ -28,8 +28,6 @@ _USER_THEME_PERSONAL_FIELDS = _USER_THEME_COLOR_FIELDS + [
     'theme_font_family',
 ]
 
-_USER_LAYOUT_FIELDS = ('sidebar_type', 'chatter_position', 'dialog_size')
-
 def _jsonable(o):
     try:
         json.dumps(o)
@@ -88,9 +86,6 @@ class ResUsers(models.Model):
     @property
     def SELF_READABLE_FIELDS(self):
         return super().SELF_READABLE_FIELDS + [
-            'sidebar_type',
-            'chatter_position',
-            'dialog_size',
             'dark_mode',
             'dark_mode_device_dependent',
         ] + _USER_THEME_PERSONAL_FIELDS
@@ -98,9 +93,6 @@ class ResUsers(models.Model):
     @property
     def SELF_WRITEABLE_FIELDS(self):
         return super().SELF_WRITEABLE_FIELDS + [
-            'sidebar_type',
-            'chatter_position',
-            'dialog_size',
             'dark_mode',
             'dark_mode_device_dependent',
         ] + _USER_THEME_PERSONAL_FIELDS
@@ -108,36 +100,6 @@ class ResUsers(models.Model):
     #----------------------------------------------------------
     # Fields
     #----------------------------------------------------------
-
-    sidebar_type = fields.Selection(
-        selection=[
-            ('invisible', 'Ẩn'),
-            ('large', 'Hiện'),
-        ],
-        string='Kiểu thanh bên',
-        default='large',
-        required=True,
-    )
-
-    chatter_position = fields.Selection(
-        selection=[
-            ('side', 'Bên cạnh'),
-            ('bottom', 'Phía dưới'),
-        ],
-        string='Vị trí Chatter',
-        default='side',
-        required=True,
-    )
-
-    dialog_size = fields.Selection(
-        selection=[
-            ('minimize', 'Thu nhỏ'),
-            ('maximize', 'Phóng to'),
-        ],
-        string='Kích thước Dialog',
-        default='minimize',
-        required=True,
-    )
 
     dark_mode = fields.Boolean(
         string='Dark Mode',
@@ -199,11 +161,13 @@ class ResUsers(models.Model):
         pass
 
     #----------------------------------------------------------
-    # CRUD
+    # Schema cleanup
     #----------------------------------------------------------
 
-    def write(self, vals):
-        if any(f in vals for f in _USER_LAYOUT_FIELDS) \
-                and not self.env.user.has_group('base.group_system'):
-            vals = {k: v for k, v in vals.items() if k not in _USER_LAYOUT_FIELDS}
-        return super().write(vals)
+    def init(self):
+        super().init()
+        self.env.cr.execute("""
+            ALTER TABLE res_users DROP COLUMN IF EXISTS sidebar_type;
+            ALTER TABLE res_users DROP COLUMN IF EXISTS chatter_position;
+            ALTER TABLE res_users DROP COLUMN IF EXISTS dialog_size;
+        """)

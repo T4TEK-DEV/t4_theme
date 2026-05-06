@@ -8,9 +8,6 @@
         <field name="inherit_id" ref="base.view_users_form_simple_modif" />
         <field name="arch" type="xml">
              <xpath expr="//group[@name='other_preferences']" position="inside">
-                <field name="sidebar_type" readonly="0" groups="base.group_system"/>
-                <field name="chatter_position" readonly="0" groups="base.group_system"/>
-                <field name="dialog_size" readonly="0" groups="base.group_system"/>
                 <field name="dark_mode_device_dependent" readonly="0"/>
             </xpath>
         </field>

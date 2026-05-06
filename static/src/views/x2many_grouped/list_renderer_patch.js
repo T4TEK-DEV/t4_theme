@@ -54,4 +54,37 @@ patch(ListRenderer.prototype, {
         const base = super.getGroupNameCellColSpan(group);
         return this.props.t4WithRowNumber ? base + 1 : base;
     },
+
+    /**
+     * Lock the dragged row's horizontal position to the table's viewport
+     * left edge so cursor X drift does not visibly shift the floating row
+     * out of column alignment.
+     *
+     * Odoo upstream pins the row with `position: fixed` and updates `left`
+     * each pointermove to `cursor.x - clickOffset.x` — there is no built-in
+     * axis lock. We expose the table's left as a CSS variable on the
+     * element; an `!important` rule in x2many_grouped.scss reads that var
+     * and wins over Odoo's inline `left: ...px`.
+     *
+     * Cell widths are still copied from headers by the original sortStart
+     * (super call), so the row keeps its column proportions.
+     */
+    sortStart(params) {
+        const result = super.sortStart(params);
+        if (this.tableRef && this.tableRef.el && params && params.element) {
+            const tableRect = this.tableRef.el.getBoundingClientRect();
+            params.element.style.setProperty(
+                "--t4-drag-locked-x",
+                `${tableRect.left}px`
+            );
+        }
+        return result;
+    },
+
+    sortStop(params) {
+        if (params && params.element) {
+            params.element.style.removeProperty("--t4-drag-locked-x");
+        }
+        return super.sortStop(params);
+    },
 });

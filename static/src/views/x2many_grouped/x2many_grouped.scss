@@ -16,6 +16,29 @@
     }
 }
 
+// During drag-resequence, Odoo upstream applies `display: flex` to the
+// dragged <tr> (web/list_renderer.scss `.o_data_row.o_dragged`) and pins it
+// with `position: fixed` (draggable_hook_builder.js). Flex layout drops the
+// table's column widths so cells collapse to natural widths and the floating
+// row visibly drifts to the right of the static rows below.
+//
+// Lock the dragged row's cell flex-basis so it mirrors the static row layout:
+// thin handle, fixed-width STT, data cells fill remaining space. The row then
+// stays visually aligned with the table while still tracking the cursor for
+// drop-target selection.
+.o_field_x2many_list .o_data_row.o_dragged {
+    .o_handle_cell {
+        flex: 0 0 1.5rem;
+    }
+    .o_t4_stt_cell {
+        flex: 0 0 3rem;
+    }
+    .o_data_cell {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
 // Visual tweaks for x2many list views rendered in grouped mode inside form views.
 .o_field_x2many_list .o_list_table.o_list_table_grouped {
     // Pull the group label out to the left so it visually sits outside the

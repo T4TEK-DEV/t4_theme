@@ -2,39 +2,43 @@
 <templates xml:space="preserve">
 
     <!--
-        STT (số thứ tự) injection cho list view trong x2many.
+        STT (số thứ tự) column for x2many list views.
 
-        Layout cố định:
-            [selector?] [handle?] [STT] [field columns...]
+        STT is injected as a real entry in `this.columns` by the
+        `getActiveColumns` patch in list_renderer_patch.js. The entry has
+        `type: "t4_stt"` and `attrs.width: "48px"` so Odoo's
+        `useMagicColumnWidths` hook treats it as a regular column — width
+        is computed correctly and column-resize / min-max logic stays in
+        sync with the rest of the columns.
 
-        Khi list có cột `widget="handle"`, STT chèn ngay SAU cột handle để
-        thanh tay kéo (drag) đứng đầu — đúng convention list editable
-        Odoo. Khi không có handle, STT là cell đầu tiên sau selector.
+        These template extensions add a `column.type === "t4_stt"` branch
+        inside the standard column foreach in web's list_renderer.xml so
+        the column renders a proper <th> / <td> at the right index.
 
-        Hai nhánh xpath dưới đây loại trừ nhau qua điều kiện `withHandleColumn`
-        (renderer-level, set trong ListRenderer.setup) và `column.widget`
-        (per-iteration). Mỗi render chỉ kích hoạt đúng 1 nhánh → tổng cell
-        per row luôn = nbCols (đã patch +1 trong list_renderer_patch.js).
-
-        Hàng "Add a line" và filler row tự động bù 1 cell qua patch
-        `nbCols`/`getGroupNameCellColSpan` — không cần inject thêm <td/>.
+        Important — t-if/t-else chaining:
+            The thead foreach in upstream is
+                <th t-if="column.type === 'field'">...</th>
+                <th t-else=""/>
+            Inserting our t-if between them would break the t-else
+            pairing (it would chain to our new t-if, causing the legacy
+            empty <th> to render whenever STT does). We therefore convert
+            `t-else=""` to an explicit `t-if` with the complementary
+            condition before inserting. Same constraint does not apply to
+            the row template because it uses three independent t-ifs.
     -->
 
     <t t-name="t4_theme.ListRendererSTTHead"
        t-inherit="web.ListRenderer"
        t-inherit-mode="extension">
-        <!-- Không có cột handle: STT đứng đầu, ngay sau selector. -->
-        <xpath expr="//thead/tr/t[@t-foreach='columns']" position="before">
-            <th t-if="props.t4WithRowNumber and !withHandleColumn"
-                class="o_t4_stt_col text-center align-middle"
-                tabindex="-1"
-                t-on-keydown="(ev) => this.onCellKeydown(ev)">
-                STT
-            </th>
+        <!-- Convert legacy t-else into explicit t-if so STT branch can be
+             inserted without breaking the t-else pairing. -->
+        <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-else='']" position="attributes">
+            <attribute name="t-else"/>
+            <attribute name="t-if">column.type !== 'field' and column.type !== 't4_stt'</attribute>
         </xpath>
-        <!-- Có cột handle: STT chèn ngay sau cột handle trong vòng foreach. -->
-        <xpath expr="//thead/tr/t[@t-foreach='columns']" position="inside">
-            <th t-if="props.t4WithRowNumber and column.widget === 'handle'"
+        <!-- Insert STT branch right after the 'field' branch. -->
+        <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="after">
+            <th t-if="column.type === 't4_stt'"
                 class="o_t4_stt_col text-center align-middle"
                 tabindex="-1"
                 t-on-keydown="(ev) => this.onCellKeydown(ev)">
@@ -46,23 +50,14 @@
     <t t-name="t4_theme.ListRendererSTTRow"
        t-inherit="web.ListRenderer.RecordRow"
        t-inherit-mode="extension">
-        <!-- Không có cột handle: STT đứng đầu, ngay sau selector. -->
-        <xpath expr="//t[@t-foreach='getColumns(record)']" position="before">
-            <td t-if="props.t4WithRowNumber and !withHandleColumn"
-                class="o_t4_stt_cell text-center align-middle text-muted"
-                t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
-                tabindex="-1">
-                <t t-esc="t4GetRowNumber(record)"/>
-            </td>
-        </xpath>
-        <!-- Có cột handle: STT chèn ngay sau cột handle trong vòng foreach. -->
-        <xpath expr="//t[@t-foreach='getColumns(record)']" position="inside">
-            <td t-if="props.t4WithRowNumber and column.widget === 'handle'"
-                class="o_t4_stt_cell text-center align-middle text-muted"
-                t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
-                tabindex="-1">
-                <t t-esc="t4GetRowNumber(record)"/>
-            </td>
+        <xpath expr="//t[@t-foreach='getColumns(record)']/t[@t-if=&quot;column.type === 'widget'&quot;]" position="after">
+            <t t-if="column.type === 't4_stt'">
+                <td class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
+                    t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
+                    tabindex="-1">
+                    <t t-esc="t4GetRowNumber(record)"/>
+                </td>
+            </t>
         </xpath>
     </t>
 

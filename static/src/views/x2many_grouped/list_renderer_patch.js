@@ -10,9 +10,55 @@ if (!ListRenderer.props.includes("t4WithRowNumber?")) {
 
 patch(ListRenderer.prototype, {
     /**
+     * Inject a virtual STT (sequence number) column into the active column
+     * list when `t4WithRowNumber` is set on the renderer props.
+     *
+     * The column is a real entry in `this.columns` (not a template-injected
+     * cell) so Odoo's `useMagicColumnWidths` hook computes widths correctly:
+     *
+     *   - `attrs.width = "48px"` → getWidthSpecs returns minWidth=maxWidth=48
+     *   - `type = "t4_stt"` (custom) → canShrink=false, so the hook never
+     *     squeezes STT below 48px even when the parent is narrow
+     *   - `column.id = "_t4_stt"` is unique → magic-widths' hash detects
+     *     the column set correctly when STT toggles on/off
+     *
+     * Position:
+     *   - if a `widget="handle"` column exists, STT goes immediately after
+     *     it so the drag handle stays leftmost (matches list-editable
+     *     convention)
+     *   - otherwise STT is the leading column, after the optional selector
+     *
+     * The dedicated cell is rendered in list_renderer_stt.xml via a
+     * `column.type === "t4_stt"` branch added to both the thead foreach
+     * (label "STT") and the row foreach (row number).
+     */
+    getActiveColumns() {
+        const baseColumns = super.getActiveColumns();
+        if (!this.props.t4WithRowNumber) {
+            return baseColumns;
+        }
+        const sttColumn = {
+            id: "_t4_stt",
+            type: "t4_stt",
+            name: "_t4_stt",
+            label: "STT",
+            attrs: { width: "48px" },
+            optional: false,
+            hasLabel: false,
+            invisible: undefined,
+            column_invisible: undefined,
+        };
+        const handleIdx = baseColumns.findIndex((col) => col.widget === "handle");
+        const insertIdx = handleIdx >= 0 ? handleIdx + 1 : 0;
+        const newColumns = baseColumns.slice();
+        newColumns.splice(insertIdx, 0, sttColumn);
+        return newColumns;
+    },
+
+    /**
      * Compute the global 1-based row number for a given record, accounting
-     * for the current list offset (pagination). Used by the leading "STT"
-     * column injected via t4_theme.ListRendererSTT* template extensions.
+     * for the current list offset (pagination). Used by the STT column
+     * cell rendered in list_renderer_stt.xml.
      *
      * For both grouped and ungrouped lists we look up the index in
      * `props.list.records` (the master records array), so a record sitting
@@ -26,33 +72,6 @@ patch(ListRenderer.prototype, {
         const offset = baseList.offset || 0;
         const idx = baseList.records.indexOf(record);
         return (idx >= 0 ? idx : 0) + offset + 1;
-    },
-
-    /**
-     * Account for the leading STT column in the total column count.
-     *
-     * `nbCols` is consumed by 3 templates in web's list_renderer.xml:
-     *   - empty filler rows (`<td t-att-colspan="nbCols">`)
-     *   - the ungrouped "Add a line" row
-     *   - the grouped "Add a line" row
-     *
-     * Without this override the filler/add-line rows render with a colspan
-     * that is one cell short, leaving a visible gap on the right edge of
-     * x2many lists where the STT column was injected.
-     */
-    get nbCols() {
-        const base = super.nbCols;
-        return this.props.t4WithRowNumber ? base + 1 : base;
-    },
-
-    /**
-     * When the leading STT column is rendered, the group-name <th> needs to
-     * span one more cell so the rest of the group header alignment is
-     * preserved.
-     */
-    getGroupNameCellColSpan(group) {
-        const base = super.getGroupNameCellColSpan(group);
-        return this.props.t4WithRowNumber ? base + 1 : base;
     },
 
     /**
@@ -92,10 +111,6 @@ patch(ListRenderer.prototype, {
             const el = params.element;
             const tableRect = this.tableRef.el.getBoundingClientRect();
             el.style.setProperty("--t4-drag-locked-x", `${tableRect.left}px`);
-            // Force a reflow via getBoundingClientRect so the rect reflects
-            // the just-applied X lock, then derive the containing-block
-            // offset from the diff between resolved rect and asked-for
-            // values. styleTop is what Odoo wrote inline (viewport coord).
             const rect = el.getBoundingClientRect();
             const styleTop = parseFloat(el.style.top) || 0;
             const cbOffsetX = rect.left - tableRect.left;

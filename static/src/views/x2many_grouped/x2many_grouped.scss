@@ -1,11 +1,14 @@
 // Leading row-number column injected into every x2many list view in form
 // views (see list_renderer_stt.xml + list_renderer_patch.js).
+//
+// Column width is owned by Odoo's useMagicColumnWidths hook via the
+// virtual column entry's `attrs.width = "48px"` (set in getActiveColumns
+// patch). We intentionally do NOT pin width / min-width / max-width here
+// — that fights the hook's inline `style.width` and breaks column-resize
+// alignment + total-width distribution. CSS only handles cosmetics.
 .o_field_x2many_list .o_list_table {
     .o_t4_stt_col,
     .o_t4_stt_cell {
-        width: 3rem;
-        min-width: 3rem;
-        max-width: 3.5rem;
         font-variant-numeric: tabular-nums;
     }
     .o_t4_stt_col {
@@ -14,6 +17,70 @@
     .o_t4_stt_cell {
         color: var(--o-list-row-number-color, #6c757d);
     }
+}
+
+// Contain column-resize overflow within the x2many renderer.
+//
+// Odoo's useMagicColumnWidths hook pins `table.parentElement.style.width`
+// on resize start so the parent doesn't grow, but does not enable
+// horizontal scroll on it. With Odoo's default styling that's fine when
+// the x2many is the only sibling; in flex layouts where two x2many lists
+// share a row (e.g. the assembly form's "Linh Kiện Sử Dụng" / "Linh Kiện
+// Trả" pair), the resized table overflows visibly past its renderer and
+// pushes the flex item wider, squeezing the sibling.
+//
+// `overflow-x: auto` on the renderer makes the resize scroll inside the
+// renderer instead. Combined with `.min-w-0` on the flex-fill wrappers
+// in the form view (default flex `min-width: auto` would otherwise let
+// the item grow to its content's intrinsic width), each list stays
+// inside its 50% share regardless of how far the user resizes columns.
+.o_field_x2many_list .o_list_renderer {
+    overflow-x: auto;
+}
+
+// Bootstrap 5 (Odoo 19) does not ship a `.min-w-0` utility for the
+// `min-width: 0` property — only viewport-based variants. We provide it
+// here so the form view classes (`<div class="flex-fill min-w-0">`) take
+// effect. Without this, default flex `min-width: auto` lets a flex item
+// grow to its content's intrinsic width when the inner table is wider
+// than the item's share, squeezing siblings.
+//
+// Why cascade min-width:0 down the descendants:
+//   The form layout in question wraps each x2many list in
+//       <div class="flex-fill min-w-0">
+//         <group class="oe_group_border">      → renders <div class="o_inner_group grid">
+//           <field colspan="2"/>               → wrapped in <div class="o_cell">
+//             <div class="o_field_widget ..."> width: 100%
+//   CSS Grid items default to `min-width: auto` (= min-content) just
+//   like flex items. After Odoo's resize hook pins
+//   `o_list_renderer.style.width = <current>px`, that pixel width
+//   becomes the grid cell's intrinsic content size, pushing the grid
+//   container — and through it the flex item — wider than the share.
+//   Setting `min-width: 0` on the flex item alone is not enough; we
+//   must repeat it on each intermediate grid container so none of them
+//   inflate to content size.
+.min-w-0 {
+    min-width: 0 !important;
+}
+
+.d-flex > .flex-fill.min-w-0 {
+    .o_inner_group,
+    .o_cell,
+    .o_field_widget,
+    .oe_group_border {
+        min-width: 0;
+    }
+}
+
+// Constrain renderer to its grid cell. Bootstrap's `.table-responsive`
+// already gives the renderer `overflow-x: auto`, but only the table
+// inside scrolls — the renderer itself, once the resize hook pins its
+// inline width to a pixel value, would otherwise extend past its
+// parent. `max-width: 100%` clamps it to the parent's resolved width
+// so the table-responsive scrollbar lives inside the group, not on
+// top of the sibling group.
+.d-flex > .flex-fill.min-w-0 .o_list_renderer {
+    max-width: 100%;
 }
 
 // Resequence drag UX — horizontal axis lock + containing-block offset fix

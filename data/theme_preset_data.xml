@@ -18,23 +18,6 @@
         <field name="font_family">system</field>
     </record>
 
-    <record id="preset_hqg" model="t4_theme.preset">
-        <field name="name">HQG Blue</field>
-        <field name="sequence">2</field>
-        <field name="is_default" eval="True"/>
-        <field name="color_brand">#173b77</field>
-        <field name="color_primary">#007ad1</field>
-        <field name="color_success">#62ab00</field>
-        <field name="color_info">#00aff2</field>
-        <field name="color_warning">#febd00</field>
-        <field name="color_danger">#e53935</field>
-        <field name="color_appsmenu_text">#FFFFFF</field>
-        <field name="color_appbar_text">#DEE2E6</field>
-        <field name="color_appbar_active">#007ad1</field>
-        <field name="color_appbar_background">#173b77</field>
-        <field name="font_family">system</field>
-    </record>
-
     <record id="preset_ocean" model="t4_theme.preset">
         <field name="name">Ocean</field>
         <field name="sequence">3</field>

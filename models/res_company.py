@@ -108,7 +108,6 @@ class ResCompany(models.Model):
     theme_preset = fields.Selection(
         selection=[
             ('default', 'Mặc định'),
-            ('hqg', 'HQG Blue'),
             ('ocean', 'Ocean'),
             ('forest', 'Forest'),
             ('sunset', 'Sunset'),

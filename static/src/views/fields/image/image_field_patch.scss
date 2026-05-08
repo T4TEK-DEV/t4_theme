@@ -1,0 +1,8 @@
+.o_field_image {
+    width: fit-content !important;
+}
+
+.o_field_image .opacity-trigger-hover:hover > .o_image_upload_hint {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}

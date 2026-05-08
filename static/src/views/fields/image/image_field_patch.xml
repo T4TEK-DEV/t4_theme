@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="t4_sti_hqg.ImageFieldPatch" t-inherit="web.ImageField" t-inherit-mode="extension">
+        <xpath expr="//img" position="after">
+            <div t-if="!props.readonly and fieldType !== 'many2one'"
+                 class="o_image_upload_hint position-absolute d-flex flex-column align-items-center justify-content-center"
+                 style="top:0; left:0; z-index: 2; opacity: 0; pointer-events: none; background: rgba(0,0,0,0.35); color: #fff; cursor: pointer; transition: opacity 200ms ease;"
+                 t-on-click="onImageClick">
+                <i class="fa fa-camera" style="font-size: 1.4rem;"/>
+                <span style="font-size: 0.85rem; font-weight: 500;">Tải lên</span>
+            </div>
+        </xpath>
+        <xpath expr="//img" position="attributes">
+            <attribute name="t-on-click">onImageClick</attribute>
+        </xpath>
+    </t>
+</templates>

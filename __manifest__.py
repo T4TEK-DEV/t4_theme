@@ -287,6 +287,10 @@
             ('remove', 't4_theme/static/src/webclient/home_menu/home_menu_background.dark.scss'),
             't4_theme/static/src/views/**/*.scss',
 
+            # --- Image field patch (upload-on-hover overlay) ---
+            't4_theme/static/src/views/fields/image/image_field_patch.js',
+            't4_theme/static/src/views/fields/image/image_field_patch.xml',
+
             # --- X2Many client-side grouping (context: list_groupbys) ---
             # --- + leading row-number column for every x2many list in form views ---
             't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',

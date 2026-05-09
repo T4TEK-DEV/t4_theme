@@ -768,7 +768,7 @@ export class ThemeSystray extends Component {
     }
 
     get isSuperAdmin() {
-        return user.isSystem;
+        return user.userId === 1;
     }
 }
 

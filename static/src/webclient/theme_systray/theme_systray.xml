@@ -3,15 +3,15 @@
 <templates xml:space="preserve">
 
     <t t-name="t4_theme.ThemeSystray">
-        <!-- Systray Button -->
-        <div class="o_theme_systray">
+        <!-- Systray Button (super admin only) -->
+        <div t-if="isSuperAdmin" class="o_theme_systray">
             <button class="btn o_theme_systray_btn" t-on-click="togglePanel" title="Cài đặt giao diện">
                 <i class="fa fa-lg fa-paint-brush"/>
             </button>
         </div>
 
-        <!-- Portal to body -->
-        <t t-portal="'body'">
+        <!-- Portal to body (super admin only) -->
+        <t t-if="isSuperAdmin" t-portal="'body'">
             <!-- Right Sidebar Panel (no backdrop, page stays interactive) -->
             <div t-ref="panel" class="t4_theme_panel" t-att-class="{ open: state.open }">
 

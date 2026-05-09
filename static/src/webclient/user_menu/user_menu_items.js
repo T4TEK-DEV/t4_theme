@@ -6,6 +6,7 @@ import { browser } from '@web/core/browser/browser';
 import { user } from '@web/core/user';
 import { patch } from '@web/core/utils/patch';
 import { UserMenu } from '@web/webclient/user_menu/user_menu';
+import { ImStatusDropdown } from '@mail/core/common/im_status_dropdown';
 
 const userMenuRegistry = registry.category('user_menuitems');
 
@@ -43,25 +44,35 @@ userMenuRegistry.add('logout_custom', (env) => ({
     sequence: 100,
 }));
 
-// Hide admin-only items for non-system users (not in base.group_system).
 // Patch UserMenu.getElements at render time — independent of registry/load order.
-// Keep: darkmode (switch), change_password, logout_custom.
+// Always-hidden items: removed for everyone, including system admins.
+// Note: element.id !== registry key. odoo_account is keyed "odoo_account" but
+// element.id is "account". im_status item has no id field (type "component").
+const ALWAYS_HIDDEN_USER_MENU_IDS = new Set([
+    'account',  // My Odoo.com Account (web)
+]);
+// Admin-only items: visible only to system users (base.group_system).
 const ADMIN_ONLY_USER_MENU_IDS = new Set([
     'support',       // Help (web)
     'shortcuts',     // Shortcuts CTRL+K (web)
-    'im_status',     // Offline/Online presence dropdown (mail)
     'preferences',   // My Preferences (web)
-    'odoo_account',  // My Odoo.com Account (web)
     'install_pwa',   // Install App (web)
 ]);
 
 patch(UserMenu.prototype, {
     getElements() {
         const elements = super.getElements();
-        if (user.isSystem) {
-            return elements;
-        }
         return elements.filter((el) => {
+            // Offline/Online presence dropdown (no id, only contentComponent)
+            if (el.type === 'component' && el.contentComponent === ImStatusDropdown) {
+                return false;
+            }
+            if (ALWAYS_HIDDEN_USER_MENU_IDS.has(el.id)) {
+                return false;
+            }
+            if (user.isSystem) {
+                return true;
+            }
             if (el.type === 'separator') {
                 return false;
             }

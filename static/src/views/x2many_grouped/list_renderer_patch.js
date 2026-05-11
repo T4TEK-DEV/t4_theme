@@ -63,15 +63,49 @@ patch(ListRenderer.prototype, {
      * For both grouped and ungrouped lists we look up the index in
      * `props.list.records` (the master records array), so a record sitting
      * inside a client-side group still gets a globally-stable number.
+     *
+     * Edge cases:
+     *   - Record không có trong `records` (ví dụ draft mới tạo bằng
+     *     "Add a line" chưa commit vào StaticList): trả về chuỗi rỗng
+     *     thay vì 0 — fallback `idx=0` cũ làm STT âm khi `offset < 0`.
+     *   - `offset` âm: ở x2many StaticList, `offset` có thể tạm thời nhận
+     *     giá trị âm khi Odoo điều chỉnh count sau commit (đã thấy STT
+     *     hiển thị -39 do `0 + (-40) + 1`). Clamp về 0 cho an toàn —
+     *     pagination thực không bao giờ dưới 0.
      */
     t4GetRowNumber(record) {
         const baseList = this.props.list;
         if (!baseList || !baseList.records) {
             return "";
         }
-        const offset = baseList.offset || 0;
-        const idx = baseList.records.indexOf(record);
-        return (idx >= 0 ? idx : 0) + offset + 1;
+        let idx = baseList.records.indexOf(record);
+        // Grouped fallback: walk visible groups in render order khi record
+        // nằm trong subList của 1 group nhưng records chính chưa sync
+        // (xảy ra ngay sau khi attachGroupingToList rebuild groups).
+        if (idx < 0 && Array.isArray(baseList.groups)) {
+            let walked = 0;
+            for (const group of baseList.groups) {
+                if (group && group.isFolded) {
+                    continue;
+                }
+                const recs = group && group.list && group.list.records;
+                if (!recs) {
+                    continue;
+                }
+                const local = recs.indexOf(record);
+                if (local >= 0) {
+                    idx = walked + local;
+                    break;
+                }
+                walked += recs.length;
+            }
+        }
+        if (idx < 0) {
+            return "";
+        }
+        const rawOffset = baseList.offset;
+        const offset = Number.isFinite(rawOffset) && rawOffset > 0 ? rawOffset : 0;
+        return idx + offset + 1;
     },
 
     /**

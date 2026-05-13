@@ -44,4 +44,8 @@ class ChangePasswordWizard(models.TransientModel):
             raise ValidationError(_('Mật khẩu mới và xác nhận mật khẩu phải giống nhau.'))
         self.env.user._change_password(self.new_password)
         self.unlink()
-        return {'type': 'ir.actions.client', 'tag': 'logout_tag'}
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/session/logout',
+            'target': 'self',
+        }

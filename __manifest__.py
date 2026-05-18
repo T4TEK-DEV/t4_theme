@@ -7,7 +7,7 @@
         Giao diện có sẵn, Dark mode, Dialog toàn màn hình, Thu gọn/Mở rộng nhóm,
         Làm mới view, Tùy chỉnh thương hiệu.
     ''',
-    'version': '19.0.1.0.0',
+    'version': '1.0',
     'category': 'Themes/Backend',
     'license': 'LGPL-3',
     'author': 'T4Tek',

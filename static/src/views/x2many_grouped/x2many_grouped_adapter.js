@@ -127,50 +127,55 @@ function buildGroups(rawList, fieldName, foldState, archInfoColumns) {
     if (!field) {
         return null;
     }
-    const buckets = new Map();
-    const order = [];
-    // Track first record index per bucket — dùng để sort group theo
-    // (depth, first appearance) thay vì map insertion order.
-    let recIdx = 0;
-    for (const record of rawList.records) {
+    const hasSortPath = "t4_tree_sort_path" in rawList.fields;
+    const hasDepth = "t4_tree_depth" in rawList.fields;
+    // Pre-sort records by DFS sort path if available — server-side BFS+DFS
+    // assigns an interleaved sort index per line so child sub-trees fall
+    // immediately after the parent line in the ordering. With this in place,
+    // the contiguous-run bucketing below naturally produces the expected
+    // tree-style visual (groups may "split" across the list, e.g. parent
+    // creation appears twice with a child group between the halves).
+    let records = rawList.records;
+    if (hasSortPath) {
+        records = records.slice().sort((a, b) => {
+            const pa = (a.data && a.data.t4_tree_sort_path) || "";
+            const pb = (b.data && b.data.t4_tree_sort_path) || "";
+            return pa < pb ? -1 : pa > pb ? 1 : 0;
+        });
+    }
+    // Contiguous-run bucketing: each maximal run of consecutive records with
+    // the same group key forms ONE bucket. Same key reappearing later starts
+    // a NEW bucket. Group id includes the bucket index so each occurrence is
+    // independent in the renderer (separate fold state, distinct DOM row).
+    const bucketList = [];
+    let prevKey = null;
+    let currentBucket = null;
+    for (const record of records) {
         const value = record.data[fieldName];
         const { key, display } = readGroupKey(value, field);
-        if (!buckets.has(key)) {
-            buckets.set(key, {
+        if (key !== prevKey || currentBucket === null) {
+            currentBucket = {
                 key,
                 displayName: display,
                 rawValue: value,
                 records: [],
-                firstIdx: recIdx,
-            });
-            order.push(key);
+                bucketIdx: bucketList.length,
+            };
+            bucketList.push(currentBucket);
+            prevKey = key;
         }
-        buckets.get(key).records.push(record);
-        recIdx++;
+        currentBucket.records.push(record);
     }
-    // Detect t4_tree_depth field availability (UI-only field passed via
-    // context-driven server compute). Mọi record trong cùng group có cùng
-    // depth — đọc từ record đầu là đủ.
-    const hasDepth = "t4_tree_depth" in rawList.fields;
     if (hasDepth) {
-        for (const key of order) {
-            const bucket = buckets.get(key);
+        for (const bucket of bucketList) {
             const r0 = bucket.records[0];
             bucket.t4Depth = (r0 && r0.data && Number(r0.data.t4_tree_depth)) || 0;
         }
-        // Sort buckets BFS-style: depth ASC, then first appearance ASC.
-        order.sort((a, b) => {
-            const ba = buckets.get(a);
-            const bb = buckets.get(b);
-            if (ba.t4Depth !== bb.t4Depth) {
-                return ba.t4Depth - bb.t4Depth;
-            }
-            return ba.firstIdx - bb.firstIdx;
-        });
+        // No additional sorting — bucketList is already in correct order
+        // because we pre-sorted records by DFS sort path above.
     }
-    return order.map((key) => {
-        const bucket = buckets.get(key);
-        const groupId = `t4_x2m_${fieldName}_${key}`;
+    return bucketList.map((bucket) => {
+        const groupId = `t4_x2m_${fieldName}_${bucket.key}_${bucket.bucketIdx}`;
         const groupRecords = bucket.records;
         const groupByField = {
             name: fieldName,
@@ -287,6 +292,7 @@ export function attachGroupingToList(staticList, groupByFields, foldState, archI
         const records = rawList.records;
         let sig = `${records.length}`;
         const hasDepth = "t4_tree_depth" in rawList.fields;
+        const hasSortPath = "t4_tree_sort_path" in rawList.fields;
         for (const r of records) {
             const id = r.resId || r._virtualId || r.id;
             const v = r.data ? r.data[fieldName] : undefined;
@@ -299,6 +305,9 @@ export function attachGroupingToList(staticList, groupByFields, foldState, archI
             sig += `|${id}=${vKey}`;
             if (hasDepth && r.data) {
                 sig += `:d${Number(r.data.t4_tree_depth) || 0}`;
+            }
+            if (hasSortPath && r.data) {
+                sig += `:p${r.data.t4_tree_sort_path || ""}`;
             }
         }
         return sig;

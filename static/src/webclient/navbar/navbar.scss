@@ -52,3 +52,13 @@
         transform: none !important;
     }
 }
+
+// Ẩn chấm trạng thái online/offline (ImStatus) cạnh avatar user menu.
+// Selector dual để cover cả 2 class name Odoo dùng: `.o-mail-ImStatus`
+// (chung — đăng ký bởi @mail) + `.o-web-UserMenu-imStatus` (riêng usermenu).
+.o_user_menu {
+    .o-mail-ImStatus,
+    .o-web-UserMenu-imStatus {
+        display: none !important;
+    }
+}

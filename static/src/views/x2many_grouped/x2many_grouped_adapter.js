@@ -129,14 +129,44 @@ function buildGroups(rawList, fieldName, foldState, archInfoColumns) {
     }
     const buckets = new Map();
     const order = [];
+    // Track first record index per bucket — dùng để sort group theo
+    // (depth, first appearance) thay vì map insertion order.
+    let recIdx = 0;
     for (const record of rawList.records) {
         const value = record.data[fieldName];
         const { key, display } = readGroupKey(value, field);
         if (!buckets.has(key)) {
-            buckets.set(key, { key, displayName: display, rawValue: value, records: [] });
+            buckets.set(key, {
+                key,
+                displayName: display,
+                rawValue: value,
+                records: [],
+                firstIdx: recIdx,
+            });
             order.push(key);
         }
         buckets.get(key).records.push(record);
+        recIdx++;
+    }
+    // Detect t4_tree_depth field availability (UI-only field passed via
+    // context-driven server compute). Mọi record trong cùng group có cùng
+    // depth — đọc từ record đầu là đủ.
+    const hasDepth = "t4_tree_depth" in rawList.fields;
+    if (hasDepth) {
+        for (const key of order) {
+            const bucket = buckets.get(key);
+            const r0 = bucket.records[0];
+            bucket.t4Depth = (r0 && r0.data && Number(r0.data.t4_tree_depth)) || 0;
+        }
+        // Sort buckets BFS-style: depth ASC, then first appearance ASC.
+        order.sort((a, b) => {
+            const ba = buckets.get(a);
+            const bb = buckets.get(b);
+            if (ba.t4Depth !== bb.t4Depth) {
+                return ba.t4Depth - bb.t4Depth;
+            }
+            return ba.firstIdx - bb.firstIdx;
+        });
     }
     return order.map((key) => {
         const bucket = buckets.get(key);
@@ -182,6 +212,7 @@ function buildGroups(rawList, fieldName, foldState, archInfoColumns) {
             groupByField,
             record: { resId: false, isNew: false, evalContext: rawList.evalContext },
             list: subList,
+            t4Depth: bucket.t4Depth || 0,
             get isFolded() {
                 return !!foldState[groupId];
             },
@@ -255,6 +286,7 @@ export function attachGroupingToList(staticList, groupByFields, foldState, archI
     function currentSignature() {
         const records = rawList.records;
         let sig = `${records.length}`;
+        const hasDepth = "t4_tree_depth" in rawList.fields;
         for (const r of records) {
             const id = r.resId || r._virtualId || r.id;
             const v = r.data ? r.data[fieldName] : undefined;
@@ -265,6 +297,9 @@ export function attachGroupingToList(staticList, groupByFields, foldState, archI
                     ? "f"
                     : String(v);
             sig += `|${id}=${vKey}`;
+            if (hasDepth && r.data) {
+                sig += `:d${Number(r.data.t4_tree_depth) || 0}`;
+            }
         }
         return sig;
     }

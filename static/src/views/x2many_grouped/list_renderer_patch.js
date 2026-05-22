@@ -2,6 +2,7 @@
 
 import { patch } from "@web/core/utils/patch";
 import { ListRenderer } from "@web/views/list/list_renderer";
+import { onRendered } from "@odoo/owl";
 
 // Register the additional optional prop so OWL prop validation passes.
 if (!ListRenderer.props.includes("t4WithRowNumber?")) {
@@ -9,6 +10,56 @@ if (!ListRenderer.props.includes("t4WithRowNumber?")) {
 }
 
 patch(ListRenderer.prototype, {
+    setup() {
+        super.setup();
+        // After each render, propagate group.t4Depth onto group <tr> as
+        // data-t4-depth, and copy it down to data rows belonging to the
+        // group. XML template inheritance does the same statically but the
+        // DOM walk is a robust fallback when the inheritance hasn't loaded
+        // (e.g. asset cache issues) — and the cost is negligible (one
+        // table walk per render, no layout thrashing since we only touch
+        // attributes).
+        // Propagate group depth (computed by the x2many_grouped adapter
+        // from `t4_tree_depth`) onto each <tr> as `data-t4-depth`. SCSS
+        // uses that attribute solely to indent the first cell per depth —
+        // no other attributes (no `data-t4-last`/`-first`) needed.
+        const applyTreeAttrs = () => {
+            const tableEl = this.tableRef && this.tableRef.el;
+            if (!tableEl) {
+                return;
+            }
+            // Clear stale attrs from any previous render.
+            for (const tr of tableEl.querySelectorAll(
+                "tr[data-t4-depth], tr[data-t4-last], tr[data-t4-first]"
+            )) {
+                tr.removeAttribute("data-t4-depth");
+                tr.removeAttribute("data-t4-last");
+                tr.removeAttribute("data-t4-first");
+            }
+            const list = this.props && this.props.list;
+            if (!list || !list.isGrouped || !Array.isArray(list.groups)) {
+                return;
+            }
+            const depthByGroupId = {};
+            list.groups.forEach((group) => {
+                if (group && typeof group.t4Depth === "number") {
+                    depthByGroupId[group.id] = group.t4Depth;
+                }
+            });
+            for (const tr of tableEl.querySelectorAll(
+                "tr.o_group_header, tr.o_data_row"
+            )) {
+                const gid = tr.getAttribute("data-group-id");
+                if (gid && gid in depthByGroupId) {
+                    tr.setAttribute("data-t4-depth", String(depthByGroupId[gid]));
+                }
+            }
+        };
+        onRendered(() => {
+            requestAnimationFrame(applyTreeAttrs);
+        });
+    },
+
     /**
      * Inject a virtual STT (sequence number) column into the active column
      * list when `t4WithRowNumber` is set on the renderer props.

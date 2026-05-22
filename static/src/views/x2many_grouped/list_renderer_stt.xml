@@ -61,4 +61,31 @@
         </xpath>
     </t>
 
+    <!--
+        Expose `group.t4Depth` lên DOM cho SCSS (indent + comment-thread
+        tree lines). `t4Depth` được attach bởi x2many_grouped_adapter.js
+        khi field `t4_tree_depth` có trong list view; nếu không có thì
+        attribute = "0" — không ảnh hưởng layout default.
+    -->
+    <t t-name="t4_theme.ListRendererGroupRowDepth"
+       t-inherit="web.ListRenderer.GroupRow"
+       t-inherit-mode="extension">
+        <xpath expr="//tr[@t-att-data-group-id='group.id']" position="attributes">
+            <attribute name="t-att-data-t4-depth">group.t4Depth or 0</attribute>
+        </xpath>
+    </t>
+
+    <!--
+        Data row trong group cũng cần `data-t4-depth` để SCSS apply
+        padding-left + vẽ tree line. Đọc trực tiếp từ field
+        `t4_tree_depth` đã load (column_invisible vẫn được fetch).
+    -->
+    <t t-name="t4_theme.ListRendererRecordRowDepth"
+       t-inherit="web.ListRenderer.RecordRow"
+       t-inherit-mode="extension">
+        <xpath expr="//tr[@class='o_data_row']" position="attributes">
+            <attribute name="t-att-data-t4-depth">record.data.t4_tree_depth or 0</attribute>
+        </xpath>
+    </t>
+
 </templates>

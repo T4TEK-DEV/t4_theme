@@ -145,3 +145,51 @@
         display: none;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Tree hierarchy lines (comment-thread style) cho x2many grouped list khi
+// field có `t4_tree_depth` — Phase 2.
+//
+// Adapter set `data-t4-depth` lên cả `<tr.o_group_header>` lẫn `<tr.o_data_row>`
+// theo cấp BFS từ FG root. SCSS sau:
+//   1. Padding-left = depth × var(--t4-tree-indent) cho cả group header và data row.
+//   2. ::before pseudo-element vẽ vertical "stem" cho từng cấp depth > 0
+//      và một L-shape connector dẫn vào row hiện tại (giống YouTube/FB reply).
+//
+// Container có class `t4_fg_tree_list` (set ở `<list class="...">` trong view)
+// để scope CSS — không ảnh hưởng các x2many list khác cũng dùng grouping.
+// ---------------------------------------------------------------------------
+// Tree-list indent (NO line decorations — flat groups with depth padding).
+//
+// Each row tagged with `data-t4-depth="N"` by list_renderer_patch.js gets a
+// left padding proportional to N, so deeper groups visually nest inside
+// shallower ones. Stem lines / corner connectors were tried earlier but
+// proved too brittle across fold/unfold cycles (mutating attribute state
+// caused stale `::before`/`::after` pseudos), so the visual is intentionally
+// kept to indent-only.
+.o_field_x2many_list .o_list_table.o_list_table_grouped {
+    --t4-tree-indent: 24px;
+    --t4-tree-base-offset: 8px;
+
+    @for $d from 0 through 6 {
+        .o_group_header[data-t4-depth="#{$d}"] > th.o_group_name {
+            padding-left: calc(
+                var(--t4-tree-base-offset)
+                + #{$d} * var(--t4-tree-indent)
+            ) !important;
+        }
+        .o_data_row[data-t4-depth="#{$d}"] > td.o_data_cell:first-of-type {
+            padding-left: calc(
+                var(--t4-tree-base-offset)
+                + #{$d} * var(--t4-tree-indent)
+            ) !important;
+        }
+    }
+
+    // Disable the default left-translate on group labels for tree-tagged
+    // rows so the label aligns with the indented padding instead of being
+    // pulled into the selector column.
+    .o_group_header[data-t4-depth] > th.o_group_name > div {
+        transform: none;
+    }
+}

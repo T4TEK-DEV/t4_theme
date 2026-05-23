@@ -1,233 +1,308 @@
-# T4TEK STI — Odoo 19 Project Workflow
+# t4_theme — Module Branding / Giao diện Backend
 
-Dự án Odoo 19 custom modules tại `addons/`. Mỗi module nằm trong một thư mục riêng trong `addons/`.
-
----
-
-## Quy trình A-Z: Tạo tính năng hoặc module mới
-
-### Bước 0 — Kích hoạt chế độ làm việc
-
-Gõ một trong các keyword để OMC tự điều phối toàn bộ:
-
-```
-autopilot: <mô tả tính năng hoặc module>
-ulw: <mô tả tính năng hoặc module>
-```
-
-Hoặc làm thủ công theo các bước bên dưới.
+Module theme/branding cho **Odoo 19 Community Edition**. Cung cấp giao diện mobile-friendly, dark mode, màu sắc per-company, theme presets, debranding, và URL rewrite. Không tương thích với `web_enterprise` (excludes).
 
 ---
 
-### Bước 1 — Phân tích yêu cầu (Analyst)
+## Dependencies & Excludes
 
-- Xác định: module mới hay thêm tính năng vào module có sẵn?
-- Xác định dependencies (Odoo built-in, module khác trong addons/)
-- Xác định model, view, controller, wizard cần tạo
-- Ghi rõ: input/output, business logic, security rules
-
-**Trigger thủ công:**
-```
-/gsd-discuss-phase
-```
-
----
-
-### Bước 2 — Lập kế hoạch (Planner → GSD)
-
-```
-/gsd-plan-phase
-```
-
-Planner tạo file `.planning/PLAN.md` gồm:
-- Danh sách task theo thứ tự
-- File cần tạo / chỉnh sửa
-- Test cases cần viết
-- Rủi ro và cách xử lý
-
----
-
-### Bước 3 — Tạo cấu trúc module (nếu module mới)
-
-Cấu trúc chuẩn cho mỗi module trong `addons/<ten_module>/`:
-
-```
-addons/<ten_module>/
-├── __init__.py
-├── __manifest__.py          # version: "1.0" (KHÔNG dùng "19.0.x.x.x")
-├── models/
-│   ├── __init__.py
-│   └── <model_name>.py
-├── views/
-│   └── <model_name>_views.xml
-├── security/
-│   ├── ir.model.access.csv
-│   └── <module>_security.xml  (nếu cần groups)
-├── data/                    (optional)
-├── static/                  (optional, cho JS/CSS/img)
-├── controllers/             (optional, cho HTTP routes)
-├── wizard/                  (optional)
-├── tests/
-│   ├── __init__.py
-│   └── test_<feature>.py
-└── README.md
-```
-
----
-
-### Bước 4 — Viết code (Executor)
-
-Thứ tự viết:
-1. `__manifest__.py` — khai báo module
-2. `models/` — định nghĩa model (fields, methods, constraints)
-3. `security/ir.model.access.csv` — phân quyền
-4. `views/` — giao diện (form, list, search, action, menu)
-5. `controllers/` — HTTP endpoints (nếu có)
-6. `static/` — JS/OWL components (nếu có)
-7. `data/` — dữ liệu mặc định (nếu có)
-8. `tests/` — unit tests
-
-**Quy tắc bắt buộc:**
-- `version` trong `__manifest__.py` dùng `"1.0"` (KHÔNG phải `"19.0.x.x.x"`)
-- Mọi model kế thừa `models.Model` hoặc mixin thích hợp
-- `_name` theo dạng `t4.<domain>.<entity>` (ví dụ: `t4.hid.device`)
-- Không hardcode strings — dùng `_()` cho i18n
-- Không mutate dữ liệu trực tiếp — dùng `write()`, `create()` của ORM
-
----
-
-### Bước 5 — Test (TDD Guide)
-
-```
-/gsd-add-tests
-```
-
-- Viết test trước khi implement (hoặc song song)
-- Chạy test trong Odoo shell hoặc `python -m pytest`
-- Coverage tối thiểu 80% cho business logic
-
-**Test mẫu:**
 ```python
-from odoo.tests.common import TransactionCase
-
-class TestFeature(TransactionCase):
-    def setUp(self):
-        super().setUp()
-        # setup data
-
-    def test_basic_flow(self):
-        # arrange → act → assert
+'depends': ['web', 'mail', 'bus', 'base_setup', 'base_automation']
+'excludes': ['web_enterprise']
 ```
 
 ---
 
-### Bước 6 — Review (Code Reviewer + Security Reviewer)
+## Architecture — Config qua ThemeSystray Sidebar
+
+**Toàn bộ cấu hình giao diện** nằm trong **ThemeSystray popup sidebar** (nút paint-brush trên navbar phải), KHÔNG qua `Settings`. File `views/res_config_settings.xml` cố tình rỗng.
+
+Luồng dữ liệu:
 
 ```
-/gsd-validate-phase
+User → ThemeSystray (popup sidebar bên phải)
+  → ORM write → res.company (màu, font, icon, branding)
+             → res.users (sidebar, chatter, dialog)
+  → Live CSS preview (CSS variables trên <html>)
+  → Save → reload → theme_color_service.js apply từ session_info
 ```
 
-Checklist tự động kiểm tra:
-- [ ] Không có hardcoded secrets
-- [ ] SQL dùng ORM hoặc parameterized query
-- [ ] Access rights đầy đủ trong `ir.model.access.csv`
-- [ ] Không có `sudo()` vô căn cứ
-- [ ] Views có `string` attributes đầy đủ
-- [ ] `__manifest__.py` có `installable: True`, `auto_install: False`
+Session info được inject qua `ir.http.session_get_fields()` — controllers không cần query thêm.
 
 ---
 
-### Bước 7 — Xác minh (Verifier)
+## Models
 
-```
-/gsd-verify-work
-```
+### `res.company` — Cài đặt per-company (`models/res_company.py`)
 
-- Module install được không lỗi
-- Các model tạo đúng table trong DB
-- Views render không crash
-- Test pass hết
+| Field | Loại | Mục đích |
+|-------|------|----------|
+| `theme_preset` | Selection | Preset đang dùng (default/ocean/forest/sunset/slate) |
+| `theme_color_brand` | Char | Brand color hex |
+| `theme_color_primary` | Char | Primary color hex |
+| `theme_color_success/info/warning/danger` | Char | Context colors |
+| `theme_color_appbar_text/active/background` | Char | AppBar colors |
+| `theme_color_appsmenu_text` | Char | Apps menu text |
+| `theme_font_family` | Selection | Font (system/inter/roboto/...) |
+| `theme_icon_shape` | Selection | Icon shape (rounded_rect/circle/square/squircle/hexagon) |
+| `theme_home_menu_overlay` | Boolean | Home menu overlay |
+| `t4_brand_name` | Char | Tên thương hiệu thay thế "Odoo" |
+| `t4_web_title` | Char | Tiêu đề tab trình duyệt |
+| `t4_url_prefix` | Char | URL prefix thay `/odoo/` |
+| `appbar_image` | Binary | Logo sidebar |
+| `background_image` | Binary | Ảnh nền home menu |
+| `favicon` | Binary | Custom favicon |
+| `theme_view_overrides` | Json | CSS inspector overrides |
 
----
+### `res.users` — Preferences per-user (`models/res_users.py`)
 
-### Bước 8 — Commit
+| Field | Loại | Mục đích |
+|-------|------|----------|
+| `sidebar_type` | Selection | `large` / `invisible` |
+| `chatter_position` | Selection | `side` / `bottom` |
+| `dialog_size` | Selection | `minimize` / `maximize` |
 
-```
-/commit
-```
+### `res.users.settings` — Extension (`models/res_users_settings.py`)
 
-Format commit message:
-```
-feat(<ten_module>): <mô tả ngắn>
+Mở rộng `res.users.settings` với các related fields từ `res.users`.
 
-<chi tiết nếu cần>
-```
+### `t4_theme.preset` — Custom presets (`models/theme_preset.py`)
 
-Ví dụ:
-```
-feat(t4_passivehid_bridge): add WebSocket reconnect with exponential backoff
-```
+| Field | Loại | Mục đích |
+|-------|------|----------|
+| `name` | Char | Tên preset |
+| `sequence` | Integer | Thứ tự hiển thị |
+| `is_default` | Boolean | Preset built-in (không xóa được) |
+| `color_brand/primary/success/info/warning/danger` | Char | Màu context |
+| `color_appsmenu_text` | Char | Apps menu text |
+| `color_appbar_text/active/background` | Char | AppBar colors |
+| `font_family` | Char | Font family |
 
----
+### `t4_theme.demo` & `t4_theme.demo.tag` (`models/t4_theme_demo.py`)
 
-## Conventions của project này
+Model demo dùng để test giao diện list/form/kanban/search trong ThemeSystray.
 
-### Module naming
-- Prefix: `t4_`
-- Snake case: `t4_ten_module`
-- Model `_name`: `t4.<domain>.<entity>`
+### `t4.change.password.wizard` (`models/change_password_wizard.py`)
 
-### Version
-- Luôn dùng `"version": "1.0"` trong `__manifest__.py`
-- KHÔNG dùng `"19.0.1.0.0"` hay bất kỳ format `x.x.x.x.x` nào — module sẽ không install được
+Wizard đổi mật khẩu có UI riêng (thay dialog mặc định Odoo).
 
-### Odoo 19 specifics
-- OWL 3 cho frontend components (không dùng Widget legacy)
-- `env.ref()` thay cho `pool.get()`
-- `recordset.filtered_domain()` thay cho `search()` trong vòng lặp
-- Dùng `@api.model_create_multi` cho `create()`
+### `ir.http` (`models/ir_http.py`)
 
-### File size
-- Mỗi file tối đa 400 dòng
-- Tách model lớn thành nhiều file trong `models/`
+Inject session_info: `theme_colors`, `sidebar_type`, `chatter_position`, `dialog_size`, `icon_shape`, `font_family`, `branding`, `url_prefix`.
 
----
+### `ir.ui.menu` (`models/ir_ui_menu.py`)
 
-## Agents tự động theo từng bước
+Mở rộng menu: thêm icon tùy chỉnh, theme-specific overrides.
 
-| Bước | Agent | Lệnh |
-|------|-------|-------|
-| Phân tích | `analyst` (Opus) | tự động khi dùng autopilot |
-| Lập kế hoạch | `planner` (Opus) | `/gsd-plan-phase` |
-| Viết code | `executor` (Sonnet) | tự động |
-| Review | `code-reviewer` | tự động sau khi viết |
-| Security | `security-reviewer` | `/gsd-secure-phase` |
-| Test | `tdd-guide` | `/gsd-add-tests` |
-| Xác minh | `verifier` | `/gsd-verify-work` |
-| Docs | `writer` (Haiku) | `/gsd-docs-update` |
+### `ir.actions.server` (`models/ir_actions_server.py`)
 
----
+Mở rộng server actions để hỗ trợ theme-related automation.
 
-## Keyword shortcuts
+### `res.config.settings` (`models/res_config_settings.py`)
 
-| Gõ | Tác dụng |
-|----|----------|
-| `autopilot: <task>` | OMC tự làm A-Z, báo cáo khi xong |
-| `ulw: <task>` | Ultrawork — parallel agents tối đa |
-| `tdd: <task>` | Bắt buộc viết test trước |
-| `deepsearch: <query>` | Tìm kiếm sâu trong codebase |
-| `ultrathink: <vấn đề>` | Phân tích sâu với extended reasoning |
+Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa** — chỉ giữ để tương thích API.
 
 ---
 
-## Cấu trúc addons hiện tại
+## OWL Components (Frontend)
 
-```
-addons/
-├── t4_custom_dashboard/     # Dashboard tùy chỉnh
-├── t4_passivehid_bridge/    # WebSocket bridge cho thiết bị HID
-├── t4_sequential_auto_input/ # Nhập liệu tự động tuần tự
-└── t4_theme/                # Theme Odoo tùy chỉnh
+### Services (`static/src/services/`)
+
+| File | Vai trò |
+|------|---------|
+| `theme_color_service.js` | Apply colors, font, icon shape vào CSS variables trên `<html>` |
+| `dark_mode_service.js` | Toggle dark mode via cookie |
+| `debranding_service.js` | Thay text "Odoo" bằng `t4_brand_name` |
+| `url_prefix_service.js` | URL prefix client-side rewrite |
+
+### Webclient (`static/src/webclient/`)
+
+| File | Vai trò |
+|------|---------|
+| `theme_systray/theme_systray.js` | **Main UI** — popup sidebar cài đặt theme đầy đủ |
+| `home_menu/home_menu.js` | Custom home menu (drag-and-drop apps) |
+| `home_menu/home_menu_service.js` | State management home menu |
+| `navbar/navbar.js` | Custom navbar |
+| `debranding/` | QWeb templates debranding |
+
+### AppBar (`static/src/appsbar/`)
+
+| File | Vai trò |
+|------|---------|
+| `webclient/appsbar/appsbar.js` | Sidebar vertical app navigation |
+| `webclient/menus/app_menu_service.js` | App menu state service |
+| `webclient/webclient.js` | WebClient patch để gắn AppBar |
+
+### Chatter (`static/src/chatter/`)
+
+| File | Vai trò |
+|------|---------|
+| `chatter/chatter.js` | Patch chatter position (side/bottom) |
+| `chatter/composer.js` | Composer customization |
+| `chatter/store_service.js` | Store service patch |
+| `views/form/form_compiler.js` | Form compiler patch |
+| `views/form/form_renderer.js` | Form renderer (chatter layout) |
+| `core/` | Shared chatter utilities |
+
+### Dialog (`static/src/dialog/`)
+
+| File | Vai trò |
+|------|---------|
+| `core/dialog/dialog.js` | Patch dialog: minimize/maximize fullscreen |
+| `views/view_dialogs/select_create_dialog.js` | Patch select/create dialog |
+
+### Group Expand/Collapse (`static/src/group/`)
+
+Thêm nút "Expand All / Collapse All" cho list views có groupBy.
+
+### View Refresh (`static/src/refresh/`)
+
+| File | Vai trò |
+|------|---------|
+| `search/control_panel.js` | Thêm nút refresh vào control panel |
+| `services/refresh_service.js` | Service quản lý auto-refresh |
+
+### CSS Inspector / Theme Editor (`static/src/theme_editor/`)
+
+| File | Vai trò |
+|------|---------|
+| `css_inspector/css_panel.js` | Panel hiển thị CSS properties |
+| `css_inspector/builder_sidebar.js` | Sidebar builder với property groups |
+| `css_inspector/theme_css_inspector.js` | Live CSS editing system |
+| `css_inspector/property_group.js` | Nhóm thuộc tính CSS |
+| `component_registry.js` | Registry đăng ký theme components |
+
+### Views Extensions (`static/src/views/`)
+
+| File | Vai trò |
+|------|---------|
+| `fields/image/image_field_patch.js` | Image field: upload-on-hover overlay |
+| `x2many_grouped/x2many_grouped_adapter.js` | Client-side grouping cho x2many lists |
+| `x2many_grouped/x2many_field_patch.js` | X2many field patch |
+| `x2many_grouped/list_renderer_patch.js` | Row-number column cho x2many list |
+
+---
+
+## SCSS Layers
+
+### `web._assets_primary_variables` (loaded earliest)
+
+| File | Vai trò |
+|------|---------|
+| `dark/primary_variables.scss` | Dark mode base variables (before Odoo's) |
+| `colors/scss/colors.scss` | Color base (prepend) |
+| `colors/scss/colors_light.scss` | Light mode overrides |
+| `appsbar/scss/variables.scss` | AppBar variables |
+| `chatter/scss/variables.scss` | Chatter max-width overrides |
+| `dialog/scss/variables.scss` | Dialog max-width overrides |
+| `scss/colors.scss` | AppBar/AppMenu colors |
+| `scss/variables.scss` | Theme variables chung |
+
+### `web._assets_backend_helpers`
+
+- `appsbar/scss/mixins.scss` — AppBar SCSS mixins
+
+### `web.assets_backend` (runtime)
+
+- `scss/_t4_variables.scss`, `scss/_t4_mixins.scss` — Shared variables/mixins
+- `services/theme_colors.scss` — CSS variable definitions
+- Tất cả JS/XML/SCSS của components (theo thứ tự trong manifest)
+
+### Dark Mode Assets
+
+| Bundle | Files |
+|--------|-------|
+| `web.assets_variables_dark` | `dark/primary_variables.dark.scss`, `dark/secondary_variables.dark.scss`, `dark/navbar.variables.dark.scss` |
+| `web.assets_backend_helpers_dark` | `dark/bootstrap_overridden.dark.scss`, `dark/bs_functions_overrides.dark.scss` |
+| `web.assets_web_dark` | include cả 2 bundles trên + `colors/scss/colors_dark.scss`, `appsbar/scss/variables.dark.scss`, home_menu dark, `dark/custom_styles.dark.scss` |
+
+---
+
+## Templates Patches
+
+### `templates/web_layout.xml`
+
+Override `web.layout` — inject CSS variables, favicon, custom title.
+
+### `templates/webclient.xml`
+
+Override `web.webclient` — thêm ThemeSystray, AppBar, custom navbar.
+
+### `templates/debranding.xml`
+
+Patch các template Odoo để thay thế "Odoo" branding bằng `t4_brand_name`.
+
+---
+
+## Theme Presets (`data/theme_preset_data.xml`)
+
+5 preset built-in (`is_default=True`, `noupdate="1"`):
+
+| ID | Tên | Brand color | Đặc trưng |
+|----|-----|-------------|-----------|
+| `preset_default` | Default | `#243742` | Dark slate + blue |
+| `preset_ocean` | Ocean | `#0D4F8B` | Deep ocean blue |
+| `preset_forest` | Forest | `#14532D` | Dark green |
+| `preset_sunset` | Sunset | `#7C2D12` | Deep orange/red |
+| `preset_slate` | Slate | `#1E293B` | Dark slate + indigo |
+
+Sub-module có thể thêm preset riêng (vd: `t4_sti_hqg` thêm preset HQG Blue với sequence=2).
+
+---
+
+## Demo Module (`data/theme_demo_data.xml`)
+
+- Tạo records demo cho `t4.theme.demo` và `t4.theme.demo.tag`
+- Dùng để test rendering list/form/kanban trong ThemeSystray
+- Demo Odoo data (base automations, server actions) trong `demo/base_automation.xml`, `demo/ir_actions_server.xml`
+
+---
+
+## Controllers (`controllers/`)
+
+| File | Route | Mục đích |
+|------|-------|----------|
+| `home.py` | `/` | Home page |
+| `session.py` | `/web/session/get_session_info` | Session info endpoint |
+| `url_rewrite.py` | dynamic | URL prefix rewriting (`/odoo/` → `/app/` hoặc custom) |
+| `theme_editor.py` | `/t4_theme/presets`, `/t4_theme/export_theme`, `/t4_theme/import_theme`, `/t4_theme/css_inspector/*`, `/t4_theme/preset/save_current` | CSS inspector + preset CRUD |
+
+Tất cả JSON endpoints dùng `auth='user'` — CSRF built-in.
+
+---
+
+## Security (`security/ir.model.access.csv`)
+
+| Model | User | Admin (group_system) |
+|-------|------|----------------------|
+| `t4.theme.demo` | CRUD | CRUD |
+| `t4.theme.demo.tag` | CRUD | CRUD |
+| `t4_theme.preset` | Read only | CRUD |
+| `t4.change.password.wizard` | CRUD | CRUD |
+
+`sudo()` dùng trong `res_company.write()` để cập nhật `ir.config_parameter` cho URL routing — có comment giải thích.
+
+---
+
+## Integration với Module Khác
+
+- **`t4_sti`** — menu skeleton và security groups; `t4_theme` không phụ thuộc nhưng styling áp dụng cho toàn bộ UI
+- **`t4_sti_hqg`** (planned) — override preset bằng cách tạo record `t4_theme.preset` với `sequence=2` trong `data/` riêng; có thể import preset JSON qua endpoint `/t4_theme/import_theme`
+- Các module khác có thể dùng service `theme_color_service` để đọc CSS variables hiện tại
+
+---
+
+## Hooks (`__manifest__.py`)
+
+```python
+'post_init_hook': '_setup_module'    # Khởi tạo theme cho company hiện tại
+'uninstall_hook': '_uninstall_cleanup'  # Dọn dẹp CSS overrides, config params
 ```
 
-Mỗi module mới thêm vào đây theo đúng cấu trúc trên.
+---
+
+## References
+
+- Agent guide: `addons/t4_theme/AGENTS.md`
+- Architecture diagram: `addons/t4_theme/docs/ARCHITECTURE.md`
+- Odoo 19 migration rules: `addons/t4_sti/docs/INDEX.md` → CLAUDE.md project root

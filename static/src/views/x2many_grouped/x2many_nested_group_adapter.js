@@ -377,6 +377,15 @@ export function attachNestedGroupingToList(
 
     let cachedGroups = null;
     let cacheSig = null;
+    // Map từ (record.id || record.resId) → local 0-based index trong
+    // bucket trực tiếp chứa record đó. Build 1 lần ở `getOrBuildGroups`
+    // ngay sau khi rebuild buckets. ListRenderer patch `t4GetRowNumber`
+    // lookup O(1) qua map này thay vì walk groups + indexOf — tránh được
+    // các vấn đề identity mismatch giữa proxy/raw refs ở deep-nested
+    // levels (đặc biệt khi 1 bucket vừa có directRecords vừa có
+    // childGroups, native template iterate qua đường khác với cách
+    // bucket build).
+    let recordToLocalIdx = new Map();
 
     function currentSignature() {
         const records = rawList.records;
@@ -414,14 +423,40 @@ export function attachNestedGroupingToList(
         const sig = currentSignature();
         if (sig !== cacheSig) {
             const openModel = resolveOpenModel();
-            const { rootBuckets } = buildBucketTree(rawList, fieldName);
+            const { rootBuckets, allBuckets } = buildBucketTree(rawList, fieldName);
             cachedGroups = rootBuckets.map((b) =>
                 bucketToGroup(b, rawList, archInfoColumns, foldState, openModel)
             );
+            // Build flat record-id → local-idx map: mỗi record map về
+            // index của nó trong `bucket.records` (= directRecords) của
+            // bucket chứa nó. Bucket được build sao cho mỗi record xuất
+            // hiện trong đúng 1 bucket → mỗi record có đúng 1 local idx.
+            recordToLocalIdx = new Map();
+            for (const bucket of allBuckets) {
+                bucket.records.forEach((rec, idx) => {
+                    const key = rec.id ?? rec.resId;
+                    if (key != null) {
+                        recordToLocalIdx.set(key, idx);
+                    }
+                });
+            }
             cacheSig = sig;
         }
         return cachedGroups;
     }
+
+    // Expose map qua getter trên rawList — ListRenderer patch đọc qua
+    // `this.props.list.t4LocalIdxMap`. Lazy access đảm bảo buckets được
+    // build trước (qua getOrBuildGroups trigger từ template iteration
+    // hoặc explicit call).
+    Object.defineProperty(rawList, "t4LocalIdxMap", {
+        configurable: true,
+        enumerable: false,
+        get: () => {
+            getOrBuildGroups();
+            return recordToLocalIdx;
+        },
+    });
 
     Object.defineProperty(rawList, T4_NESTED_TAG, {
         value: true,
@@ -457,6 +492,11 @@ export function attachNestedGroupingToList(
             } catch (e) {
                 // ignore
             }
+        }
+        try {
+            delete rawList.t4LocalIdxMap;
+        } catch (e) {
+            // ignore
         }
         delete rawList[T4_NESTED_TAG];
     };

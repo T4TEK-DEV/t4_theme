@@ -129,6 +129,21 @@ patch(ListRenderer.prototype, {
             return "";
         }
         if (baseList.isGrouped && Array.isArray(baseList.groups)) {
+            // Fast-path O(1): nested-group adapter expose `t4LocalIdxMap`
+            // (Map<record.id|resId, localIdx>). Lookup trực tiếp tránh
+            // walk groups + indexOf identity mismatch ở deep-nested level.
+            const map = baseList.t4LocalIdxMap;
+            if (map && typeof map.get === "function") {
+                const key = record && (record.id ?? record.resId);
+                if (key != null) {
+                    const idx = map.get(key);
+                    if (typeof idx === "number" && idx >= 0) {
+                        return idx + 1;
+                    }
+                }
+            }
+            // Fallback: walk groups (legacy grouped widget / non-adapter
+            // groupings không có map).
             const localIdx = this._t4FindLocalIndex(baseList.groups, record);
             if (localIdx >= 0) {
                 return localIdx + 1;

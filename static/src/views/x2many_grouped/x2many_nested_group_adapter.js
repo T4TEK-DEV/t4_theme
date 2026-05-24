@@ -235,11 +235,11 @@ function buildBucketTree(rawList, fieldName) {
     return { rootBuckets, allBuckets: Array.from(buckets.values()) };
 }
 
-function bucketToGroup(bucket, rawList, archInfoColumns, foldState, openModel) {
+function bucketToGroup(bucket, rawList, archInfoColumns, foldState, openModel, localIdxMap) {
     const groupId = `t4_x2m_nested_${bucket.key}_d${bucket.depth}`;
     const directRecords = bucket.records;
     const childGroups = bucket.children.map((child) =>
-        bucketToGroup(child, rawList, archInfoColumns, foldState, openModel)
+        bucketToGroup(child, rawList, archInfoColumns, foldState, openModel, localIdxMap)
     );
     const groupByField = {
         name: "_t4_nested",
@@ -278,6 +278,10 @@ function bucketToGroup(bucket, rawList, archInfoColumns, foldState, openModel) {
     const subList = {
         records: directRecords,
         t4DirectRecords: directRecords,
+        // Share cùng 1 reference map cho mọi sub-list trong cây — nested
+        // ListRenderer instances đọc qua `this.props.list.t4LocalIdxMap`
+        // để lookup STT O(1).
+        t4LocalIdxMap: localIdxMap,
         groups: childGroups,
         // `isGrouped` triggers the groups branch in rowsTemplate. With
         // our patch the records branch ALSO runs when records.length>0,
@@ -424,13 +428,13 @@ export function attachNestedGroupingToList(
         if (sig !== cacheSig) {
             const openModel = resolveOpenModel();
             const { rootBuckets, allBuckets } = buildBucketTree(rawList, fieldName);
-            cachedGroups = rootBuckets.map((b) =>
-                bucketToGroup(b, rawList, archInfoColumns, foldState, openModel)
-            );
-            // Build flat record-id → local-idx map: mỗi record map về
-            // index của nó trong `bucket.records` (= directRecords) của
-            // bucket chứa nó. Bucket được build sao cho mỗi record xuất
-            // hiện trong đúng 1 bucket → mỗi record có đúng 1 local idx.
+            // Build flat record-id → local-idx map BEFORE building groups
+            // — `bucketToGroup` recurse vào childGroups và inject map
+            // shared reference vào TỪNG subList. Lý do: ListRenderer
+            // nested instances nhận `props.list = group.list` (sub-list
+            // local), KHÔNG thấy `t4LocalIdxMap` trên rawList top-level.
+            // Phải inject vào mọi sub-list để `t4GetRowNumber` đọc được
+            // ở bất kỳ nesting level nào.
             recordToLocalIdx = new Map();
             for (const bucket of allBuckets) {
                 bucket.records.forEach((rec, idx) => {
@@ -440,6 +444,11 @@ export function attachNestedGroupingToList(
                     }
                 });
             }
+            cachedGroups = rootBuckets.map((b) =>
+                bucketToGroup(
+                    b, rawList, archInfoColumns, foldState, openModel, recordToLocalIdx
+                )
+            );
             cacheSig = sig;
         }
         return cachedGroups;

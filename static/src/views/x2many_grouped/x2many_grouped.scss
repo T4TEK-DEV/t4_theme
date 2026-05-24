@@ -16,6 +16,20 @@
     }
     .o_t4_stt_cell {
         color: var(--o-list-row-number-color, #6c757d);
+        // Some Odoo/Bootstrap rules in nested-group contexts add a
+        // `::before` / `::after` counter or a list-style numeric marker
+        // (Bootstrap `.list-group-numbered` uses
+        // `content: counters(section, ".") ". "`), which causes the STT
+        // cells inside deeper-level groups to render as "1." / "2." while
+        // shallower groups render plain "1" / "2". We don't want that
+        // inconsistency on our own column — kill any pseudo-element
+        // content and list marker on the STT cell defensively.
+        list-style: none !important;
+        &::before,
+        &::after {
+            content: none !important;
+            display: none !important;
+        }
     }
 }
 
@@ -192,4 +206,21 @@
     .o_group_header[data-t4-depth] > th.o_group_name > div {
         transform: none;
     }
+
+    // Open-record icon on nested-group headers (set by the nested-group
+    // adapter when `list_tree_open_field` resolves a many2one).
+    .o_group_header .o_t4_group_open_btn {
+        line-height: 1;
+        color: var(--o-list-row-number-color, #6c757d);
+        opacity: 0.7;
+        transition: opacity 0.15s ease, color 0.15s ease;
+        &:hover {
+            opacity: 1;
+            color: var(--o-brand-primary, #714B67);
+        }
+        > i {
+            font-size: 14px;
+        }
+    }
 }
+

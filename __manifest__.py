@@ -291,9 +291,10 @@
             't4_theme/static/src/views/fields/image/image_field_patch.js',
             't4_theme/static/src/views/fields/image/image_field_patch.xml',
 
-            # --- X2Many client-side grouping (context: list_groupbys) ---
+            # --- X2Many client-side grouping (contexts: list_groupbys, list_nested_group_by) ---
             # --- + leading row-number column for every x2many list in form views ---
             't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',
+            't4_theme/static/src/views/x2many_grouped/x2many_nested_group_adapter.js',
             't4_theme/static/src/views/x2many_grouped/x2many_field_patch.js',
             't4_theme/static/src/views/x2many_grouped/list_renderer_patch.js',
             't4_theme/static/src/views/x2many_grouped/list_renderer_stt.xml',

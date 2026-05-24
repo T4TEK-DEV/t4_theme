@@ -88,4 +88,58 @@
         </xpath>
     </t>
 
+    <!--
+        Nested-group widget extensions (x2many_nested_group_adapter.js).
+        Only active for groups that expose `t4DirectRecords` / `t4OpenInfo`
+        — other grouped list views are unaffected since both attributes
+        default to undefined and the `t-if` guards skip the patched code.
+
+        1. Render direct records BEFORE sub-groups inside a parent group.
+           Native Odoo only renders one of (records, sub-groups) per
+           group; we render both when `list.t4DirectRecords` is set, so a
+           parent creation header can show its direct lines AND nested
+           sub-creation groups in the same parent.
+
+        2. Open-record icon on group header: when `group.t4OpenInfo` is
+           set, append a `<button>` (right-aligned via ms-auto) that
+           opens the underlying record via the actionService.
+    -->
+    <t t-name="t4_theme.ListRendererNestedRowsDirectRecords"
+       t-inherit="web.ListRenderer.Rows"
+       t-inherit-mode="extension">
+        <xpath expr="//t[@t-else='']/t[@t-foreach='list.groups']" position="before">
+            <t t-if="list.t4DirectRecords">
+                <t t-foreach="list.t4DirectRecords" t-as="record" t-key="record.id">
+                    <t t-call="{{ constructor.recordRowTemplate }}"/>
+                </t>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="t4_theme.ListRendererNestedGroupRowOpen"
+       t-inherit="web.ListRenderer.GroupRow"
+       t-inherit-mode="extension">
+        <!--
+            Insert open button right BEFORE the group name text so it
+            sits next to the header label.
+
+            Anchor pick: the upstream `<t t-esc="group.displayName"/>` is
+            the most stable anchor — the surrounding span uses
+            `t-attf-class` (dynamic) so `hasclass('o_group_caret')` fails
+            to match it, and `<t t-esc>` elements are addressable via
+            their `t-esc` attribute in XPath.
+
+            Visual:  ▼ [↗] PC/2026/00029 (8)
+        -->
+        <xpath expr="//t[@t-esc='group.displayName']" position="before">
+            <button t-if="group.t4OpenInfo"
+                    class="btn btn-link p-0 me-2 o_t4_group_open_btn"
+                    title="Mở phiếu"
+                    t-on-click.stop="(ev) => this.t4OpenGroupRecord(ev, group)"
+                    tabindex="-1">
+                <i class="fa fa-external-link" aria-hidden="true"/>
+            </button>
+        </xpath>
+    </t>
+
 </templates>

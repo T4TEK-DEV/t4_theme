@@ -3,15 +3,25 @@
 import { patch } from "@web/core/utils/patch";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { onRendered } from "@odoo/owl";
+import { useService } from "@web/core/utils/hooks";
 
 // Register the additional optional prop so OWL prop validation passes.
 if (!ListRenderer.props.includes("t4WithRowNumber?")) {
     ListRenderer.props.push("t4WithRowNumber?");
 }
 
+const T4_ACTION_SERVICE = Symbol("t4ThemeActionService");
+
 patch(ListRenderer.prototype, {
     setup() {
         super.setup();
+        // Acquire actionService lazily — registry might be absent in some
+        // test harnesses; fall back to no-op so the renderer keeps working.
+        try {
+            this[T4_ACTION_SERVICE] = useService("action");
+        } catch (e) {
+            this[T4_ACTION_SERVICE] = null;
+        }
         // After each render, propagate group.t4Depth onto group <tr> as
         // data-t4-depth, and copy it down to data rows belonging to the
         // group. XML template inheritance does the same statically but the
@@ -19,16 +29,11 @@ patch(ListRenderer.prototype, {
         // (e.g. asset cache issues) — and the cost is negligible (one
         // table walk per render, no layout thrashing since we only touch
         // attributes).
-        // Propagate group depth (computed by the x2many_grouped adapter
-        // from `t4_tree_depth`) onto each <tr> as `data-t4-depth`. SCSS
-        // uses that attribute solely to indent the first cell per depth —
-        // no other attributes (no `data-t4-last`/`-first`) needed.
         const applyTreeAttrs = () => {
             const tableEl = this.tableRef && this.tableRef.el;
             if (!tableEl) {
                 return;
             }
-            // Clear stale attrs from any previous render.
             for (const tr of tableEl.querySelectorAll(
                 "tr[data-t4-depth], tr[data-t4-last], tr[data-t4-first]"
             )) {
@@ -40,12 +45,27 @@ patch(ListRenderer.prototype, {
             if (!list || !list.isGrouped || !Array.isArray(list.groups)) {
                 return;
             }
+            // Walk the group tree RECURSIVELY — top-level + every nested
+            // level — so sub-groups also pick up their t4Depth. Earlier
+            // versions only iterated `list.groups` (top level), which
+            // worked for flat grouping but lost data-t4-depth on nested
+            // sub-groups, and worse, the clearing pass above wiped the
+            // attribute set statically by the template inheritance.
             const depthByGroupId = {};
-            list.groups.forEach((group) => {
-                if (group && typeof group.t4Depth === "number") {
-                    depthByGroupId[group.id] = group.t4Depth;
+            const collectDepths = (groups) => {
+                if (!Array.isArray(groups)) {
+                    return;
                 }
-            });
+                for (const group of groups) {
+                    if (group && typeof group.t4Depth === "number") {
+                        depthByGroupId[group.id] = group.t4Depth;
+                    }
+                    if (group && group.list && Array.isArray(group.list.groups)) {
+                        collectDepths(group.list.groups);
+                    }
+                }
+            };
+            collectDepths(list.groups);
             for (const tr of tableEl.querySelectorAll(
                 "tr.o_group_header, tr.o_data_row"
             )) {
@@ -63,25 +83,6 @@ patch(ListRenderer.prototype, {
     /**
      * Inject a virtual STT (sequence number) column into the active column
      * list when `t4WithRowNumber` is set on the renderer props.
-     *
-     * The column is a real entry in `this.columns` (not a template-injected
-     * cell) so Odoo's `useMagicColumnWidths` hook computes widths correctly:
-     *
-     *   - `attrs.width = "48px"` → getWidthSpecs returns minWidth=maxWidth=48
-     *   - `type = "t4_stt"` (custom) → canShrink=false, so the hook never
-     *     squeezes STT below 48px even when the parent is narrow
-     *   - `column.id = "_t4_stt"` is unique → magic-widths' hash detects
-     *     the column set correctly when STT toggles on/off
-     *
-     * Position:
-     *   - if a `widget="handle"` column exists, STT goes immediately after
-     *     it so the drag handle stays leftmost (matches list-editable
-     *     convention)
-     *   - otherwise STT is the leading column, after the optional selector
-     *
-     * The dedicated cell is rendered in list_renderer_stt.xml via a
-     * `column.type === "t4_stt"` branch added to both the thead foreach
-     * (label "STT") and the row foreach (row number).
      */
     getActiveColumns() {
         const baseColumns = super.getActiveColumns();
@@ -107,50 +108,37 @@ patch(ListRenderer.prototype, {
     },
 
     /**
-     * Compute the global 1-based row number for a given record, accounting
-     * for the current list offset (pagination). Used by the STT column
-     * cell rendered in list_renderer_stt.xml.
+     * Compute the 1-based STT (row number) for a given record.
      *
-     * For both grouped and ungrouped lists we look up the index in
-     * `props.list.records` (the master records array), so a record sitting
-     * inside a client-side group still gets a globally-stable number.
+     * Rules:
+     *   - Grouped (any client-side widget setting `list.isGrouped`): STT
+     *     restarts at 1 inside each group/sub-group. The record's index
+     *     within its containing group's direct records (preferring
+     *     `t4DirectRecords` set by the nested-group adapter, falling
+     *     back to `records` for the legacy grouped widget) plus 1.
+     *   - Ungrouped flat x2many: global index in `list.records` plus
+     *     `list.offset` (pagination-aware), 1-based.
      *
-     * Edge cases:
-     *   - Record không có trong `records` (ví dụ draft mới tạo bằng
-     *     "Add a line" chưa commit vào StaticList): trả về chuỗi rỗng
-     *     thay vì 0 — fallback `idx=0` cũ làm STT âm khi `offset < 0`.
-     *   - `offset` âm: ở x2many StaticList, `offset` có thể tạm thời nhận
-     *     giá trị âm khi Odoo điều chỉnh count sau commit (đã thấy STT
-     *     hiển thị -39 do `0 + (-40) + 1`). Clamp về 0 cho an toàn —
-     *     pagination thực không bao giờ dưới 0.
+     * Returns "" when the record is not found (e.g., draft row from
+     * "Add a line" not yet committed) so the cell stays blank instead of
+     * rendering a misleading 0 / negative number.
      */
     t4GetRowNumber(record) {
         const baseList = this.props.list;
-        if (!baseList || !baseList.records) {
+        if (!baseList) {
             return "";
         }
-        let idx = baseList.records.indexOf(record);
-        // Grouped fallback: walk visible groups in render order khi record
-        // nằm trong subList của 1 group nhưng records chính chưa sync
-        // (xảy ra ngay sau khi attachGroupingToList rebuild groups).
-        if (idx < 0 && Array.isArray(baseList.groups)) {
-            let walked = 0;
-            for (const group of baseList.groups) {
-                if (group && group.isFolded) {
-                    continue;
-                }
-                const recs = group && group.list && group.list.records;
-                if (!recs) {
-                    continue;
-                }
-                const local = recs.indexOf(record);
-                if (local >= 0) {
-                    idx = walked + local;
-                    break;
-                }
-                walked += recs.length;
+        if (baseList.isGrouped && Array.isArray(baseList.groups)) {
+            const localIdx = this._t4FindLocalIndex(baseList.groups, record);
+            if (localIdx >= 0) {
+                return localIdx + 1;
             }
+            return "";
         }
+        if (!baseList.records) {
+            return "";
+        }
+        const idx = baseList.records.indexOf(record);
         if (idx < 0) {
             return "";
         }
@@ -160,35 +148,95 @@ patch(ListRenderer.prototype, {
     },
 
     /**
+     * Walk the group tree depth-first looking for `record`. Returns its
+     * 0-based local index within the containing group's direct records,
+     * or -1 if not found. Used only by `t4GetRowNumber` in grouped mode.
+     */
+    _t4FindLocalIndex(groups, record) {
+        for (const group of groups) {
+            const list = group && group.list;
+            if (!list) {
+                continue;
+            }
+            const direct = Array.isArray(list.t4DirectRecords)
+                ? list.t4DirectRecords
+                : list.records;
+            if (Array.isArray(direct)) {
+                const idx = direct.indexOf(record);
+                if (idx >= 0) {
+                    return idx;
+                }
+            }
+            if (Array.isArray(list.groups) && list.groups.length) {
+                const sub = this._t4FindLocalIndex(list.groups, record);
+                if (sub >= 0) {
+                    return sub;
+                }
+            }
+        }
+        return -1;
+    },
+
+    /**
+     * Override Odoo's `getGroupLevel` for nested-group widget groups.
+     *
+     * Upstream formula:
+     *   `props.list.groupBy.length - group.list.groupBy.length - 1`
+     *
+     * This assumes a multi-level groupBy where each nesting strictly
+     * decreases the sub-list's groupBy.length. Our nested adapter sets
+     * `subList.groupBy = ["_t4_nested"]` on parent buckets so Odoo
+     * iterates `subList.groups`, but that gives `level = 1 - 1 - 1 = -1`
+     * for the top-level group. The negative value flows through
+     *   margin-inline-start: var(--o-list-group-level) * 1.5rem
+     * pushing the caret off-screen to the left, so the user sees no
+     * triangle on the FIRST group while nested groups (which have
+     * `groupBy = []`, giving level 0) render their caret normally.
+     *
+     * Fix: for our groups (identifiable by `t4Depth`), return 0 always
+     * — caret indent isn't needed because the SCSS already pads
+     * `th.o_group_name` proportionally to depth. Non-t4 groups fall
+     * through to upstream behavior.
+     */
+    getGroupLevel(group) {
+        if (group && typeof group.t4Depth === "number") {
+            return 0;
+        }
+        return super.getGroupLevel(group);
+    },
+
+    /**
+     * Open-record click handler for nested-group widget. Opens the
+     * record referenced by `group.t4OpenInfo` (set by the nested-group
+     * adapter when `list_tree_open_field` resolves to a many2one).
+     *
+     * The button itself is rendered by the GroupRow template extension
+     * in list_renderer_stt.xml — only when `group.t4OpenInfo` is set, so
+     * other grouped list views are unaffected.
+     */
+    t4OpenGroupRecord(ev, group) {
+        if (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+        }
+        const actionSvc = this[T4_ACTION_SERVICE];
+        const info = group && group.t4OpenInfo;
+        if (!actionSvc || !info || !info.model || !info.resId) {
+            return;
+        }
+        actionSvc.doAction({
+            type: "ir.actions.act_window",
+            res_model: info.model,
+            res_id: info.resId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    },
+
+    /**
      * Lock the dragged row's horizontal position to the table's viewport
      * left edge and counter any containing-block offset so the row stays
      * pinned to the cursor.
-     *
-     * Odoo upstream pins the row with `position: fixed` and updates `left`
-     * / `top` each pointermove to `cursor.{x,y} - clickOffset.{x,y}`
-     * (draggable_hook_builder.js updateElementPosition). Two issues:
-     *
-     *   1. Cursor X drift visibly shifts the row out of column alignment.
-     *   2. When any ancestor of the row creates a containing block for
-     *      `position: fixed` (CSS `transform`/`filter`/`perspective`/
-     *      `contain`/`will-change`), the row's `top`/`left` resolve
-     *      relative to that ancestor instead of the viewport. Cursor
-     *      coords stay viewport-relative, so the row visibly drifts away
-     *      from the cursor by the offset between the ancestor and the
-     *      viewport (~46px below cursor in our case).
-     *
-     * Fix:
-     *   - `--t4-drag-locked-x`: pin the row's left to the table's left.
-     *   - `--t4-drag-cb-offset-{x,y}`: detect containing-block offset by
-     *     comparing the resolved rect against what we asked for, then
-     *     counter it via a translate. Read once at dragStart since the
-     *     containing block does not change mid-drag.
-     *
-     * The `!important` rules in x2many_grouped.scss apply both vars and
-     * win over Odoo's inline `left/top: ...px`.
-     *
-     * Cell widths are still copied from headers by the original sortStart
-     * (super call), so the row keeps its column proportions.
      */
     sortStart(params) {
         const result = super.sortStart(params);

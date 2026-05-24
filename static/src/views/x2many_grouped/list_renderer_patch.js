@@ -123,27 +123,42 @@ patch(ListRenderer.prototype, {
      * "Add a line" not yet committed) so the cell stays blank instead of
      * rendering a misleading 0 / negative number.
      */
-    t4GetRowNumber(record) {
+    t4GetRowNumber(record, localList) {
+        // Primary path: template passes `list` (local subList chứa
+        // record trực tiếp) — index trong list này là local STT. Hoạt
+        // động ở mọi nesting depth vì `list` luôn là context-local.
+        if (localList && Array.isArray(localList.records)) {
+            // Ưu tiên `t4DirectRecords` (set bởi nested-group adapter
+            // khi 1 bucket vừa có direct records vừa có sub-groups —
+            // records iterated qua t4DirectRecords pre-loop), fallback
+            // `records` cho leaf bucket / non-adapter list.
+            const directs = Array.isArray(localList.t4DirectRecords)
+                ? localList.t4DirectRecords
+                : localList.records;
+            const targetId = record && (record.id ?? record.resId);
+            let idx = directs.indexOf(record);
+            if (idx < 0 && targetId != null) {
+                // Fallback id-based match nếu identity (proxy) mismatch.
+                idx = directs.findIndex(
+                    (r) => r && (r.id === targetId || r.resId === targetId)
+                );
+            }
+            if (idx >= 0) {
+                const rawOffset = localList.offset;
+                const offset =
+                    Number.isFinite(rawOffset) && rawOffset > 0 ? rawOffset : 0;
+                return idx + offset + 1;
+            }
+            return "";
+        }
+        // Fallback path: template không pass `list` — dùng top-level
+        // list. Walk groups recursively cho grouped list, indexOf cho
+        // flat list (giữ behavior cũ).
         const baseList = this.props.list;
         if (!baseList) {
             return "";
         }
         if (baseList.isGrouped && Array.isArray(baseList.groups)) {
-            // Fast-path O(1): nested-group adapter expose `t4LocalIdxMap`
-            // (Map<record.id|resId, localIdx>). Lookup trực tiếp tránh
-            // walk groups + indexOf identity mismatch ở deep-nested level.
-            const map = baseList.t4LocalIdxMap;
-            if (map && typeof map.get === "function") {
-                const key = record && (record.id ?? record.resId);
-                if (key != null) {
-                    const idx = map.get(key);
-                    if (typeof idx === "number" && idx >= 0) {
-                        return idx + 1;
-                    }
-                }
-            }
-            // Fallback: walk groups (legacy grouped widget / non-adapter
-            // groupings không có map).
             const localIdx = this._t4FindLocalIndex(baseList.groups, record);
             if (localIdx >= 0) {
                 return localIdx + 1;

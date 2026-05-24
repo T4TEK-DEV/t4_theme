@@ -55,7 +55,13 @@
                 <td class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
                     t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
                     tabindex="-1">
-                    <t t-esc="t4GetRowNumber(record)"/>
+                    <!-- Pass `list` từ template context (set bởi outer Rows
+                         template qua `t-set list=group.list` trong t-call).
+                         `list` = local subList chứa record này trực tiếp,
+                         nên `list.records.indexOf(record)` ra đúng local idx
+                         bất kể nesting depth. Tránh được mọi vấn đề lookup
+                         qua map/walk groups vốn fail ở deep-nested level. -->
+                    <t t-esc="t4GetRowNumber(record, list)"/>
                 </td>
             </t>
         </xpath>

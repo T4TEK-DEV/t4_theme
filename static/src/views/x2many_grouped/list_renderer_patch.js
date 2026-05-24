@@ -151,8 +151,23 @@ patch(ListRenderer.prototype, {
      * Walk the group tree depth-first looking for `record`. Returns its
      * 0-based local index within the containing group's direct records,
      * or -1 if not found. Used only by `t4GetRowNumber` in grouped mode.
+     *
+     * Match by record.id (OWL StaticList internal id) instead of object
+     * identity (`===` / indexOf). Identity-based match fails when the
+     * record passed by the template is a reactive proxy wrapping a
+     * different underlying ref than the one cached in `t4DirectRecords`
+     * (happens when buckets are built from `toRaw(staticList)` records
+     * but the renderer iterates the proxied list at a deeper nesting
+     * level). `record.id` is stable per-instance across both refs.
+     * resId fallback handles edge case where record.id is undefined.
      */
     _t4FindLocalIndex(groups, record) {
+        const targetId = record && (record.id ?? record.resId);
+        if (targetId == null) {
+            return -1;
+        }
+        const matches = (r) =>
+            r && (r.id === targetId || r.resId === targetId);
         for (const group of groups) {
             const list = group && group.list;
             if (!list) {
@@ -162,7 +177,7 @@ patch(ListRenderer.prototype, {
                 ? list.t4DirectRecords
                 : list.records;
             if (Array.isArray(direct)) {
-                const idx = direct.indexOf(record);
+                const idx = direct.findIndex(matches);
                 if (idx >= 0) {
                     return idx;
                 }

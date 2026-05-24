@@ -384,7 +384,14 @@ export function attachNestedGroupingToList(
         const hasDepth = "t4_tree_depth" in rawList.fields;
         const hasPath = "t4_tree_sort_path" in rawList.fields;
         for (const r of records) {
-            const id = r.resId || r._virtualId || r.id;
+            // Include `r.id` (OWL StaticList internal id, changes when the
+            // record is re-instantiated) alongside `resId` (DB id, stable).
+            // Without `r.id`, a soft_reload that recreates records with the
+            // same resIds keeps the signature unchanged → cache returns
+            // STALE record refs → `_t4FindLocalIndex` indexOf fails for
+            // records at deeper nesting levels (rendered via different
+            // proxy path than cached) → STT cell renders empty.
+            const id = `${r.resId || r._virtualId || ""}#${r.id || ""}`;
             const v = r.data ? r.data[fieldName] : undefined;
             const vKey =
                 v && typeof v === "object"

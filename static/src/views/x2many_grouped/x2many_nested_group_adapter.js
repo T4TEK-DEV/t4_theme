@@ -355,11 +355,16 @@ export function attachNestedGroupingToList(
         return () => {};
     }
 
-    // Resolve open model from openField (must be a many2one) or fall
-    // back to the group field's relation when openField unspecified.
+    // Resolve open model from `openField` (must be a many2one). STRICT
+    // opt-in: nếu caller không pass `list_tree_open_field` context →
+    // `openField` rỗng → trả `null` → `t4OpenInfo` không build → template
+    // bỏ qua nút mở. Trước đây fallback về `fieldName` khiến button luôn
+    // hiện khi group field là many2one — phá behavior configurable.
     const resolveOpenModel = () => {
-        const fieldKey = openField || fieldName;
-        const def = rawList.fields[fieldKey];
+        if (!openField) {
+            return null;
+        }
+        const def = rawList.fields[openField];
         return def && def.type === "many2one" ? def.relation : null;
     };
 

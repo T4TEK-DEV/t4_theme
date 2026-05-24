@@ -178,7 +178,20 @@
                 + #{$d} * var(--t4-tree-indent)
             ) !important;
         }
-        .o_data_row[data-t4-depth="#{$d}"] > td.o_data_cell:first-of-type {
+        // Áp indent cho data cell ĐẦU TIÊN mà KHÔNG phải cột STT.
+        // STT cell có width cố định 48px — nếu indent ăn vào cột này,
+        // số STT sẽ bị padding-left đẩy ra ngoài right edge → clip
+        // mất ở row depth ≥ 2 (vd depth=3 → padding-left 80px > 48px
+        // width → "1" invisible). Indent áp cho cột thứ 2 (cột data
+        // thật như Phiếu Lắp) thay vì cột thứ 1 (STT).
+        .o_data_row[data-t4-depth="#{$d}"] > td.o_data_cell.o_t4_stt_cell + td.o_data_cell {
+            padding-left: calc(
+                var(--t4-tree-base-offset)
+                + #{$d} * var(--t4-tree-indent)
+            ) !important;
+        }
+        // Fallback: list không có cột STT — vẫn áp lên cell đầu.
+        .o_data_row[data-t4-depth="#{$d}"] > td.o_data_cell:first-of-type:not(.o_t4_stt_cell) {
             padding-left: calc(
                 var(--t4-tree-base-offset)
                 + #{$d} * var(--t4-tree-indent)

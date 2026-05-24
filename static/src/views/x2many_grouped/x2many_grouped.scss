@@ -16,20 +16,6 @@
     }
     .o_t4_stt_cell {
         color: var(--o-list-row-number-color, #6c757d);
-        // Some Odoo/Bootstrap rules in nested-group contexts add a
-        // `::before` / `::after` counter or a list-style numeric marker
-        // (Bootstrap `.list-group-numbered` uses
-        // `content: counters(section, ".") ". "`), which causes the STT
-        // cells inside deeper-level groups to render as "1." / "2." while
-        // shallower groups render plain "1" / "2". We don't want that
-        // inconsistency on our own column — kill any pseudo-element
-        // content and list marker on the STT cell defensively.
-        list-style: none !important;
-        &::before,
-        &::after {
-            content: none !important;
-            display: none !important;
-        }
     }
 }
 

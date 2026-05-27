@@ -1,0 +1,14 @@
+// Widget `t4_avatar_text` — ảnh của chính record đứng trước giá trị Char,
+// mô phỏng `many2one_avatar` của Odoo. Kích thước ảnh điều khiển qua
+// CSS var `--Avatar-size` (set bởi option `size`, fallback mặc định Odoo).
+.o_field_t4_avatar_text {
+    .o_avatar img {
+        border-radius: 4px; // bo nhẹ cho ảnh sản phẩm thay vì tròn hẳn
+        object-fit: cover;
+    }
+
+    // Cho phép text co lại để không tràn cột trong list
+    .o_t4_avatar_text {
+        min-width: 0;
+    }
+}

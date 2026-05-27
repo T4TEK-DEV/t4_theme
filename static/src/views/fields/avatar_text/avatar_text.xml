@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="t4_theme.T4AvatarTextField">
+        <div class="o_t4_avatar_text d-flex align-items-center gap-2">
+            <span class="o_avatar o_m2o_avatar flex-shrink-0" t-if="hasImage"
+                  t-att-style="avatarStyle"
+                  t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
+                <img t-ref="avatar" class="rounded" loading="lazy"
+                     t-att-src="imageSrc" alt=""/>
+            </span>
+            <CharField t-props="charProps"/>
+        </div>
+    </t>
+
+</templates>

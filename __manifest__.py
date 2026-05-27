@@ -291,6 +291,11 @@
             't4_theme/static/src/views/fields/image/image_field_patch.js',
             't4_theme/static/src/views/fields/image/image_field_patch.xml',
 
+            # --- Avatar + Text field (ảnh record đứng trước Char, kiểu many2one_avatar) ---
+            # SCSS tự nạp qua glob 't4_theme/static/src/views/**/*.scss' ở trên.
+            't4_theme/static/src/views/fields/avatar_text/avatar_text.js',
+            't4_theme/static/src/views/fields/avatar_text/avatar_text.xml',
+
             # --- X2Many client-side grouping (contexts: list_groupbys, list_nested_group_by) ---
             # --- + leading row-number column for every x2many list in form views ---
             't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',

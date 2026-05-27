@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { useState, useEffect } from '@odoo/owl';
+import { useEffect } from '@odoo/owl';
 import { patch } from '@web/core/utils/patch';
 import { ListController } from '@web/views/list/list_controller';
 
@@ -10,10 +10,11 @@ import { ListController } from '@web/views/list/list_controller';
  *   - `expand_level` (Number) — quyết định trạng thái mặc định khi view load.
  *     VD: `expand_level=1` → tự động mở cấp 1 ngay khi groups load xong.
  *
- * Trạng thái nút:
- *   • isExpanded=false (mặc định) → click sẽ MỞ TẤT CẢ các cấp, nhãn "Mở tất cả".
- *   • isExpanded=true → click sẽ thu gọn về `expand_level` (hoặc root nếu
- *     không có context), nhãn "Thu gọn".
+ * Trạng thái nút (suy ra từ model qua `t4IsFullyExpanded`, KHÔNG giữ flag riêng
+ * → luôn đúng kể cả sau restore từ breadcrumb):
+ *   • Còn nhóm folded ở bất kỳ cấp → nhãn "Mở tất cả", click MỞ TẤT CẢ các cấp.
+ *   • Đã mở hết mọi cấp → nhãn "Thu gọn", click thu gọn về `expand_level`
+ *     (hoặc root nếu không có context).
  *
  * Pattern: trực tiếp mutate `isFolded` trên `model.config` rồi `model.load()`
  * 1 lần — nhanh hơn loop `await group.toggle()` tuần tự. Với view ≥ 2 cấp,
@@ -27,8 +28,13 @@ import { ListController } from '@web/views/list/list_controller';
 patch(ListController.prototype, {
     setup() {
         super.setup(...arguments);
-        this.t4ExpandState = useState({ isExpanded: false });
-        this.t4InitialExpandApplied = false;
+        // Khi khôi phục từ breadcrumb / action stack, `props.state` đã chứa sẵn
+        // trạng thái expand/collapse + records mà user để lại. KHÔNG auto-expand
+        // lại: lệnh `model.load()` của effect sẽ đua (race) với restore-load của
+        // framework → list bị trống (phải reload tay). Đánh dấu đã-áp-dụng để
+        // effect bỏ qua, giữ nguyên view đúng như khi rời đi. Chỉ auto-expand khi
+        // load MỚI (props.state rỗng).
+        this.t4InitialExpandApplied = Boolean(this.props.state);
 
         useEffect(
             () => {
@@ -55,7 +61,37 @@ patch(ListController.prototype, {
     },
 
     get t4ExpandLabel() {
-        return this.t4ExpandState.isExpanded ? 'Thu gọn' : 'Mở tất cả';
+        return this.t4IsFullyExpanded ? 'Thu gọn' : 'Mở tất cả';
+    },
+
+    /**
+     * Trạng thái nút suy ra TRỰC TIẾP từ model (không giữ flag riêng) → luôn
+     * khớp thực tế kể cả sau khi restore từ breadcrumb hay khi user tự fold/
+     * unfold từng nhóm. "Đã mở hết" = đang grouped, có groups, và KHÔNG còn
+     * nhóm nào folded ở mọi cấp.
+     */
+    get t4IsFullyExpanded() {
+        const groups = this.model.config.groups || {};
+        if (!this.model.root.isGrouped || !Object.keys(groups).length) {
+            return false;
+        }
+        return !this._t4HasFoldedGroups(this.model.config);
+    },
+
+    _t4HasFoldedGroups(config) {
+        if (!config.groups) {
+            return false;
+        }
+        for (const key in config.groups) {
+            const g = config.groups[key];
+            if (g.isFolded) {
+                return true;
+            }
+            if (g.list && g.list.groups && this._t4HasFoldedGroups(g.list)) {
+                return true;
+            }
+        }
+        return false;
     },
 
     /**
@@ -121,11 +157,11 @@ patch(ListController.prototype, {
     },
 
     async onT4ToggleExpand() {
-        if (this.t4ExpandState.isExpanded) {
+        if (this.t4IsFullyExpanded) {
             await this._t4CollapseToLevel(this.t4ExpandLevel);
         } else {
             await this._t4ExpandToLevel(Infinity);
         }
-        this.t4ExpandState.isExpanded = !this.t4ExpandState.isExpanded;
+        // Label tự cập nhật qua getter `t4IsFullyExpanded` sau `model.notify()`.
     },
 });

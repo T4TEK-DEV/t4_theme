@@ -169,12 +169,45 @@ patch(X2ManyField.prototype, {
      * Tell the inner ListRenderer to draw a leading "STT" (sequence number)
      * column for every list view embedded in a form view. The cell value
      * accounts for `list.offset` so pagination produces continuous numbers.
+     *
+     * Only inject the prop when the *actual* renderer class accepts it.
+     * Some X2ManyField subclasses swap in a custom renderer (e.g. account's
+     * `ProductLabelSectionAndNoteListRender` on PO/SO/invoice order lines).
+     * Those renderers descend from `SectionAndNoteListRenderer`, which clones
+     * its `static props` array at class-load time (`[...super.props, ...]`) —
+     * so our later `ListRenderer.props.push("t4WithRowNumber?")` never reaches
+     * the clone and OWL prop validation rejects the unknown key. They also use
+     * a separate template that doesn't inherit the STT <th>/<td> markup, so the
+     * column couldn't render there anyway. Guarding on the renderer's declared
+     * props both prevents the crash and keeps the column where it belongs.
      */
     get rendererProps() {
         const props = super.rendererProps;
-        if (this.props.viewMode === "list") {
+        if (this.props.viewMode === "list" && this.t4RendererAcceptsRowNumber) {
             props.t4WithRowNumber = true;
         }
         return props;
+    },
+
+    /**
+     * Whether the resolved ListRenderer component for this field declares the
+     * optional `t4WithRowNumber` prop. Reads `this.constructor.components`
+     * (subclasses override `static components.ListRenderer`) so the check
+     * follows whatever renderer is actually mounted.
+     */
+    get t4RendererAcceptsRowNumber() {
+        const Renderer =
+            this.constructor.components && this.constructor.components.ListRenderer;
+        const rProps = Renderer && Renderer.props;
+        if (Array.isArray(rProps)) {
+            return (
+                rProps.includes("t4WithRowNumber?") ||
+                rProps.includes("t4WithRowNumber")
+            );
+        }
+        if (rProps && typeof rProps === "object") {
+            return "t4WithRowNumber" in rProps;
+        }
+        return false;
     },
 });

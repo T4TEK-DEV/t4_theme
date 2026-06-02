@@ -105,10 +105,18 @@ patch(ImageField.prototype, {
         if (/placeholder|\/web\/static\/img\//.test(img.src)) return;
         if (this._zoomPreviewEl) return;
 
+        // Nếu src là thumbnail (image_64/128/256/512), rewrite sang image_1920
+        // để popup hiện ảnh full-resolution; widget="image" trên list thường
+        // dùng image_128 vì nhẹ.
+        const previewSrc = img.src.replace(
+            /([?&])field=image_(?:64|128|256|512)(?=&|$)/,
+            '$1field=image_1920',
+        );
+
         const preview = document.createElement('div');
         preview.className = 't4-image-zoom-preview';
         const previewImg = document.createElement('img');
-        previewImg.src = img.src;
+        previewImg.src = previewSrc;
         previewImg.alt = '';
         preview.appendChild(previewImg);
         document.body.appendChild(preview);

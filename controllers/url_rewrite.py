@@ -94,6 +94,7 @@ def _patch_session_info():
                         'has_background_image': bool(company.background_image),
                         'has_favicon': bool(company.favicon),
                         't4_web_title': company.t4_web_title or '',
+                        't4_bookmark_title': company.t4_bookmark_title or '',
                         't4_brand_name': company.t4_brand_name or 'T4 ERP',
                         't4_url_prefix': company.t4_url_prefix or '',
                         'theme_preset': company.theme_preset or 'default',

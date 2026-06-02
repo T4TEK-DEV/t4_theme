@@ -145,6 +145,7 @@ function buildInitialState(company, colors, options = {}) {
         homeMenuOverlay: company.theme_home_menu_overlay !== false,
         brandName: company.t4_brand_name || "T4 ERP",
         webTitle: company.t4_web_title || "",
+        bookmarkTitle: company.t4_bookmark_title || "",
         urlPrefix: company.t4_url_prefix || "",
         personalMode,
     };
@@ -457,6 +458,14 @@ export class ThemeSystray extends Component {
         this._markDirty("webTitle");
     }
 
+    onChangeBookmarkTitle(ev) {
+        const value = ev.target.value;
+        this.state.bookmarkTitle = value;
+        // Xem trước ngay trên tab; điều hướng sau sẽ do title_service áp lại đúng route.
+        document.title = value || this.state.webTitle || "Odoo";
+        this._markDirty("bookmarkTitle");
+    }
+
     // =========================================================================
     // Image Upload / Remove (immediate)
     // =========================================================================
@@ -533,6 +542,7 @@ export class ThemeSystray extends Component {
             theme_color_appbar_background: "#2C2C33",
             t4_brand_name: "",
             t4_web_title: "",
+            t4_bookmark_title: "",
             theme_view_overrides: {},
             sidebar_type: "large",
             chatter_position: "bottom",
@@ -594,6 +604,9 @@ export class ThemeSystray extends Component {
                 if (this.dirtyFields.has("webTitle")) {
                     companyVals.t4_web_title = this.state.webTitle;
                 }
+                if (this.dirtyFields.has("bookmarkTitle")) {
+                    companyVals.t4_bookmark_title = this.state.bookmarkTitle;
+                }
             }
 
             if (isAdmin) {
@@ -629,6 +642,7 @@ export class ThemeSystray extends Component {
                     theme_home_menu_overlay: this.state.homeMenuOverlay,
                     t4_brand_name: this.state.brandName,
                     t4_web_title: this.state.webTitle,
+                    t4_bookmark_title: this.state.bookmarkTitle,
                     t4_url_prefix: this.state.urlPrefix,
                 },
                 {

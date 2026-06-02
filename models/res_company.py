@@ -134,7 +134,16 @@ class ResCompany(models.Model):
     t4_web_title = fields.Char(
         string='Tiêu đề trình duyệt',
         default='T4 ERP',
-        help='Tiêu đề tab trình duyệt tùy chỉnh theo công ty.',
+        help='Tiêu đề tab cho trang tĩnh / trang đăng nhập (server-rendered). '
+             'Trang làm việc trong app hiển thị tên record theo Odoo gốc.',
+    )
+
+    t4_bookmark_title = fields.Char(
+        string='Tiêu đề trang chủ / Bookmark',
+        default='T4 ERP',
+        help='Tiêu đề tab khi ở màn hình chính / menu apps (lúc chưa mở record). '
+             'Đây cũng là tiêu đề trình duyệt ghi lại cho bookmark và gợi ý trên '
+             'thanh địa chỉ.',
     )
 
     t4_brand_name = fields.Char(

@@ -37,6 +37,11 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
 
+    t4_bookmark_title = fields.Char(
+        related='company_id.t4_bookmark_title',
+        readonly=False,
+    )
+
     t4_brand_name = fields.Char(
         related='company_id.t4_brand_name',
         readonly=False,

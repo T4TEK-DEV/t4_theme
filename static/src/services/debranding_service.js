@@ -2,32 +2,40 @@ import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 
 /**
- * Debranding service: replaces "Odoo" with company brand name
- * across JS-rendered UI elements.
+ * Debranding service: thay tiêu đề mặc định "Odoo" của Odoo bằng tiêu đề tùy
+ * chỉnh. "Odoo" chỉ xuất hiện như FALLBACK của title_service khi không có
+ * breadcrumb — tức là ở màn hình chính / menu apps / lúc chưa mở action. Đây
+ * cũng là tiêu đề trình duyệt ghi lại cho bookmark/gợi ý địa chỉ.
+ *
+ * Trang đang mở record/list có breadcrumb riêng (không chứa "Odoo") nên KHÔNG
+ * bị đụng — giữ nguyên logic title gốc của Odoo (hiện tên record).
+ *
+ * Ưu tiên t4_bookmark_title, fallback t4_brand_name để tương thích cấu hình cũ.
  */
 export const debrandingService = {
     dependencies: [],
     start(env) {
-        const brandName = user.activeCompany?.t4_brand_name || "T4 ERP";
+        const company = user.activeCompany || {};
+        const homeTitle =
+            company.t4_bookmark_title || company.t4_brand_name || "T4 ERP";
 
-        // 1. Patch document title — replace "Odoo" fallback
-        const originalGetTitle = document.title;
-        const observer = new MutationObserver(() => {
+        const applyHomeTitle = () => {
             if (document.title.includes("Odoo")) {
-                document.title = document.title.replace(/Odoo/g, brandName);
+                document.title = document.title.replace(/Odoo/g, homeTitle);
             }
-        });
+        };
+
+        // 1. Theo dõi thay đổi title (mỗi lần điều hướng) — chỉ động vào fallback.
+        const observer = new MutationObserver(applyHomeTitle);
         observer.observe(
             document.querySelector("title"),
             { childList: true, characterData: true, subtree: true }
         );
 
-        // 2. Initial title fix
-        if (document.title.includes("Odoo")) {
-            document.title = document.title.replace(/Odoo/g, brandName);
-        }
+        // 2. Sửa title lần tải đầu (root URL → quyết định bookmark/gợi ý địa chỉ).
+        applyHomeTitle();
 
-        return { brandName };
+        return { homeTitle };
     },
 };
 

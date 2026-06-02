@@ -363,7 +363,7 @@
                             placeholder="My Company"/>
                     </div>
 
-                    <!-- Browser Title -->
+                    <!-- Browser Title (static / login page) -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-1 mb-1">
                             <small class="text-muted">Tiêu đề trình duyệt</small>
@@ -372,6 +372,19 @@
                             t-att-value="state.webTitle"
                             t-on-change="onChangeWebTitle"
                             placeholder="My ERP"/>
+                        <small class="text-muted">Trang đăng nhập / trang tĩnh. Trang trong app hiện tên record.</small>
+                    </div>
+
+                    <!-- Browser Title (home / bookmark) -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <small class="text-muted">Tiêu đề trang chủ / Bookmark</small>
+                        </div>
+                        <input type="text" class="form-control form-control-sm"
+                            t-att-value="state.bookmarkTitle"
+                            t-on-change="onChangeBookmarkTitle"
+                            placeholder="My ERP"/>
+                        <small class="text-muted">Hiện ở màn hình chính &amp; lưu cho bookmark/gợi ý địa chỉ.</small>
                     </div>
 
                     <!-- Logo -->

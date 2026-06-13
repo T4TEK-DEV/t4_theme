@@ -16,10 +16,17 @@ export class TaxTagsField extends Many2ManyTagsField {
         const amount = record.data.amount;
         const amountType = record.data.amount_type;
         if (amount !== undefined && amount !== null) {
+            let suffix = "";
             if (amountType === "percent" || amountType === "division") {
-                props.text = `${props.text} · ${amount}%`;
+                suffix = `${amount}%`;
             } else if (amountType === "fixed") {
-                props.text = `${props.text} · ${amount}`;
+                suffix = `${amount}`;
+            }
+            // Chỉ nối mức thuế khi nhãn CHƯA chứa nó (tránh trùng "10% · 10%"
+            // khi tên thuế vốn đã là mức %).
+            const text = String(props.text || "");
+            if (suffix && !text.includes(suffix)) {
+                props.text = `${text} · ${suffix}`;
             }
         }
         return props;

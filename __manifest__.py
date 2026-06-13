@@ -296,6 +296,9 @@
             't4_theme/static/src/views/fields/avatar_text/avatar_text.js',
             't4_theme/static/src/views/fields/avatar_text/avatar_text.xml',
 
+            # --- Widget many2many chọn THUẾ (hiển thị mức thuế trên chip) ---
+            't4_theme/static/src/views/fields/tax_tags/tax_tags_field.js',
+
             # --- X2Many client-side grouping (contexts: list_groupbys, list_nested_group_by) ---
             # --- + leading row-number column for every x2many list in form views ---
             't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',

@@ -231,22 +231,6 @@
                         </div>
                     </div>
 
-                    <!-- Home Menu Overlay -->
-                    <div t-if="canEditCompanyTheme">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <small class="text-muted">
-                                Home Menu Overlay
-                                <i class="fa fa-info-circle ms-1" style="font-size:11px; cursor:help;"
-                                    title="Bật/tắt màn hình Home Menu toàn trang khi bấm ESC"/>
-                            </small>
-                            <div class="form-check form-switch mb-0">
-                                <input type="checkbox" class="form-check-input"
-                                    t-att-checked="state.homeMenuOverlay"
-                                    t-on-change="onToggleHomeMenuOverlay"/>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Icon Shape -->
                     <div t-if="canEditCompanyTheme" class="mt-2">
                         <small class="text-muted d-block mb-1">Hình dạng icon ứng dụng</small>
@@ -260,6 +244,46 @@
                             </t>
                         </div>
                     </div>
+                </div>
+
+                <!-- ====== Home Menu Overlay (đưa ra section riêng cho nổi bật) ====== -->
+                <div t-if="canEditCompanyTheme" class="t4_section">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="t4_section_label">
+                            <i class="fa fa-window-restore me-2"/>Home Menu Overlay
+                        </span>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" class="form-check-input"
+                                t-att-checked="state.homeMenuOverlay"
+                                t-on-change="onToggleHomeMenuOverlay"/>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        Bật/tắt màn hình Home Menu toàn trang (đóng bằng phím ESC).
+                    </small>
+                </div>
+
+                <!-- ====== Sao chép cấu hình từ công ty khác ====== -->
+                <div t-if="canEditCompanyTheme and state.companies.length" class="t4_section">
+                    <span class="t4_section_label d-block mb-2">
+                        <i class="fa fa-clone me-2"/>Sao chép cấu hình công ty khác
+                    </span>
+                    <small class="text-muted d-block mb-2">
+                        Lấy toàn bộ giao diện (màu, font, icon, logo, thương hiệu...) của một
+                        công ty khác áp vào công ty hiện tại.
+                    </small>
+                    <select class="form-select form-select-sm mb-2" t-on-change="onSelectCopyFrom">
+                        <option value="">— Chọn công ty nguồn —</option>
+                        <t t-foreach="state.companies" t-as="c" t-key="c.id">
+                            <option t-att-value="c.id" t-esc="c.name"/>
+                        </t>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary w-100"
+                        t-att-disabled="!state.copyFromId or state.copying"
+                        t-on-click="onCopyFromCompany">
+                        <i t-attf-class="fa {{ state.copying ? 'fa-spinner fa-spin' : 'fa-clone' }} me-1"/>
+                        Sao chép sang công ty hiện tại
+                    </button>
                 </div>
 
                 <!-- ====== Brand Colors ====== -->
@@ -361,6 +385,26 @@
                             t-att-value="state.brandName"
                             t-on-change="onChangeBrandName"
                             placeholder="My Company"/>
+                    </div>
+
+                    <!-- OdooBot Name (global rename) -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <small class="text-muted">Tên OdooBot</small>
+                            <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
+                                title="Đổi tên trợ lý OdooBot hiển thị trong chatter / tin nhắn tự động. Áp dụng toàn hệ thống; trang sẽ tải lại sau khi lưu."/>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm"
+                                t-att-value="state.odoobotName"
+                                t-on-input="onChangeOdoobotName"
+                                placeholder="OdooBot"/>
+                            <button class="btn btn-sm btn-outline-primary"
+                                t-att-disabled="!state.odoobotName"
+                                t-on-click="onSaveOdoobotName" title="Lưu tên OdooBot">
+                                <i class="fa fa-check"/>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Browser Title (static / login page) -->

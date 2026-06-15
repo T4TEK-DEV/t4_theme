@@ -96,6 +96,26 @@ _THEME_COLOR_FIELDS = [
     'theme_color_appbar_background',
 ]
 
+# Các field GIAO DIỆN được sao chép khi "lấy cấu hình công ty khác".
+# CỐ Ý LOẠI t4_url_prefix: nó là cấu hình TOÀN CỤC (ghi ir.config_parameter +
+# rebuild assets trong write()) → không hợp lý copy theo từng công ty.
+_THEME_COPY_FIELDS = _THEME_COLOR_FIELDS + [
+    'theme_preset',
+    'theme_font_family',
+    'theme_icon_shape',
+    'theme_home_menu_overlay',
+    't4_brand_name',
+    't4_web_title',
+    't4_bookmark_title',
+    'appbar_image',
+    'background_image',
+    'favicon',
+    'theme_view_overrides',
+    'sidebar_type',
+    'chatter_position',
+    'dialog_size',
+]
+
 
 class ResCompany(models.Model):
 
@@ -356,6 +376,35 @@ class ResCompany(models.Model):
         for company in self:
             preset = THEME_PRESETS.get(company.theme_preset, THEME_PRESETS['default'])
             company.write(preset)
+
+    def t4_copy_theme_from(self, source_company_id):
+        """Sao chép TOÀN BỘ cấu hình giao diện từ công ty nguồn sang self
+        (công ty hiện tại). Bỏ qua t4_url_prefix (cấu hình toàn cục)."""
+        self.ensure_one()
+        source = self.browse(int(source_company_id))
+        if not source.exists() or source.id == self.id:
+            return False
+        vals = {f: source[f] for f in _THEME_COPY_FIELDS if f in self._fields}
+        self.write(vals)
+        return True
+
+    @api.model
+    def t4_get_odoobot_name(self):
+        """Tên hiện tại của OdooBot (partner gốc của user hệ thống)."""
+        partner = self.env.ref('base.partner_root', raise_if_not_found=False)
+        return partner.name if partner else ''
+
+    @api.model
+    def t4_set_odoobot_name(self, name):
+        """Đổi tên OdooBot (base.partner_root) — áp dụng TOÀN HỆ THỐNG.
+        sudo: partner gốc thường ngoài tầm ghi của user thường."""
+        name = (name or '').strip()
+        if not name:
+            return False
+        partner = self.env.ref('base.partner_root', raise_if_not_found=False)
+        if partner:
+            partner.sudo().write({'name': name})
+        return True
 
     #----------------------------------------------------------
     # Fields - View Overrides

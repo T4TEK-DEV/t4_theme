@@ -201,7 +201,14 @@ export class ThemeSystray extends Component {
         this.state.newPresetName = '';
         this.state.importing = false;
 
+        // Sao chép cấu hình công ty khác + đổi tên OdooBot
+        this.state.companies = [];
+        this.state.copyFromId = false;
+        this.state.copying = false;
+        this.state.odoobotName = '';
+
         this._loadPresets();
+        this._loadThemeExtras();
     }
 
     // =========================================================================
@@ -347,6 +354,54 @@ export class ThemeSystray extends Component {
         } catch (e) {
             console.error('Failed to load presets:', e);
         }
+    }
+
+    async _loadThemeExtras() {
+        // Danh sách công ty khác (để sao chép cấu hình) + tên OdooBot hiện tại.
+        try {
+            this.state.companies = await this.orm.searchRead(
+                "res.company", [["id", "!=", this.state.companyId]], ["id", "name"]
+            );
+        } catch (e) {
+            console.error('Failed to load companies:', e);
+        }
+        try {
+            this.state.odoobotName = await this.orm.call(
+                "res.company", "t4_get_odoobot_name", [[]]
+            );
+        } catch (e) {
+            console.error('Failed to load OdooBot name:', e);
+        }
+    }
+
+    onSelectCopyFrom(ev) {
+        this.state.copyFromId = parseInt(ev.target.value, 10) || false;
+    }
+
+    async onCopyFromCompany() {
+        if (!this.state.copyFromId || !this.canEditCompanyTheme) return;
+        this.state.copying = true;
+        try {
+            await this.orm.call("res.company", "t4_copy_theme_from", [
+                [this.state.companyId], this.state.copyFromId,
+            ]);
+            this.ui.block();
+            browser.location.reload();
+        } finally {
+            this.state.copying = false;
+        }
+    }
+
+    onChangeOdoobotName(ev) {
+        this.state.odoobotName = ev.target.value;
+    }
+
+    async onSaveOdoobotName() {
+        const name = (this.state.odoobotName || '').trim();
+        if (!name || !this.canEditCompanyTheme) return;
+        await this.orm.call("res.company", "t4_set_odoobot_name", [[], name]);
+        this.ui.block();
+        browser.location.reload();
     }
 
     onSelectPreset(preset) {

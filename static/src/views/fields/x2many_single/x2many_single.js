@@ -4,9 +4,15 @@
 // như MANY2ONE: chỉ chọn được 1 giá trị, ô chọn dạng dropdown (không phải chip).
 // Khi chọn giá trị mới → thay thế giá trị cũ (link mới, unlink hết phần còn lại).
 // Dùng: <field name="tax_ids" widget="x2many_single"/>.
+//
+// Props cho <Many2One/> được build bằng computeM2OProps GỐC của Odoo (cung cấp
+// đầy đủ `domain` (hàm — getDomain), `openActionContext`, `context`, `relation`...).
+// Chỉ OVERRIDE `value` (đơn trị từ bản ghi đầu) + `update` (ghi ngược vào x2many)
+// + tắt create/open. Tự build props thủ công TRƯỚC ĐÂY thiếu `domain`/`openActionContext`
+// → lỗi "'getDomain' is not a function" / "openActionContext is not a function".
 import { Component } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { Many2One } from "@web/views/fields/many2one/many2one";
+import { Many2One, computeM2OProps } from "@web/views/fields/many2one/many2one";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
 export class X2ManySingleField extends Component {
@@ -14,17 +20,8 @@ export class X2ManySingleField extends Component {
     static components = { Many2One };
     static props = { ...standardFieldProps };
 
-    setup() {
-        // Bind để truyền callback giữ đúng `this`.
-        this.updateValue = this.updateValue.bind(this);
-    }
-
     get list() {
         return this.props.record.data[this.props.name];
-    }
-
-    get relation() {
-        return this.props.record.fields[this.props.name].relation;
     }
 
     // Giá trị hiển thị kiểu m2o: lấy bản ghi ĐẦU TIÊN (đơn trị) → {id, display_name}.
@@ -37,6 +34,19 @@ export class X2ManySingleField extends Component {
             };
         }
         return false;
+    }
+
+    // Props truyền xuống <Many2One/>: lấy NGUYÊN bộ chuẩn rồi override đơn trị.
+    get m2oProps() {
+        return {
+            ...computeM2OProps(this.props),
+            value: this.m2oValue,
+            update: (value) => this.updateValue(value),
+            canOpen: false,
+            canCreate: false,
+            canCreateEdit: false,
+            canQuickCreate: false,
+        };
     }
 
     // Ghi NGƯỢC vào x2many: link id mới, unlink mọi id khác → chỉ còn 1 (hoặc rỗng).

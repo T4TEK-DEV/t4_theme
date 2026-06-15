@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="t4_theme.X2ManySingle">
-        <Many2One
-            relation="relation"
-            value="m2oValue"
-            update="updateValue"
-            readonly="props.readonly"
-            canOpen="false"
-            canCreate="false"
-            canCreateEdit="false"
-            canQuickCreate="false"
-        />
+        <Many2One t-props="m2oProps"/>
     </t>
 </templates>

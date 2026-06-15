@@ -306,6 +306,9 @@
             't4_theme/static/src/views/x2many_grouped/x2many_field_patch.js',
             't4_theme/static/src/views/x2many_grouped/list_renderer_patch.js',
             't4_theme/static/src/views/x2many_grouped/list_renderer_stt.xml',
+
+            # --- Doc Print (client action in HTML report qua hidden iframe) ---
+            't4_theme/static/src/print/doc_print.js',
         ],
         # ============================================================
         # Unit Tests

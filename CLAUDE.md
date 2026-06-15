@@ -301,6 +301,23 @@ Tất cả JSON endpoints dùng `auth='user'` — CSRF built-in.
 
 ---
 
+## Cập nhật 2026-06 — ThemeSystray: sao chép cấu hình + đổi tên OdooBot
+
+3 tính năng thêm vào panel phải (ThemeSystray), gate `canEditCompanyTheme` (super admin):
+
+- **Sao chép cấu hình công ty khác** — section mới: chọn công ty nguồn (`<select>`) →
+  `res.company.t4_copy_theme_from(source_id)` copy `_THEME_COPY_FIELDS` (màu/font/icon/
+  branding/images/layout) sang công ty hiện tại. **CỐ Ý bỏ `t4_url_prefix`** (global +
+  rebuild assets trong `write()`). Ghi xong reload (pattern `onResetToOdoo`).
+- **Đổi tên OdooBot** — field trong section Thương hiệu: `t4_get_odoobot_name()` /
+  `t4_set_odoobot_name(name)` ghi `base.partner_root.name` (sudo, toàn hệ thống). Reload
+  vì chatter cache tên author client-side.
+- **Home Menu Overlay** — tách khỏi nhóm "Bố cục" ra `t4_section` riêng (dùng
+  `t4_section_label` như Dark Mode) cho nổi bật, thay vì `small.text-muted` cũ.
+
+JS: `theme_systray.js` thêm state `companies/copyFromId/copying/odoobotName`, load qua
+`_loadThemeExtras()` (searchRead res.company + orm.call t4_get_odoobot_name).
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

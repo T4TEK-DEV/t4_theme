@@ -396,7 +396,7 @@
                         </div>
                         <input type="text" class="form-control form-control-sm"
                             t-att-value="state.odoobotName"
-                            t-on-change="onChangeOdoobotName"
+                            t-on-input="onChangeOdoobotName"
                             placeholder="OdooBot"/>
                     </div>
 

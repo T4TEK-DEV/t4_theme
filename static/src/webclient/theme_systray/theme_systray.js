@@ -366,9 +366,11 @@ export class ThemeSystray extends Component {
             console.error('Failed to load companies:', e);
         }
         try {
+            // @api.model → KHÔNG truyền ids; args rỗng.
             this.state.odoobotName = await this.orm.call(
-                "res.company", "t4_get_odoobot_name", [[]]
+                "res.company", "t4_get_odoobot_name", []
             );
+            this.original.odoobotName = this.state.odoobotName;
         } catch (e) {
             console.error('Failed to load OdooBot name:', e);
         }
@@ -394,9 +396,16 @@ export class ThemeSystray extends Component {
 
     onChangeOdoobotName(ev) {
         // Lưu chung qua nút "Lưu" như các trường branding khác (xử lý ở onClickSave).
+        // t-on-input: hiện nút Lưu NGAY khi giá trị khác giá trị đầu (không cần blur).
         this.state.odoobotName = ev.target.value;
-        this._markDirty("odoobotName");
-        this.state.needsReload = true;  // chatter cache tên author → reload sau khi lưu
+        const changed = (this.state.odoobotName || "") !== (this.original.odoobotName || "");
+        if (changed) {
+            this._markDirty("odoobotName");
+            this.state.needsReload = true;  // chatter cache tên author → reload sau khi lưu
+        } else {
+            this.dirtyFields.delete("odoobotName");
+            this.state.dirty = this.dirtyFields.size > 0;
+        }
     }
 
     onSelectPreset(preset) {
@@ -685,8 +694,9 @@ export class ThemeSystray extends Component {
             if (isAdmin && this.dirtyFields.has("odoobotName")) {
                 const botName = (this.state.odoobotName || "").trim();
                 if (botName) {
+                    // @api.model → args chỉ gồm name (KHÔNG có ids đứng đầu).
                     promises.push(
-                        this.orm.call("res.company", "t4_set_odoobot_name", [[], botName])
+                        this.orm.call("res.company", "t4_set_odoobot_name", [botName])
                     );
                 }
             }

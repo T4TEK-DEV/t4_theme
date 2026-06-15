@@ -299,6 +299,10 @@
             # --- Widget many2many chọn THUẾ (hiển thị mức thuế trên chip) ---
             't4_theme/static/src/views/fields/tax_tags/tax_tags_field.js',
 
+            # --- Widget x2many_single: m2m/o2m hành xử & hiển thị như many2one ---
+            't4_theme/static/src/views/fields/x2many_single/x2many_single.js',
+            't4_theme/static/src/views/fields/x2many_single/x2many_single.xml',
+
             # --- X2Many client-side grouping (contexts: list_groupbys, list_nested_group_by) ---
             # --- + leading row-number column for every x2many list in form views ---
             't4_theme/static/src/views/x2many_grouped/x2many_grouped_adapter.js',

@@ -6,6 +6,7 @@
             value="m2oValue"
             update="updateValue"
             readonly="props.readonly"
+            canOpen="false"
             canCreate="false"
             canCreateEdit="false"
             canQuickCreate="false"

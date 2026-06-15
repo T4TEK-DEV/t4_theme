@@ -11,6 +11,28 @@ import {
 } from "@web/views/fields/many2many_tags/many2many_tags_field";
 
 export class TaxTagsField extends Many2ManyTagsField {
+    setup() {
+        super.setup();
+        // ĐƠN TRỊ: ép trường many2many (vd Thuế) chỉ giữ 1 giá trị như many2one.
+        // Mỗi lần chọn giá trị mới → xóa hết giá trị cũ rồi thêm giá trị vừa chọn.
+        const baseUpdate = this.update;
+        this.update = async (recordlist) => {
+            // Bỏ phần tử đã có sẵn; lấy phần tử MỚI cuối cùng được chọn.
+            const fresh = (recordlist || []).filter(
+                (el) => !this.tags.some((t) => t.resId === el.id)
+            );
+            if (!fresh.length) {
+                return;
+            }
+            const keep = fresh[fresh.length - 1];
+            // Xóa toàn bộ tag hiện có trước khi thêm tag mới → chỉ còn 1.
+            for (const tag of [...this.tags]) {
+                await this.deleteTag(tag.id);
+            }
+            return baseUpdate([keep]);
+        };
+    }
+
     getTagProps(record) {
         const props = super.getTagProps(record);
         const amount = record.data.amount;

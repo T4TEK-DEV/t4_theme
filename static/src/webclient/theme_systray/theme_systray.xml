@@ -394,17 +394,10 @@
                             <i class="fa fa-info-circle text-muted" style="font-size:12px; cursor:help;"
                                 title="Đổi tên trợ lý OdooBot hiển thị trong chatter / tin nhắn tự động. Áp dụng toàn hệ thống; trang sẽ tải lại sau khi lưu."/>
                         </div>
-                        <div class="d-flex gap-2">
-                            <input type="text" class="form-control form-control-sm"
-                                t-att-value="state.odoobotName"
-                                t-on-input="onChangeOdoobotName"
-                                placeholder="OdooBot"/>
-                            <button class="btn btn-sm btn-outline-primary"
-                                t-att-disabled="!state.odoobotName"
-                                t-on-click="onSaveOdoobotName" title="Lưu tên OdooBot">
-                                <i class="fa fa-check"/>
-                            </button>
-                        </div>
+                        <input type="text" class="form-control form-control-sm"
+                            t-att-value="state.odoobotName"
+                            t-on-change="onChangeOdoobotName"
+                            placeholder="OdooBot"/>
                     </div>
 
                     <!-- Browser Title (static / login page) -->

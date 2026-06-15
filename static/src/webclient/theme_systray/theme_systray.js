@@ -393,15 +393,10 @@ export class ThemeSystray extends Component {
     }
 
     onChangeOdoobotName(ev) {
+        // Lưu chung qua nút "Lưu" như các trường branding khác (xử lý ở onClickSave).
         this.state.odoobotName = ev.target.value;
-    }
-
-    async onSaveOdoobotName() {
-        const name = (this.state.odoobotName || '').trim();
-        if (!name || !this.canEditCompanyTheme) return;
-        await this.orm.call("res.company", "t4_set_odoobot_name", [[], name]);
-        this.ui.block();
-        browser.location.reload();
+        this._markDirty("odoobotName");
+        this.state.needsReload = true;  // chatter cache tên author → reload sau khi lưu
     }
 
     onSelectPreset(preset) {
@@ -686,6 +681,14 @@ export class ThemeSystray extends Component {
                 promises.push(
                     this.orm.write("res.users", [user.userId], userVals)
                 );
+            }
+            if (isAdmin && this.dirtyFields.has("odoobotName")) {
+                const botName = (this.state.odoobotName || "").trim();
+                if (botName) {
+                    promises.push(
+                        this.orm.call("res.company", "t4_set_odoobot_name", [[], botName])
+                    );
+                }
             }
             await Promise.all(promises);
 

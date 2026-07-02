@@ -64,6 +64,18 @@
 }
 
 .d-flex > .flex-fill.min-w-0 {
+    // Bootstrap's `.flex-fill` is `flex: 1 1 auto !important` — with basis
+    // `auto`, the flex distribution is weighted by each pane's intrinsic
+    // content width. After Odoo's resize hook writes inline pixel widths
+    // on the table/renderer, that weight becomes the dragged width: the
+    // resized pane grabs most of the row and its sibling collapses to a
+    // sliver (min-width:0 lets it shrink, max-width:100% only clips — the
+    // distribution itself was still content-driven). Basis 0 makes the
+    // split depend on grow factors only: two panes → always 50/50, no
+    // matter how far a column is resized; the wide table scrolls inside
+    // its pane instead. `!important` needed to beat Bootstrap's shorthand.
+    flex-basis: 0 !important;
+
     .o_inner_group,
     .o_cell,
     .o_field_widget,

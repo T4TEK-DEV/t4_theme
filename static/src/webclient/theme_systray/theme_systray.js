@@ -207,8 +207,9 @@ export class ThemeSystray extends Component {
         this.state.copying = false;
         this.state.odoobotName = '';
 
-        this._loadPresets();
-        this._loadThemeExtras();
+        // Lazy-load: presets + extras chỉ fetch khi mở panel lần đầu (togglePanel),
+        // tránh 3 RPC vô ích ở mỗi lần reload trang khi user không đụng tới sidebar.
+        this._extrasLoaded = false;
     }
 
     // =========================================================================
@@ -237,7 +238,17 @@ export class ThemeSystray extends Component {
         return stack ? `font-family: ${stack}` : "";
     }
 
-    togglePanel() { this.state.open = !this.state.open; }
+    togglePanel() {
+        this.state.open = !this.state.open;
+        if (this.state.open && !this._extrasLoaded) {
+            this._extrasLoaded = true;
+            this._loadPresets();
+            if (this.canEditCompanyTheme) {
+                // Danh sách công ty + tên OdooBot chỉ hiển thị cho super admin.
+                this._loadThemeExtras();
+            }
+        }
+    }
     closePanel() { this.state.open = false; }
 
     toggleFontDropdown() {

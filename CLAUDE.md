@@ -318,6 +318,15 @@ Tất cả JSON endpoints dùng `auth='user'` — CSRF built-in.
 JS: `theme_systray.js` thêm state `companies/copyFromId/copying/odoobotName`, load qua
 `_loadThemeExtras()` (searchRead res.company + orm.call t4_get_odoobot_name).
 
+## Cập nhật 2026-07 — Lazy-load dữ liệu panel ThemeSystray
+
+`_loadPresets()` + `_loadThemeExtras()` KHÔNG còn gọi trong `setup()` (trước đây tốn
+3 RPC mỗi lần reload trang dù chưa mở sidebar). Giờ fetch lần đầu trong `togglePanel()`
+(guard `_extrasLoaded`); `_loadThemeExtras()` chỉ gọi khi `canEditCompanyTheme`
+(super admin — user thường không thấy section copy công ty / OdooBot).
+Lưu ý khi thêm entry point mở panel mới: phải đi qua `togglePanel()` (hoặc tự trigger
+lazy-load), không set `state.open = true` trực tiếp.
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

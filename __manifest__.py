@@ -235,6 +235,10 @@
             # --- Group Expand/Collapse ---
             't4_theme/static/src/group/search/**/*',
 
+            # --- Search Panel Date Range (Từ/Đến ngày, config qua context
+            #     t4_searchpanel_date_range — xem JS docstring) ---
+            't4_theme/static/src/search/search_panel_date_range/*',
+
             # --- Refresh ---
             't4_theme/static/src/refresh/core/utils.js',
             't4_theme/static/src/refresh/scss/refresh.scss',

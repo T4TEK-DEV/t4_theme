@@ -106,6 +106,34 @@ Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa**
 
 ## OWL Components (Frontend)
 
+### Search Panel Date Range (`static/src/search/search_panel_date_range/`, 2026-07-03)
+
+Section **"Từ ngày / Đến ngày"** cho search panel — Odoo gốc chỉ có section
+category/filter, KHÔNG có chọn khoảng thời gian. Generic, tái dùng được cho
+mọi list view. Cấu hình qua **CONTEXT của action** (không đụng RNG validation
+search arch):
+
+```python
+'context': {
+    't4_searchpanel_date_range': {
+        'field': 'report_date',        # field nhận domain >=/<=
+        'string': 'Kỳ Báo Cáo',
+        'icon': 'fa-calendar',          # optional
+        'default_from': 'month_start',  # 'month_start'|'today'|'YYYY-MM-DD'|False
+        'default_to': 'today',
+    },
+}
+```
+
+Cơ chế: patch `SearchModel` (`load` đọc config → state `t4DateRange`;
+`_getDisplay` ÉP hiện panel kể cả khi search arch không có `<searchpanel>`;
+`_getSearchPanelDomain` AND thêm `[(field,'>=',from),(field,'<=',to)]`) +
+patch `SearchPanel` render 2 `DateTimeInput` (datepicker chuẩn Odoo), đổi
+ngày → `_notify()` → view reload domain mới. Model thường = filter khoảng
+ngày; model báo cáo có thể tiêu thụ leaf trong `_search` để TÍNH LẠI dữ liệu
+theo kỳ (xem t4_sti Báo Cáo XNT v1.0.168). Giới hạn v1: chưa render mobile
+(`web.SearchPanel.Small`); không lưu vào favorite/breadcrumb state.
+
 ### Services (`static/src/services/`)
 
 | File | Vai trò |

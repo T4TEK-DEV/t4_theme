@@ -2,11 +2,10 @@
 <templates xml:space="preserve">
 
     <!-- Body section "date range" (Từ ngày / Đến ngày). Header (icon + tiêu
-         đề) do vòng lặp section chuẩn của web.SearchPanelContent render sẵn
-         — template này chỉ render phần thân, thế chỗ web.SearchPanel.Section
-         khi section.type === 't4_date_range'. -->
+         đề) do vòng lặp section chuẩn render sẵn — đây chỉ là phần thân,
+         render qua nhánh t4_date_range chèn vào web.SearchPanel.Section. -->
     <t t-name="t4_theme.SearchPanelDateRange">
-        <div class="o_t4_search_panel_date_range px-2 px-md-0">
+        <li class="o_t4_search_panel_date_range list-group-item p-0 border-0 px-2 px-md-0">
             <div class="o_t4_date_range_item mb-2">
                 <label class="small text-muted d-block mb-1">Từ ngày</label>
                 <DateTimeInput type="'date'"
@@ -19,24 +18,22 @@
                                value="t4DateRangeValue(section, 'to')"
                                onApply="(date) => this.onT4DateRangeApply(section, 'to', date)"/>
             </div>
-        </div>
+        </li>
     </t>
 
-    <!-- Desktop (Regular kế thừa primary từ SearchPanelContent → nhận luôn
-         extension này). -->
-    <t t-inherit="web.SearchPanelContent" t-inherit-mode="extension">
-        <xpath expr="//t[@t-call='web.SearchPanel.Section']" position="replace">
+    <!-- Chèn nhánh t4_date_range vào ĐẦU chuỗi if/elif/else của Section.
+         PHẢI vá Section (resolve RUNTIME qua callTemplate — mọi caller:
+         Content/Regular/Small đều nhận) chứ KHÔNG vá SearchPanelContent:
+         web.SearchPanel.Regular là t-inherit-mode="primary" của Content,
+         extension trên Content không lan sang Regular → section rơi nhánh
+         else (FiltersGroup) crash values.keys() undefined. -->
+    <t t-inherit="web.SearchPanel.Section" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if=&quot;section.type === 'category'&quot;]" position="before">
             <t t-if="section.type === 't4_date_range'" t-call="t4_theme.SearchPanelDateRange"/>
-            <t t-else="" t-call="web.SearchPanel.Section"/>
         </xpath>
-    </t>
-
-    <!-- Mobile: section nằm trong Dropdown — thay t-call y hệt để không rơi
-         vào nhánh filtersGroup (values undefined → crash). -->
-    <t t-inherit="web.SearchPanel.Small" t-inherit-mode="extension">
-        <xpath expr="//t[@t-call='web.SearchPanel.Section']" position="replace">
-            <t t-if="section.type === 't4_date_range'" t-call="t4_theme.SearchPanelDateRange"/>
-            <t t-else="" t-call="web.SearchPanel.Section"/>
+        <xpath expr="//t[@t-if=&quot;section.type === 'category'&quot;]" position="attributes">
+            <attribute name="t-elif">section.type === 'category'</attribute>
+            <attribute name="t-if"/>
         </xpath>
     </t>
 

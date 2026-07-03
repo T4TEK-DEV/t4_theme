@@ -136,11 +136,14 @@ không hiện panel vì `display.searchPanel` được core tính bên trong
   `hasValues` không biết → bị lọc mất); `_getSearchPanelDomain` AND thêm
   `[(field,'>=',from),(field,'<=',to)]`; `t4SetSectionDateRange` đổi ngày →
   `_notify()` → view reload. Arch có section → core tự hiện panel.
-- **SearchPanel** + template extension: thay `t-call web.SearchPanel.Section`
-  bằng nhánh điều kiện — type t4_date_range render 2 `DateTimeInput`
-  (datepicker chuẩn Odoo); vá CẢ `web.SearchPanelContent` (desktop, Regular
-  kế thừa primary) lẫn `web.SearchPanel.Small` (mobile dropdown — không vá
-  sẽ rơi nhánh filtersGroup crash vì `values` undefined).
+- **SearchPanel** + template extension: chèn nhánh `t-if type==='t4_date_range'`
+  vào ĐẦU chuỗi if/elif/else của **`web.SearchPanel.Section`** (đổi t-if
+  category gốc → t-elif) — render 2 `DateTimeInput` (datepicker chuẩn Odoo).
+  **PHẢI vá Section** (resolve RUNTIME qua `callTemplate` → mọi caller
+  Content/Regular/Small đều nhận), KHÔNG vá `web.SearchPanelContent`:
+  `web.SearchPanel.Regular` là `t-inherit-mode="primary"` của Content,
+  extension trên Content KHÔNG lan sang Regular → section rơi nhánh else
+  (FiltersGroup) crash `values.keys()` undefined (bug OwlError 2026-07-03).
 - Model thường = filter khoảng ngày trên field đó; model báo cáo tiêu thụ
   leaf trong `_search` để TÍNH LẠI dữ liệu theo kỳ (xem t4_sti Báo Cáo XNT
   v1.0.168/169).

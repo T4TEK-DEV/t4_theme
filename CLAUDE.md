@@ -106,6 +106,55 @@ Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa**
 
 ## OWL Components (Frontend)
 
+### Search Panel Date Range (`static/src/search/search_panel_date_range/`, 2026-07-03)
+
+Loại section MỚI **"Từ ngày / Đến ngày"** cho search panel — Odoo gốc chỉ có
+section category/filter, KHÔNG có chọn khoảng thời gian. Generic, tái dùng
+được. Khai báo **NGAY TRONG SEARCH VIEW** như field searchpanel thường
+(arch-based — redesign theo feedback user, thay bản context-based đầu bị bug
+không hiện panel vì `display.searchPanel` được core tính bên trong
+`super.load()` trước khi patch đọc config):
+
+```xml
+<searchpanel>
+    <field name="report_date" widget="t4_date_range"
+           string="Kỳ Báo Cáo" icon="fa-calendar"
+           context="{'default_from': 'month_start', 'default_to': 'today'}"/>
+</searchpanel>
+```
+
+- `widget="t4_date_range"` đánh dấu section; defaults khai trong `context`
+  (`'month_start'|'today'|'YYYY-MM-DD'|bỏ`) vì RNG search view chỉ cho attr
+  chuẩn (widget/string/icon/color/context được phép; `default_from` attr
+  riêng thì KHÔNG).
+- **Parser**: patch `SearchArchParser.visitSearchPanel` — TÁCH node
+  widget=t4_date_range ra TRƯỚC khi core parse (core sẽ coi là category →
+  RPC `search_panel_select_range` nổ với field date), UNSHIFT section
+  `{type:'t4_date_range', fieldName, from, to, values: new Map()}` lên đầu
+  (from/to = ISO string). **`values: new Map()` BẮT BUỘC**:
+  `SearchModel.exportState/_importState` serialize `section.values` cho MỌI
+  section — thiếu → crash "map is not iterable" khi rời view (bug
+  2026-07-03 lần 2).
+- **SearchModel**: `getSections` ép `empty=false` cho type này (core
+  `hasValues` không biết → bị lọc mất); **AND date-range vào `_getDomain`**
+  (KHÔNG phải `_getSearchPanelDomain`) → leaves có mặt cả trong
+  `searchDomain` (withSearchPanel:false) dùng fetch values/counters của
+  section khác ⇒ đổi kỳ → `searchDomainChanged` → values section filter
+  (vd Sản Phẩm select=multi) refetch THEO KỲ; `t4SetSectionDateRange`
+  (guard giá trị không đổi) → `_notify()` → view reload. Arch có section →
+  core tự hiện panel.
+- **SearchPanel** + template extension: chèn nhánh `t-if type==='t4_date_range'`
+  vào ĐẦU chuỗi if/elif/else của **`web.SearchPanel.Section`** (đổi t-if
+  category gốc → t-elif) — render 2 `DateTimeInput` (datepicker chuẩn Odoo).
+  **PHẢI vá Section** (resolve RUNTIME qua `callTemplate` → mọi caller
+  Content/Regular/Small đều nhận), KHÔNG vá `web.SearchPanelContent`:
+  `web.SearchPanel.Regular` là `t-inherit-mode="primary"` của Content,
+  extension trên Content KHÔNG lan sang Regular → section rơi nhánh else
+  (FiltersGroup) crash `values.keys()` undefined (bug OwlError 2026-07-03).
+- Model thường = filter khoảng ngày trên field đó; model báo cáo tiêu thụ
+  leaf trong `_search` để TÍNH LẠI dữ liệu theo kỳ (xem t4_sti Báo Cáo XNT
+  v1.0.168/169).
+
 ### Services (`static/src/services/`)
 
 | File | Vai trò |

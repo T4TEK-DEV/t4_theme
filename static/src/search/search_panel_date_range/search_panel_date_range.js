@@ -103,6 +103,20 @@ patch(SearchArchParser.prototype, {
             const ctx = node.getAttribute("context")
                 ? evaluateExpr(node.getAttribute("context"))
                 : {};
+            // Action context có thể OVERRIDE default kỳ qua convention core
+            // `searchpanel_default_<field>`: false → KHÔNG áp kỳ mặc định
+            // (vd action drill từ dashboard — domain drill đã chốt ngày);
+            // ['YYYY-MM-DD'|'today'|'month_start', ...] → [from, to] riêng.
+            if (fieldName in this.searchPanelDefaults) {
+                const dflt = this.searchPanelDefaults[fieldName];
+                if (!dflt) {
+                    ctx.default_from = false;
+                    ctx.default_to = false;
+                } else if (Array.isArray(dflt)) {
+                    ctx.default_from = dflt[0] || false;
+                    ctx.default_to = dflt[1] || false;
+                }
+            }
             const id = `t4dr_${fieldName}_${t4SectionSeq++}`;
             sections.push([id, {
                 id,

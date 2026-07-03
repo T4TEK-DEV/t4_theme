@@ -1,39 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <!-- Section "Khoảng thời gian" (Từ ngày / Đến ngày) cho search panel.
-         Render khi action context có t4_searchpanel_date_range (xem JS). -->
+    <!-- Body section "date range" (Từ ngày / Đến ngày). Header (icon + tiêu
+         đề) do vòng lặp section chuẩn của web.SearchPanelContent render sẵn
+         — template này chỉ render phần thân, thế chỗ web.SearchPanel.Section
+         khi section.type === 't4_date_range'. -->
     <t t-name="t4_theme.SearchPanelDateRange">
-        <section class="o_search_panel_section o_t4_search_panel_date_range">
-            <header class="o_search_panel_section_header pt-4 pb-2 text-uppercase cursor-default">
-                <i t-attf-class="fa {{ t4DateRange.icon }} o_search_panel_section_icon text-primary me-2"/>
-                <b t-esc="t4DateRange.string"/>
-            </header>
-            <div class="px-2 px-md-0">
-                <div class="o_t4_date_range_item mb-2">
-                    <label class="small text-muted d-block mb-1">Từ ngày</label>
-                    <DateTimeInput type="'date'"
-                                   value="t4DateRange.from"
-                                   onApply="(date) => this.onT4DateRangeApply('from', date)"/>
-                </div>
-                <div class="o_t4_date_range_item">
-                    <label class="small text-muted d-block mb-1">Đến ngày</label>
-                    <DateTimeInput type="'date'"
-                                   value="t4DateRange.to"
-                                   onApply="(date) => this.onT4DateRangeApply('to', date)"/>
-                </div>
+        <div class="o_t4_search_panel_date_range px-2 px-md-0">
+            <div class="o_t4_date_range_item mb-2">
+                <label class="small text-muted d-block mb-1">Từ ngày</label>
+                <DateTimeInput type="'date'"
+                               value="t4DateRangeValue(section, 'from')"
+                               onApply="(date) => this.onT4DateRangeApply(section, 'from', date)"/>
             </div>
-        </section>
+            <div class="o_t4_date_range_item">
+                <label class="small text-muted d-block mb-1">Đến ngày</label>
+                <DateTimeInput type="'date'"
+                               value="t4DateRangeValue(section, 'to')"
+                               onApply="(date) => this.onT4DateRangeApply(section, 'to', date)"/>
+            </div>
+        </div>
     </t>
 
-    <!-- Chèn section date-range LÊN ĐẦU panel (desktop). Ẩn nút "All"
-         empty-state khi panel chỉ có date-range (không có section arch). -->
+    <!-- Desktop (Regular kế thừa primary từ SearchPanelContent → nhận luôn
+         extension này). -->
     <t t-inherit="web.SearchPanelContent" t-inherit-mode="extension">
-        <xpath expr="//div[hasclass('o_search_panel_empty_state')]" position="attributes">
-            <attribute name="t-if">(!sections or sections.length === 0) and !t4DateRange</attribute>
+        <xpath expr="//t[@t-call='web.SearchPanel.Section']" position="replace">
+            <t t-if="section.type === 't4_date_range'" t-call="t4_theme.SearchPanelDateRange"/>
+            <t t-else="" t-call="web.SearchPanel.Section"/>
         </xpath>
-        <xpath expr="//section[@t-foreach='sections']" position="before">
-            <t t-if="t4DateRange" t-call="t4_theme.SearchPanelDateRange"/>
+    </t>
+
+    <!-- Mobile: section nằm trong Dropdown — thay t-call y hệt để không rơi
+         vào nhánh filtersGroup (values undefined → crash). -->
+    <t t-inherit="web.SearchPanel.Small" t-inherit-mode="extension">
+        <xpath expr="//t[@t-call='web.SearchPanel.Section']" position="replace">
+            <t t-if="section.type === 't4_date_range'" t-call="t4_theme.SearchPanelDateRange"/>
+            <t t-else="" t-call="web.SearchPanel.Section"/>
         </xpath>
     </t>
 

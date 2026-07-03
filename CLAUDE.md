@@ -108,31 +108,42 @@ Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa**
 
 ### Search Panel Date Range (`static/src/search/search_panel_date_range/`, 2026-07-03)
 
-Section **"Từ ngày / Đến ngày"** cho search panel — Odoo gốc chỉ có section
-category/filter, KHÔNG có chọn khoảng thời gian. Generic, tái dùng được cho
-mọi list view. Cấu hình qua **CONTEXT của action** (không đụng RNG validation
-search arch):
+Loại section MỚI **"Từ ngày / Đến ngày"** cho search panel — Odoo gốc chỉ có
+section category/filter, KHÔNG có chọn khoảng thời gian. Generic, tái dùng
+được. Khai báo **NGAY TRONG SEARCH VIEW** như field searchpanel thường
+(arch-based — redesign theo feedback user, thay bản context-based đầu bị bug
+không hiện panel vì `display.searchPanel` được core tính bên trong
+`super.load()` trước khi patch đọc config):
 
-```python
-'context': {
-    't4_searchpanel_date_range': {
-        'field': 'report_date',        # field nhận domain >=/<=
-        'string': 'Kỳ Báo Cáo',
-        'icon': 'fa-calendar',          # optional
-        'default_from': 'month_start',  # 'month_start'|'today'|'YYYY-MM-DD'|False
-        'default_to': 'today',
-    },
-}
+```xml
+<searchpanel>
+    <field name="report_date" widget="t4_date_range"
+           string="Kỳ Báo Cáo" icon="fa-calendar"
+           context="{'default_from': 'month_start', 'default_to': 'today'}"/>
+</searchpanel>
 ```
 
-Cơ chế: patch `SearchModel` (`load` đọc config → state `t4DateRange`;
-`_getDisplay` ÉP hiện panel kể cả khi search arch không có `<searchpanel>`;
-`_getSearchPanelDomain` AND thêm `[(field,'>=',from),(field,'<=',to)]`) +
-patch `SearchPanel` render 2 `DateTimeInput` (datepicker chuẩn Odoo), đổi
-ngày → `_notify()` → view reload domain mới. Model thường = filter khoảng
-ngày; model báo cáo có thể tiêu thụ leaf trong `_search` để TÍNH LẠI dữ liệu
-theo kỳ (xem t4_sti Báo Cáo XNT v1.0.168). Giới hạn v1: chưa render mobile
-(`web.SearchPanel.Small`); không lưu vào favorite/breadcrumb state.
+- `widget="t4_date_range"` đánh dấu section; defaults khai trong `context`
+  (`'month_start'|'today'|'YYYY-MM-DD'|bỏ`) vì RNG search view chỉ cho attr
+  chuẩn (widget/string/icon/color/context được phép; `default_from` attr
+  riêng thì KHÔNG).
+- **Parser**: patch `SearchArchParser.visitSearchPanel` — TÁCH node
+  widget=t4_date_range ra TRƯỚC khi core parse (core sẽ coi là category →
+  RPC `search_panel_select_range` nổ với field date), push section
+  `{type:'t4_date_range', fieldName, from, to}` (from/to = ISO string,
+  serializable qua export/import state).
+- **SearchModel**: `getSections` ép `empty=false` cho type này (core
+  `hasValues` không biết → bị lọc mất); `_getSearchPanelDomain` AND thêm
+  `[(field,'>=',from),(field,'<=',to)]`; `t4SetSectionDateRange` đổi ngày →
+  `_notify()` → view reload. Arch có section → core tự hiện panel.
+- **SearchPanel** + template extension: thay `t-call web.SearchPanel.Section`
+  bằng nhánh điều kiện — type t4_date_range render 2 `DateTimeInput`
+  (datepicker chuẩn Odoo); vá CẢ `web.SearchPanelContent` (desktop, Regular
+  kế thừa primary) lẫn `web.SearchPanel.Small` (mobile dropdown — không vá
+  sẽ rơi nhánh filtersGroup crash vì `values` undefined).
+- Model thường = filter khoảng ngày trên field đó; model báo cáo tiêu thụ
+  leaf trong `_search` để TÍNH LẠI dữ liệu theo kỳ (xem t4_sti Báo Cáo XNT
+  v1.0.168/169).
 
 ### Services (`static/src/services/`)
 

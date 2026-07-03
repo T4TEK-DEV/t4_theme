@@ -14,6 +14,7 @@
  *                  string="Kỳ Báo Cáo" icon="fa-calendar"
  *                  context="{'default_from': 'month_start',
  *                            'default_to': 'today'}"/>
+ *           <field name="product_id" select="multi" .../>  <!-- core -->
  *       </searchpanel>
  *   </search>
  *
@@ -25,22 +26,29 @@
  * Cơ chế:
  * - Patch `SearchArchParser.visitSearchPanel`: TÁCH field widget=t4_date_range
  *   ra khỏi node TRƯỚC khi core parse (core sẽ coi là category many2one →
- *   RPC search_panel_select_range nổ với field date), rồi push section
- *   {type: 't4_date_range', fieldName, from, to} vào this.sections.
- *   Có section trong arch → core tự hiện panel (không cần ép display).
+ *   RPC search_panel_select_range nổ với field date), rồi UNSHIFT section
+ *   {type:'t4_date_range', fieldName, from, to, values: new Map()} lên đầu
+ *   this.sections (hiện trên cùng panel). `values` Map RỖNG bắt buộc:
+ *   SearchModel.exportState/_importState serialize `section.values` cho MỌI
+ *   section (mapToArray(undefined) → crash "map is not iterable" khi rời
+ *   view). from/to lưu ISO string (serializable qua breadcrumb state).
  * - Patch `SearchModel`:
  *   + getSections: section date-range luôn empty=false (hasValues của core
- *     không biết type này).
- *   + _getSearchPanelDomain: AND thêm [(field,'>=',from),(field,'<=',to)].
- *   + t4SetSectionDateRange: đổi ngày → _notify() → view reload domain mới.
- * - Patch `SearchPanel` (+ template extension): section type t4_date_range
- *   render 2 ô DateTimeInput thay cho category/filter body.
- * - from/to lưu dạng ISO string (serializable — export/import state qua
- *   breadcrumb không vỡ), convert luxon ở edge render.
+ *     không biết type này → bị SearchPanel lọc mất).
+ *   + `_getDomain` (KHÔNG phải _getSearchPanelDomain): AND thêm
+ *     [(field,'>=',from),(field,'<=',to)] vào MỌI biến thể domain — kể cả
+ *     `searchDomain` (withSearchPanel:false) dùng fetch section values/
+ *     counters → đổi kỳ ⇒ searchDomainChanged ⇒ values các section filter
+ *     (vd Sản Phẩm) refetch THEO KỲ.
+ *   + t4SetSectionDateRange: đổi ngày (guard giá trị không đổi) →
+ *     _notify() → with_search re-render → view reload domain mới.
+ * - Patch `SearchPanel` + extension template `web.SearchPanel.Section`
+ *   (PHẢI là Section — resolve RUNTIME qua callTemplate, mọi caller
+ *   Content/Regular/Small đều nhận; extension trên SearchPanelContent KHÔNG
+ *   lan sang Regular vì Regular là t-inherit-mode="primary").
  *
- * Model thường: đây đơn thuần là filter khoảng ngày trên field đó. Model
- * báo cáo (vd t4_sti Báo Cáo XNT) có thể tiêu thụ leaf trong `_search` để
- * TÍNH LẠI dữ liệu theo kỳ.
+ * Model thường: filter khoảng ngày trên field đó. Model báo cáo (vd t4_sti
+ * Báo Cáo XNT) tiêu thụ leaf trong `_search` để TÍNH LẠI dữ liệu theo kỳ.
  */
 import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import { Domain } from "@web/core/domain";
@@ -88,6 +96,7 @@ patch(SearchArchParser.prototype, {
             }
         }
         const result = super.visitSearchPanel(searchPanelNode);
+        const sections = [];
         for (const node of dateRangeNodes) {
             const fieldName = node.getAttribute("name");
             const field = this.fields[fieldName];
@@ -95,7 +104,7 @@ patch(SearchArchParser.prototype, {
                 ? evaluateExpr(node.getAttribute("context"))
                 : {};
             const id = `t4dr_${fieldName}_${t4SectionSeq++}`;
-            this.sections.push([id, {
+            sections.push([id, {
                 id,
                 type: T4_DATE_RANGE,
                 fieldName,
@@ -105,8 +114,12 @@ patch(SearchArchParser.prototype, {
                 color: node.getAttribute("color") || null,
                 from: resolveDefaultDate(ctx.default_from),
                 to: resolveDefaultDate(ctx.default_to),
+                // Bắt buộc: exportState serialize values cho mọi section.
+                values: new Map(),
             }]);
         }
+        // Lên ĐẦU panel (trước các section category/filter core).
+        this.sections.unshift(...sections);
         return result;
     },
 });
@@ -124,24 +137,32 @@ patch(SearchModel.prototype, {
         }
         return sections;
     },
-    _getSearchPanelDomain() {
-        const domains = [super._getSearchPanelDomain()];
+    /** @returns {Domain} gộp leaves >=/<= của mọi section date-range. */
+    _t4GetDateRangeDomain() {
+        const leaves = [];
         for (const section of this.sections.values()) {
             if (section.type !== T4_DATE_RANGE) {
                 continue;
             }
-            const leaves = [];
             if (section.from) {
                 leaves.push([section.fieldName, ">=", section.from]);
             }
             if (section.to) {
                 leaves.push([section.fieldName, "<=", section.to]);
             }
-            if (leaves.length) {
-                domains.push(new Domain(leaves));
-            }
         }
-        return Domain.and(domains);
+        return new Domain(leaves);
+    },
+    /**
+     * AND date-range vào MỌI domain — kể cả searchDomain
+     * (withSearchPanel:false, dùng fetch values/counters của section khác)
+     * → đổi kỳ ⇒ searchDomainChanged ⇒ section values refetch theo kỳ.
+     */
+    _getDomain(params = {}) {
+        const base = super._getDomain({ ...params, raw: true });
+        const drDomain = this._t4GetDateRangeDomain();
+        const domain = Domain.and([base, drDomain]);
+        return params.raw ? domain : domain.toList(this.domainEvalContext);
     },
     /**
      * @param {string} sectionId
@@ -153,7 +174,11 @@ patch(SearchModel.prototype, {
         if (!section || section.type !== T4_DATE_RANGE) {
             return;
         }
-        section[part] = isoDate || false;
+        const value = isoDate || false;
+        if (section[part] === value) {
+            return;
+        }
+        section[part] = value;
         this._notify();
     },
 });

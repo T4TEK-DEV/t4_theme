@@ -129,13 +129,20 @@ không hiện panel vì `display.searchPanel` được core tính bên trong
   riêng thì KHÔNG).
 - **Parser**: patch `SearchArchParser.visitSearchPanel` — TÁCH node
   widget=t4_date_range ra TRƯỚC khi core parse (core sẽ coi là category →
-  RPC `search_panel_select_range` nổ với field date), push section
-  `{type:'t4_date_range', fieldName, from, to}` (from/to = ISO string,
-  serializable qua export/import state).
+  RPC `search_panel_select_range` nổ với field date), UNSHIFT section
+  `{type:'t4_date_range', fieldName, from, to, values: new Map()}` lên đầu
+  (from/to = ISO string). **`values: new Map()` BẮT BUỘC**:
+  `SearchModel.exportState/_importState` serialize `section.values` cho MỌI
+  section — thiếu → crash "map is not iterable" khi rời view (bug
+  2026-07-03 lần 2).
 - **SearchModel**: `getSections` ép `empty=false` cho type này (core
-  `hasValues` không biết → bị lọc mất); `_getSearchPanelDomain` AND thêm
-  `[(field,'>=',from),(field,'<=',to)]`; `t4SetSectionDateRange` đổi ngày →
-  `_notify()` → view reload. Arch có section → core tự hiện panel.
+  `hasValues` không biết → bị lọc mất); **AND date-range vào `_getDomain`**
+  (KHÔNG phải `_getSearchPanelDomain`) → leaves có mặt cả trong
+  `searchDomain` (withSearchPanel:false) dùng fetch values/counters của
+  section khác ⇒ đổi kỳ → `searchDomainChanged` → values section filter
+  (vd Sản Phẩm select=multi) refetch THEO KỲ; `t4SetSectionDateRange`
+  (guard giá trị không đổi) → `_notify()` → view reload. Arch có section →
+  core tự hiện panel.
 - **SearchPanel** + template extension: chèn nhánh `t-if type==='t4_date_range'`
   vào ĐẦU chuỗi if/elif/else của **`web.SearchPanel.Section`** (đổi t-if
   category gốc → t-elif) — render 2 `DateTimeInput` (datepicker chuẩn Odoo).

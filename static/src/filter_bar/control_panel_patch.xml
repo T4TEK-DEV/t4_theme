@@ -2,7 +2,9 @@
 <templates xml:space="preserve">
 
     <t t-inherit="web.ControlPanel" t-inherit-mode="extension">
-        <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
+        <!-- Đặt NGAY SAU ô Tìm kiếm (slot layout-actions chứa SearchBar) —
+             user chốt vị trí này thay vì khu pager/refresh bên phải. -->
+        <xpath expr="//t[@t-slot='layout-actions']" position="after">
             <div t-if="this.t4FbToggleAvailable and !env.isSmall"
                  class="t4_fb_toggle d-inline-flex align-items-center align-self-center">
                 <button class="btn btn-link p-0 d-inline-flex align-items-center justify-content-center"

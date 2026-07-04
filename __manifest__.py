@@ -254,6 +254,22 @@
             ),
             't4_theme/static/src/refresh/services/refresh_service.js',
 
+            # --- T4 Filter Bar (hàng ô lọc per-column dưới header list,
+            #     toggle nút phễu trên control panel) ---
+            't4_theme/static/src/filter_bar/list_renderer_patch.js',
+            (
+                'after',
+                'web/static/src/views/list/list_renderer.xml',
+                't4_theme/static/src/filter_bar/list_renderer_patch.xml',
+            ),
+            't4_theme/static/src/filter_bar/control_panel_patch.js',
+            (
+                'after',
+                'web/static/src/search/control_panel/control_panel.xml',
+                't4_theme/static/src/filter_bar/control_panel_patch.xml',
+            ),
+            't4_theme/static/src/filter_bar/filter_bar.scss',
+
             # --- Services (per-company colors, dark mode toggle) ---
             't4_theme/static/src/services/theme_color_service.js',
             't4_theme/static/src/services/theme_colors.scss',

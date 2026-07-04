@@ -4,11 +4,11 @@
     <t t-inherit="web.ListRenderer" t-inherit-mode="extension">
         <xpath expr="//thead/tr" position="after">
             <tr t-if="t4FbVisible" class="t4_filter_bar_row d-print-none">
-                <th t-if="hasSelectors" class="t4_fb_cell">
+                <td t-if="hasSelectors" class="t4_fb_cell">
                     <i class="fa fa-filter fa-fw text-muted small" title="Lọc theo cột"/>
-                </th>
+                </td>
                 <t t-foreach="columns" t-as="column" t-key="'t4fb_' + column.id">
-                    <th t-if="column.type === 'field'" class="t4_fb_cell"
+                    <td t-if="column.type === 'field'" class="t4_fb_cell"
                         t-att-data-name="column.name">
                         <t t-set="t4fbKind" t-value="t4FbKind(column)"/>
                         <input t-if="t4fbKind === 'text'"
@@ -60,11 +60,11 @@
                               title="Cột này không hỗ trợ lọc (field tính toán chưa có search)">
                             <i class="fa fa-exclamation-triangle fa-fw text-warning opacity-50"/>
                         </span>
-                    </th>
-                    <th t-else="" class="t4_fb_cell"/>
+                    </td>
+                    <td t-else="" class="t4_fb_cell"/>
                 </t>
-                <th t-if="hasOpenFormViewColumn" class="t4_fb_cell"/>
-                <th t-if="hasActionsColumn" class="t4_fb_cell"/>
+                <td t-if="hasOpenFormViewColumn" class="t4_fb_cell"/>
+                <td t-if="hasActionsColumn" class="t4_fb_cell"/>
             </tr>
         </xpath>
     </t>

@@ -147,7 +147,23 @@ patch(ListRenderer.prototype, {
                 return;
             }
         }
-        this._t4FbReplaceFacet(column, domain, raw);
+        this._t4FbReplaceFacet(column, domain, this._t4FbDisplayValue(column, raw));
+    },
+
+    /**
+     * Giá trị hiển thị trên facet: selection/boolean dùng NHÃN thay vì
+     * raw value (VD 'not_have_fg_product' → 'Chưa Lắp Ráp').
+     */
+    _t4FbDisplayValue(column, raw) {
+        const field = this.fields[column.name];
+        if (field.type === 'selection') {
+            const opt = (field.selection || []).find(([v]) => v === raw);
+            return opt ? opt[1] : raw;
+        }
+        if (field.type === 'boolean') {
+            return raw === '1' ? _t('Có') : _t('Không');
+        }
+        return raw;
     },
 
     /**

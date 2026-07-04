@@ -52,6 +52,14 @@
                             <option value="1" t-att-selected="t4FbValue(column) === '1'">Có</option>
                             <option value="0" t-att-selected="t4FbValue(column) === '0'">Không</option>
                         </select>
+                        <!-- Field searchable=False (compute không có search
+                             method) → không lọc được: icon cảnh báo thay ô
+                             trống. Generic cho MỌI model/list. -->
+                        <span t-if="!t4fbKind and column.hasLabel"
+                              class="t4_fb_nofilter d-flex w-100 justify-content-center align-items-center"
+                              title="Cột này không hỗ trợ lọc (field tính toán chưa có search)">
+                            <i class="fa fa-exclamation-triangle fa-fw text-warning opacity-50"/>
+                        </span>
                     </th>
                     <th t-else="" class="t4_fb_cell"/>
                 </t>

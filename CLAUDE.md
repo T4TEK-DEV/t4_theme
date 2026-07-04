@@ -124,7 +124,9 @@ KHÔNG copy code (license) và gọn hơn nhiều (~250 dòng vs ~1.5k + 2 deps)
   dropdown Có/Không; số = `5`/`>5`/`>=5`/`<5`/`1..9` (parse số kiểu VN
   `1.234,5`); date/datetime = `dd/mm/yyyy` hoặc `..` range (datetime =
   trọn ngày múi giờ user, serialize UTC). Field `searchable=False` /
-  widget handle → ô trống.
+  widget handle → icon ⚠ tooltip "Cột này không hỗ trợ lọc" (generic mọi
+  model; muốn lọc được phải thêm search method phía server — VD t4_sti
+  v1.0.179 thêm cho stock.quant available_quantity/standard_price).
 - **Cơ chế apply**: mỗi cột = 1 FACET riêng trong SearchModel
   (`createNewFilters` — groupId track trong `t4FbGroupIds`); đổi giá trị →
   `deactivateGroup` cũ (blockNotification để chỉ reload 1 lần) + tạo mới;

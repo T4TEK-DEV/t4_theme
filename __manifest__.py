@@ -235,6 +235,10 @@
             # --- Group Expand/Collapse ---
             't4_theme/static/src/group/search/**/*',
 
+            # --- Search Panel Date Range (Từ/Đến ngày, config qua context
+            #     t4_searchpanel_date_range — xem JS docstring) ---
+            't4_theme/static/src/search/search_panel_date_range/*',
+
             # --- Refresh ---
             't4_theme/static/src/refresh/core/utils.js',
             't4_theme/static/src/refresh/scss/refresh.scss',
@@ -249,6 +253,22 @@
                 't4_theme/static/src/refresh/search/control_panel.xml',
             ),
             't4_theme/static/src/refresh/services/refresh_service.js',
+
+            # --- T4 Filter Bar (hàng ô lọc per-column dưới header list,
+            #     toggle nút phễu trên control panel) ---
+            't4_theme/static/src/filter_bar/list_renderer_patch.js',
+            (
+                'after',
+                'web/static/src/views/list/list_renderer.xml',
+                't4_theme/static/src/filter_bar/list_renderer_patch.xml',
+            ),
+            't4_theme/static/src/filter_bar/control_panel_patch.js',
+            (
+                'after',
+                'web/static/src/search/control_panel/control_panel.xml',
+                't4_theme/static/src/filter_bar/control_panel_patch.xml',
+            ),
+            't4_theme/static/src/filter_bar/filter_bar.scss',
 
             # --- Services (per-company colors, dark mode toggle) ---
             't4_theme/static/src/services/theme_color_service.js',

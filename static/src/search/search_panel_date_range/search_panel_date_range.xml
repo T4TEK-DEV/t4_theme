@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Body section "date range" (Từ ngày / Đến ngày). Header (icon + tiêu
+         đề) do vòng lặp section chuẩn render sẵn — đây chỉ là phần thân,
+         render qua nhánh t4_date_range chèn vào web.SearchPanel.Section. -->
+    <t t-name="t4_theme.SearchPanelDateRange">
+        <li class="o_t4_search_panel_date_range list-group-item p-0 border-0 px-2 px-md-0">
+            <div class="o_t4_date_range_item mb-2">
+                <label class="small text-muted d-block mb-1">Từ ngày</label>
+                <DateTimeInput type="'date'"
+                               value="t4DateRangeValue(section, 'from')"
+                               onApply="(date) => this.onT4DateRangeApply(section, 'from', date)"/>
+            </div>
+            <div class="o_t4_date_range_item">
+                <label class="small text-muted d-block mb-1">Đến ngày</label>
+                <DateTimeInput type="'date'"
+                               value="t4DateRangeValue(section, 'to')"
+                               onApply="(date) => this.onT4DateRangeApply(section, 'to', date)"/>
+            </div>
+        </li>
+    </t>
+
+    <!-- Chèn nhánh t4_date_range vào ĐẦU chuỗi if/elif/else của Section.
+         PHẢI vá Section (resolve RUNTIME qua callTemplate — mọi caller:
+         Content/Regular/Small đều nhận) chứ KHÔNG vá SearchPanelContent:
+         web.SearchPanel.Regular là t-inherit-mode="primary" của Content,
+         extension trên Content không lan sang Regular → section rơi nhánh
+         else (FiltersGroup) crash values.keys() undefined. -->
+    <t t-inherit="web.SearchPanel.Section" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if=&quot;section.type === 'category'&quot;]" position="before">
+            <t t-if="section.type === 't4_date_range'" t-call="t4_theme.SearchPanelDateRange"/>
+        </xpath>
+        <xpath expr="//t[@t-if=&quot;section.type === 'category'&quot;]" position="attributes">
+            <attribute name="t-elif">section.type === 'category'</attribute>
+            <attribute name="t-if"/>
+        </xpath>
+    </t>
+
+</templates>

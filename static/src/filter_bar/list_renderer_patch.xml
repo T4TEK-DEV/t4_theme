@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.ListRenderer" t-inherit-mode="extension">
+        <xpath expr="//thead/tr" position="after">
+            <tr t-if="t4FbVisible" class="t4_filter_bar_row d-print-none">
+                <th t-if="hasSelectors" class="t4_fb_cell">
+                    <i class="fa fa-filter fa-fw text-muted small" title="Lọc theo cột"/>
+                </th>
+                <t t-foreach="columns" t-as="column" t-key="'t4fb_' + column.id">
+                    <th t-if="column.type === 'field'" class="t4_fb_cell"
+                        t-att-data-name="column.name">
+                        <t t-set="t4fbKind" t-value="t4FbKind(column)"/>
+                        <input t-if="t4fbKind === 'text'"
+                               type="text"
+                               class="t4_fb_input form-control form-control-sm"
+                               placeholder="Lọc..."
+                               t-att-value="t4FbValue(column)"
+                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
+                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
+                        <input t-if="t4fbKind === 'number'"
+                               type="text"
+                               class="t4_fb_input form-control form-control-sm text-end"
+                               placeholder="=  &gt;  &lt;  .."
+                               title="Ví dụ: 5 | &gt;5 | &gt;=5 | &lt;5 | 1..9"
+                               t-att-value="t4FbValue(column)"
+                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
+                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
+                        <input t-if="t4fbKind === 'date'"
+                               type="text"
+                               class="t4_fb_input form-control form-control-sm"
+                               placeholder="ngày | từ..đến"
+                               title="Ví dụ: 01/07/2026 hoặc 01/07/2026..04/07/2026"
+                               t-att-value="t4FbValue(column)"
+                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
+                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
+                        <select t-if="t4fbKind === 'select'"
+                                class="t4_fb_input form-select form-select-sm"
+                                t-on-change="(ev) => this.t4FbOnChange(ev, column)">
+                            <option value="" t-att-selected="!t4FbValue(column)">Tất cả</option>
+                            <t t-foreach="t4FbSelectionOptions(column)" t-as="opt"
+                               t-key="'t4fbo_' + column.id + '_' + opt[0]">
+                                <option t-att-value="opt[0]"
+                                        t-att-selected="t4FbValue(column) === opt[0]"
+                                        t-esc="opt[1]"/>
+                            </t>
+                        </select>
+                        <select t-if="t4fbKind === 'boolean'"
+                                class="t4_fb_input form-select form-select-sm"
+                                t-on-change="(ev) => this.t4FbOnChange(ev, column)">
+                            <option value="" t-att-selected="!t4FbValue(column)">Tất cả</option>
+                            <option value="1" t-att-selected="t4FbValue(column) === '1'">Có</option>
+                            <option value="0" t-att-selected="t4FbValue(column) === '0'">Không</option>
+                        </select>
+                        <!-- Field searchable=False (compute không có search
+                             method) → không lọc được: icon cảnh báo thay ô
+                             trống. Generic cho MỌI model/list. -->
+                        <span t-if="!t4fbKind and column.hasLabel"
+                              class="t4_fb_nofilter d-flex w-100 justify-content-center align-items-center"
+                              title="Cột này không hỗ trợ lọc (field tính toán chưa có search)">
+                            <i class="fa fa-exclamation-triangle fa-fw text-warning opacity-50"/>
+                        </span>
+                    </th>
+                    <th t-else="" class="t4_fb_cell"/>
+                </t>
+                <th t-if="hasOpenFormViewColumn" class="t4_fb_cell"/>
+                <th t-if="hasActionsColumn" class="t4_fb_cell"/>
+            </tr>
+        </xpath>
+    </t>
+
+</templates>

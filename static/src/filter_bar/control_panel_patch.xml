@@ -7,12 +7,14 @@
         <xpath expr="//t[@t-slot='layout-actions']" position="after">
             <div t-if="this.t4FbToggleAvailable and !env.isSmall"
                  class="t4_fb_toggle d-inline-flex align-items-center align-self-center">
-                <button class="btn btn-link p-0 d-inline-flex align-items-center justify-content-center"
+                <!-- Style như o_searchview_dropdown_toggler (btn outline có
+                     border); đang bật → class active trên CẢ NÚT. -->
+                <button class="t4_fb_toggle_btn btn btn-outline-secondary d-print-none"
+                        t-att-class="{ active: this.t4FbState.active }"
                         type="button"
                         t-att-title="this.t4FbState.active ? 'Ẩn hàng lọc theo cột' : 'Hiện hàng lọc theo cột'"
                         t-on-click.stop="this.t4FbToggle">
-                    <i class="fa fa-filter fa-fw"
-                       t-att-class="this.t4FbState.active ? 'text-info' : 'text-muted'"/>
+                    <i class="fa fa-filter fa-fw"/>
                 </button>
             </div>
         </xpath>

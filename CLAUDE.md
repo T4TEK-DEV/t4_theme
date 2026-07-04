@@ -106,6 +106,41 @@ Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa**
 
 ## OWL Components (Frontend)
 
+### T4 Filter Bar (`static/src/filter_bar/`, 2026-07-04)
+
+Hàng Ô LỌC PER-COLUMN dưới header của MỌI list view gốc (viewType='list' +
+có searchModel — list x2many trong form KHÔNG có). Cảm hứng từ
+`udoo_web_filter_bar` (v18, OPL-1) nhưng VIẾT MỚI trên API core v19 —
+KHÔNG copy code (license) và gọn hơn nhiều (~250 dòng vs ~1.5k + 2 deps).
+
+- **Toggle**: nút phễu (fa-filter) trên control panel cạnh nút refresh
+  (`control_panel_patch.js/.xml` — mirror pattern `refresh/`). Trạng thái
+  nhớ per-action trong localStorage (`t4_filter_bar:<actionId>`), đồng bộ
+  ControlPanel ↔ ListRenderer qua env.bus event `T4-FILTER-BAR:TOGGLE`
+  (localStorage là nguồn sự thật).
+- **Ô lọc theo type** (`list_renderer_patch.js/.xml` — patch
+  `web.ListRenderer`, chèn `<tr>` sau header trong `<thead>`):
+  char/text/html/m2o/x2many = ilike; selection = dropdown; boolean =
+  dropdown Có/Không; số = `5`/`>5`/`>=5`/`<5`/`1..9` (parse số kiểu VN
+  `1.234,5`); date/datetime = `dd/mm/yyyy` hoặc `..` range (datetime =
+  trọn ngày múi giờ user, serialize UTC). Field `searchable=False` /
+  widget handle → icon ⚠ tooltip "Cột này không hỗ trợ lọc" (generic mọi
+  model; muốn lọc được phải thêm search method phía server — VD t4_sti
+  v1.0.179 thêm cho stock.quant available_quantity/standard_price).
+- **Cơ chế apply**: mỗi cột = 1 FACET riêng trong SearchModel
+  (`createNewFilters` — groupId track trong `t4FbGroupIds`); đổi giá trị →
+  `deactivateGroup` cũ (blockNotification để chỉ reload 1 lần) + tạo mới;
+  user bấm × trên facet → sync ngược input trống lại (listen event
+  'update' của searchModel, check groupId còn trong query). Apply khi
+  Enter/change (blur); Escape = xóa lọc. Giá trị không hợp lệ (số/ngày
+  parse fail) → notification warning, KHÔNG đổi filter.
+- Assets khai TƯỜNG MINH trong manifest (list_renderer_patch.xml phải
+  'after' `web/.../list_renderer.xml`; control_panel_patch.xml 'after'
+  control_panel.xml của web).
+- **CHƯA browser-verify** (hoot skip: thiếu Chrome cho test harness;
+  bundle JS/CSS/XML đã build sạch server-side). Cần kiểm tra tay: toggle
+  hiện/ẩn hàng lọc, gõ lọc từng type, xóa facet, đổi trang/action.
+
 ### Search Panel Date Range (`static/src/search/search_panel_date_range/`, 2026-07-03)
 
 Loại section MỚI **"Từ ngày / Đến ngày"** cho search panel — Odoo gốc chỉ có

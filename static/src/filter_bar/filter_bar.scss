@@ -1,4 +1,14 @@
 // T4 Filter Bar — hàng ô lọc per-column dưới header list view.
+
+// KHÔNG để hàng lọc ảnh hưởng bề rộng cột: core đo "ideal width" bằng cách
+// tạm set table-layout:auto + class o_list_computing_widths — ẩn hàng lọc
+// trong lúc đo (input/select có min-content lớn sẽ làm cột giãn/giật).
+// Cell của hàng lọc cũng là <td> (không phải <th>) để thoát selector
+// `thead th` trong computeWidths của core.
+.o_list_table.o_list_computing_widths .t4_filter_bar_row {
+    display: none;
+}
+
 .o_list_table {
     .t4_filter_bar_row {
         background-color: var(--t4-fb-bg, rgba(0, 0, 0, 0.03));

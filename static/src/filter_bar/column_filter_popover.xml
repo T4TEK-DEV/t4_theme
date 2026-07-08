@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="t4_theme.ColumnFilterPopover">
+        <div class="t4_fb_pop p-2" style="min-width: 260px">
+            <div class="t4_fb_pop_title fw-bold text-truncate mb-2 px-1"
+                 t-esc="props.label"/>
+            <div class="t4_fb_pop_row d-flex flex-column gap-2">
+                <!-- Toán tử -->
+                <t t-call="t4_theme.FilterBarEditor">
+                    <t t-set="_classes" t-value="'t4_fb_pop_op'"/>
+                    <t t-set="info" t-value="operatorInfo"/>
+                    <t t-set="value" t-value="[draft.operator, draft.negate]"/>
+                    <t t-set="update"
+                       t-value="(op, negate) => this.onOperator(op, negate)"/>
+                    <t t-set="displayPlaceholder" t-value="false"/>
+                </t>
+                <!-- Giá trị (ẩn khi toán tử không cần value: set/not set) -->
+                <t t-if="valueInfo.component" t-call="t4_theme.FilterBarEditor">
+                    <t t-set="_classes" t-value="'t4_fb_pop_val'"/>
+                    <t t-set="info" t-value="valueInfo"/>
+                    <t t-set="value" t-value="draft.value"/>
+                    <t t-set="update" t-value="(v) => this.onValue(v)"/>
+                    <t t-set="displayPlaceholder" t-value="true"/>
+                </t>
+            </div>
+            <div class="t4_fb_pop_footer d-flex gap-2 mt-3">
+                <button class="btn btn-sm btn-outline-danger" t-on-click="onClear">
+                    Xóa lọc
+                </button>
+                <button class="btn btn-sm btn-primary ms-auto"
+                        t-on-click="() => props.close()">
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

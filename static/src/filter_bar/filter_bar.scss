@@ -69,6 +69,12 @@
             width: 100%;
             min-width: 0;
         }
+
+        // Ẩn caret ▼ của record-picker m2o/x2many (o_dropdown_button) trong ô
+        // lọc hẹp cho gọn — picker vẫn xổ danh sách khi gõ/bấm vào ô.
+        .o_dropdown_button {
+            display: none;
+        }
     }
 }
 

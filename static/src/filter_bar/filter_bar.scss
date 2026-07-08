@@ -75,6 +75,15 @@
         .o_dropdown_button {
             display: none;
         }
+
+        // Ô selection (tree_editor <select class="o_input">) hiện 2 caret:
+        // native (đen đậm) + caret theme. Bỏ appearance để ẩn caret native đậm,
+        // giữ 1 caret. (Boolean dùng .form-select nên không bị, không đụng.)
+        select.o_input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
     }
 }
 

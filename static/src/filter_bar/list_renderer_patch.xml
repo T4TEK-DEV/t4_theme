@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+    <!--
+        Editor con — render đúng widget theo "info" của tree_editor.
+        info = getOperatorEditorInfo(...) | getValueEditorInfo(...):
+          { component, extractProps, isSupported, defaultValue, stringify }.
+        Tự chứa (không t-call template nội bộ core) để bền qua các bản core.
+        Biến context cần set: info, value, update, _classes, displayPlaceholder.
+        Dùng chung cho hàng lọc inline VÀ popover nâng cao.
+    -->
+    <t t-name="t4_theme.FilterBarEditor">
+        <!--
+            Luôn render info.component (value editor tự xử value rỗng:
+            DateTimeInput false→lịch trống, Select+addBlankOption false→blank,
+            Input ''→ô trống). KHÔNG dùng nhánh "!isSupported" của core (nó
+            hiện text + nút × cho date/selection vì isSupported(false)=false →
+            ô hỏng ngay từ đầu). component==null = toán tử set/not set (không ô).
+        -->
+        <div t-attf-class="o_tree_editor_editor #{_classes}">
+            <t t-if="info.component"
+               t-component="info.component"
+               t-props="info.extractProps({ update, value, displayPlaceholder })"/>
+        </div>
+    </t>
+
     <t t-inherit="web.ListRenderer" t-inherit-mode="extension">
         <xpath expr="//thead/tr" position="after">
             <tr t-if="t4FbVisible" class="t4_filter_bar_row d-print-none">
@@ -10,54 +33,35 @@
                 <t t-foreach="columns" t-as="column" t-key="'t4fb_' + column.id">
                     <td t-if="column.type === 'field'" class="t4_fb_cell"
                         t-att-data-name="column.name">
-                        <t t-set="t4fbKind" t-value="t4FbKind(column)"/>
-                        <input t-if="t4fbKind === 'text'"
-                               type="text"
-                               class="t4_fb_input form-control form-control-sm"
-                               placeholder="Lọc..."
-                               t-att-value="t4FbValue(column)"
-                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
-                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
-                        <input t-if="t4fbKind === 'number'"
-                               type="text"
-                               class="t4_fb_input form-control form-control-sm text-end"
-                               placeholder="=  &gt;  &lt;  .."
-                               title="Ví dụ: 5 | &gt;5 | &gt;=5 | &lt;5 | 1..9"
-                               t-att-value="t4FbValue(column)"
-                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
-                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
-                        <input t-if="t4fbKind === 'date'"
-                               type="text"
-                               class="t4_fb_input form-control form-control-sm"
-                               placeholder="ngày | từ..đến"
-                               title="Ví dụ: 01/07/2026 hoặc 01/07/2026..04/07/2026"
-                               t-att-value="t4FbValue(column)"
-                               t-on-keydown="(ev) => this.t4FbOnKeydown(ev, column)"
-                               t-on-change="(ev) => this.t4FbOnChange(ev, column)"/>
-                        <select t-if="t4fbKind === 'select'"
-                                class="t4_fb_input form-select form-select-sm"
-                                t-on-change="(ev) => this.t4FbOnChange(ev, column)">
-                            <option value="" t-att-selected="!t4FbValue(column)">Tất cả</option>
-                            <t t-foreach="t4FbSelectionOptions(column)" t-as="opt"
-                               t-key="'t4fbo_' + column.id + '_' + opt[0]">
-                                <option t-att-value="opt[0]"
-                                        t-att-selected="t4FbValue(column) === opt[0]"
-                                        t-esc="opt[1]"/>
+                        <!-- Boolean: select Tất cả / Có / Không -->
+                        <select t-if="t4FbFilterable(column) and t4FbIsBoolean(column)"
+                                class="t4_fb_bool form-select form-select-sm"
+                                t-on-change="(ev) => this.t4FbSetBoolean(column, ev.target.value)">
+                            <option value="" t-att-selected="!t4FbBooleanChoice(column)">Tất cả</option>
+                            <option value="yes" t-att-selected="t4FbBooleanChoice(column) === 'yes'">Có</option>
+                            <option value="no" t-att-selected="t4FbBooleanChoice(column) === 'no'">Không</option>
+                        </select>
+                        <!-- Các type khác: ô value inline + nút ▾ mở popover -->
+                        <div t-elif="t4FbFilterable(column)"
+                             class="t4_fb_editors d-flex align-items-center">
+                            <t t-set="ed" t-value="t4FbInlineEditor(column)"/>
+                            <t t-call="t4_theme.FilterBarEditor">
+                                <t t-set="_classes" t-value="'t4_fb_val flex-grow-1'"/>
+                                <t t-set="info" t-value="ed.info"/>
+                                <t t-set="value" t-value="ed.value"/>
+                                <t t-set="update" t-value="ed.update"/>
+                                <t t-set="displayPlaceholder" t-value="true"/>
                             </t>
-                        </select>
-                        <select t-if="t4fbKind === 'boolean'"
-                                class="t4_fb_input form-select form-select-sm"
-                                t-on-change="(ev) => this.t4FbOnChange(ev, column)">
-                            <option value="" t-att-selected="!t4FbValue(column)">Tất cả</option>
-                            <option value="1" t-att-selected="t4FbValue(column) === '1'">Có</option>
-                            <option value="0" t-att-selected="t4FbValue(column) === '0'">Không</option>
-                        </select>
-                        <!-- Field searchable=False (compute không có search
-                             method) → không lọc được: icon cảnh báo thay ô
-                             trống. Generic cho MỌI model/list. -->
-                        <span t-if="!t4fbKind and column.hasLabel"
+                            <button class="t4_fb_more btn btn-sm py-0 px-1 text-muted"
+                                    title="Tùy chọn lọc (toán tử)"
+                                    t-on-click="(ev) => this.t4FbOpenPopover(ev, column)">
+                                <i class="fa fa-caret-down"/>
+                            </button>
+                        </div>
+                        <!-- Không lọc được -->
+                        <span t-else=""
                               class="t4_fb_nofilter d-flex w-100 justify-content-center align-items-center"
-                              title="Cột này không hỗ trợ lọc (field tính toán chưa có search)">
+                              title="Cột này không hỗ trợ lọc">
                             <i class="fa fa-exclamation-triangle fa-fw text-warning opacity-50"/>
                         </span>
                     </td>

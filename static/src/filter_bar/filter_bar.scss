@@ -1,9 +1,13 @@
 // T4 Filter Bar — hàng ô lọc per-column dưới header list view.
+//
+// Mỗi cột lọc được: ô GIÁ TRỊ inline (value editor của tree_editor, tự đúng
+// type) + nút ▾ mở popover chọn toán tử. Boolean = select Tất cả/Có/Không.
+// Editor bọc trong .o_tree_editor_editor > .o_input của core → nén cho vừa
+// chiều cao hàng.
 
 // KHÔNG để hàng lọc ảnh hưởng bề rộng cột: core đo "ideal width" bằng cách
 // tạm set table-layout:auto + class o_list_computing_widths — ẩn hàng lọc
-// trong lúc đo (input/select có min-content lớn sẽ làm cột giãn/giật).
-// Cell của hàng lọc cũng là <td> (không phải <th>) để thoát selector
+// trong lúc đo. Cell hàng lọc là <td> (không phải <th>) để thoát selector
 // `thead th` trong computeWidths của core.
 .o_list_table.o_list_computing_widths .t4_filter_bar_row {
     display: none;
@@ -20,13 +24,65 @@
             cursor: default;
         }
 
-        .t4_fb_input {
+        .t4_fb_editors {
             min-width: 0;
             width: 100%;
+        }
+
+        .t4_fb_val {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        // nút ▾ mở popover nâng cao
+        .t4_fb_more {
+            flex: 0 0 auto;
+            border: 0;
+            line-height: 1;
+            opacity: 0.55;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        // Nén editor của tree_editor cho vừa hàng lọc.
+        .o_tree_editor_editor {
+            width: 100%;
+            min-width: 0;
+        }
+
+        input.o_input,
+        select.o_input,
+        .o_input,
+        .t4_fb_bool {
+            min-width: 0;
             height: 26px;
-            padding: 2px 6px;
+            padding: 1px 6px;
             font-size: 0.8125rem;
             font-weight: 400;
+        }
+
+        // Ô quan hệ (autocomplete) / datepicker tự căn full width.
+        .o_tree_editor_editor .o-autocomplete,
+        .o_tree_editor_editor .o_datetime_input {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+}
+
+// Popover nâng cao (chọn toán tử + giá trị)
+.t4_fb_popover {
+    .t4_fb_pop {
+        .o_tree_editor_editor {
+            width: 100%;
+        }
+
+        input.o_input,
+        select.o_input,
+        .o_input {
+            height: 30px;
         }
     }
 }

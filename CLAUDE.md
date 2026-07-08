@@ -106,40 +106,62 @@ Related fields kết nối Settings ↔ res.company. **UI bị vô hiệu hóa**
 
 ## OWL Components (Frontend)
 
-### T4 Filter Bar (`static/src/filter_bar/`, 2026-07-04)
+### T4 Filter Bar (`static/src/filter_bar/`, UX udoo-style 2026-07-07)
 
 Hàng Ô LỌC PER-COLUMN dưới header của MỌI list view gốc (viewType='list' +
-có searchModel — list x2many trong form KHÔNG có). Cảm hứng từ
-`udoo_web_filter_bar` (v18, OPL-1) nhưng VIẾT MỚI trên API core v19 —
-KHÔNG copy code (license) và gọn hơn nhiều (~250 dòng vs ~1.5k + 2 deps).
+có searchModel — list x2many trong form KHÔNG có).
 
-- **Toggle**: nút phễu (fa-filter) trên control panel cạnh nút refresh
-  (`control_panel_patch.js/.xml` — mirror pattern `refresh/`). Trạng thái
-  nhớ per-action trong localStorage (`t4_filter_bar:<actionId>`), đồng bộ
-  ControlPanel ↔ ListRenderer qua env.bus event `T4-FILTER-BAR:TOGGLE`
-  (localStorage là nguồn sự thật).
-- **Ô lọc theo type** (`list_renderer_patch.js/.xml` — patch
-  `web.ListRenderer`, chèn `<tr>` sau header trong `<thead>`):
-  char/text/html/m2o/x2many = ilike; selection = dropdown; boolean =
-  dropdown Có/Không; số = `5`/`>5`/`>=5`/`<5`/`1..9` (parse số kiểu VN
-  `1.234,5`); date/datetime = `dd/mm/yyyy` hoặc `..` range (datetime =
-  trọn ngày múi giờ user, serialize UTC). Field `searchable=False` /
-  widget handle → icon ⚠ tooltip "Cột này không hỗ trợ lọc" (generic mọi
-  model; muốn lọc được phải thêm search method phía server — VD t4_sti
-  v1.0.179 thêm cho stock.quant available_quantity/standard_price).
-- **Cơ chế apply**: mỗi cột = 1 FACET riêng trong SearchModel
-  (`createNewFilters` — groupId track trong `t4FbGroupIds`); đổi giá trị →
-  `deactivateGroup` cũ (blockNotification để chỉ reload 1 lần) + tạo mới;
-  user bấm × trên facet → sync ngược input trống lại (listen event
-  'update' của searchModel, check groupId còn trong query). Apply khi
-  Enter/change (blur); Escape = xóa lọc. Giá trị không hợp lệ (số/ngày
-  parse fail) → notification warning, KHÔNG đổi filter.
-- Assets khai TƯỜNG MINH trong manifest (list_renderer_patch.xml phải
-  'after' `web/.../list_renderer.xml`; control_panel_patch.xml 'after'
-  control_panel.xml của web).
-- **CHƯA browser-verify** (hoot skip: thiếu Chrome cho test harness;
-  bundle JS/CSS/XML đã build sạch server-side). Cần kiểm tra tay: toggle
-  hiện/ẩn hàng lọc, gõ lọc từng type, xóa facet, đổi trang/action.
+- **UX theo `udoo_web_filter_bar` (v17)** (`D:\workspaces\projects\odoo17\ym\
+  addons\udoo_web_filter_bar` — adapt sang v19): mỗi cột hiện **CHỈ 1 ô GIÁ
+  TRỊ inline** (value editor của `tree_editor`, tự đúng type) + nút **▾** mở
+  **popover** (`column_filter_popover.js` — `T4ColumnFilterPopover`) chứa
+  dropdown TOÁN TỬ + ô value + nút Xóa/Áp dụng. Gõ inline = lọc nhanh toán tử
+  mặc định; ▾ = chọn `>`, `between`, `chứa`, `in range`… KHÔNG dùng cả
+  DomainSelector (v19 service-based, subclass rất mong manh + memory
+  [[reference_owl_template_primary_inherit_extension]]); popover tự dựng gọn
+  = đúng preview user chọn.
+- **KHÔNG tự chế widget**: value/operator editor lấy từ `@web/core/tree_editor`
+  (`getValueEditorInfo(fd, op, {addBlankOption:true})`,
+  `getOperatorEditorInfo(ops, fd)` → `{component, extractProps, isSupported,
+  defaultValue, stringify}`), render qua sub-template TỰ CHỨA
+  `t4_theme.FilterBarEditor` (`info.component` + `extractProps`; KHÔNG t-call
+  template nội bộ core). Xem [[reference_odoo19_tree_editor_reusable]].
+- **Toán tử curated per type** (`t4FbOperators`, `[0]`=default inline) —
+  KHÔNG dùng thẳng core `getDomainDisplayedOperators` vì: v19 m2o KHÔNG có
+  `=` (chỉ in/not in) → curated thêm `=` cho record-picker đơn; date default
+  core = "in range" → curated đổi `=` (ô date đơn inline, range/between để
+  popover); text default `ilike` (chứa). Build domain:
+  `condition(name, op, val, negate)` → `domainFromTree()` (tự eliminate
+  between/in range/starts with) → `new Domain`.
+- **boolean XỬ LÝ RIÊNG**: v19 core boolean chỉ có `set`/`not set` (không
+  true/false, không value editor). → render `<select>` Tất cả/Có/Không
+  (`t4FbSetBoolean`): Có→`set` (`!=False`=True), Không→`not set` (`=False`).
+- **State per-column** (reactive `t4Fb.cols[name] = {operator, negate, value,
+  touched}`): `t4FbState` đọc transient nếu chưa động (KHÔNG ghi reactive
+  trong render); `_t4FbEnsure` ghi store trong event handler. Popover giữ
+  `draft` reactive RIÊNG (tự re-render khi đổi toán tử → đổi ô value), mỗi
+  thay đổi `commit()` về renderer (`t4FbCommit`) áp live → inline + popover
+  đồng bộ. `touched=false` → chưa áp filter (tránh default auto-lọc); chỉ
+  áp khi `fromValueEdit` hoặc toán tử `set/not set` (noValueOp). Empty value:
+  text/số='', date/selection/boolean=false, m2o `=`=false / `in`=[].
+- **Cơ chế apply**: mỗi cột = 1 FACET (`createNewFilters` — groupId track
+  `t4FbGroupIds`); đổi giá trị → `deactivateGroup` cũ (blockNotification →
+  reload 1 lần) + tạo mới; gỡ facet trên search bar → cột reset (listen
+  'update' searchModel). Nhãn facet = "Cột: toán tử giá trị" (field quan hệ
+  + toán tử id bỏ phần value vì editor chỉ giữ id).
+- **Toggle**: nút phễu control panel cạnh refresh (`control_panel_patch.js`);
+  nhớ per-action localStorage (`t4_filter_bar:<actionId>`), sync env.bus
+  `T4-FILTER-BAR:TOGGLE`.
+- Field `searchable=False` / widget handle / không có toán tử → icon ⚠.
+- Files: `column_filter_popover.js/.xml` (popover) + `list_renderer_patch.js/
+  .xml` (hàng lọc) + `filter_bar.scss`. Manifest khai popover TRƯỚC
+  list_renderer_patch (import `@t4_theme/filter_bar/column_filter_popover`);
+  list_renderer_patch.xml 'after' `web/.../list_renderer.xml`.
+- **CHƯA browser-verify** (hoot skip: thiếu Chrome; bundle build sạch
+  server-side HTTP 200). Cần kiểm tay: toggle; ô inline từng type (m2o chọn
+  record, date, số, selection blank); ▾ popover đổi toán tử (>, between,
+  chứa) + Xóa/Áp dụng; boolean select; xóa facet × → ô reset; đổi popover
+  giữa các cột (không lẫn state); đổi trang/action; cột hẹp không vỡ.
 
 ### Search Panel Date Range (`static/src/search/search_panel_date_range/`, 2026-07-03)
 

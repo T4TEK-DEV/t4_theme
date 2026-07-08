@@ -20,6 +20,8 @@ import {
     getValueEditorInfo,
 } from '@web/core/tree_editor/tree_editor_value_editors';
 
+import { t4FbInjectPlaceholder } from '@t4_theme/filter_bar/filter_bar_utils';
+
 export class T4ColumnFilterPopover extends Component {
     static template = 't4_theme.ColumnFilterPopover';
     static props = {
@@ -50,8 +52,10 @@ export class T4ColumnFilterPopover extends Component {
 
     get valueInfo() {
         // addBlankOption: khớp với ô inline (selection có option "trống").
-        return getValueEditorInfo(
-            this.props.fieldDef, this.draft.operator, { addBlankOption: true });
+        return t4FbInjectPlaceholder(
+            getValueEditorInfo(
+                this.props.fieldDef, this.draft.operator, { addBlankOption: true }),
+            this.props.fieldDef);
     }
 
     onOperator(operator, negate) {

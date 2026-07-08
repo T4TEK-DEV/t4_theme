@@ -256,6 +256,7 @@
 
             # --- T4 Filter Bar (hàng ô lọc per-column dưới header list,
             #     toggle nút phễu trên control panel) ---
+            't4_theme/static/src/filter_bar/filter_bar_utils.js',
             't4_theme/static/src/filter_bar/column_filter_popover.js',
             't4_theme/static/src/filter_bar/column_filter_popover.xml',
             't4_theme/static/src/filter_bar/list_renderer_patch.js',

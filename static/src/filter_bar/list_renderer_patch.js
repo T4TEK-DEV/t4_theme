@@ -38,6 +38,7 @@ import { ListRenderer } from '@web/views/list/list_renderer';
 import { useState } from '@odoo/owl';
 
 import { T4ColumnFilterPopover } from '@t4_theme/filter_bar/column_filter_popover';
+import { t4FbInjectPlaceholder } from '@t4_theme/filter_bar/filter_bar_utils';
 
 export const T4_FILTER_BAR_TOGGLE = 'T4-FILTER-BAR:TOGGLE';
 
@@ -191,10 +192,10 @@ patch(ListRenderer.prototype, {
     // ------------------------------------------------------------------
 
     t4FbValueInfo(column) {
-        return getValueEditorInfo(
-            this.fields[column.name],
-            this.t4FbState(column).operator,
-            VALUE_EDITOR_OPTS);
+        const fd = this.fields[column.name];
+        return t4FbInjectPlaceholder(
+            getValueEditorInfo(fd, this.t4FbState(column).operator, VALUE_EDITOR_OPTS),
+            fd);
     },
 
     /**
@@ -310,7 +311,7 @@ patch(ListRenderer.prototype, {
         return false;
     },
 
-    t4FbApply(column) {
+    async t4FbApply(column) {
         const col = this._t4FbEnsure(column);
         const fd = this.fields[column.name];
         const valueInfo = getValueEditorInfo(fd, col.operator, VALUE_EDITOR_OPTS);
@@ -321,17 +322,26 @@ patch(ListRenderer.prototype, {
             noValueOp ||
             (valueInfo.isSupported(col.value) && !this._t4FbIsEmpty(col.value)));
         let domain = null;
+        let label = this._t4FbFacetLabel(column, col, valueInfo);
         if (active) {
             try {
                 const tree = condition(
                     column.name, col.operator, col.value, col.negate);
                 domain = new Domain(domainFromTree(tree));
+                // Nhãn facet resolve TÊN record cho m2o/x2many (id → tên) qua
+                // treeProcessor — nếu không, chip chỉ hiện "Cột: =" trống trơn.
+                const sm = this.env.searchModel;
+                try {
+                    label = await sm.treeProcessor.getDomainTreeDescription(
+                        sm.resModel, tree);
+                } catch {
+                    label = this._t4FbFacetLabel(column, col, valueInfo);
+                }
             } catch {
                 domain = null;
             }
         }
-        this._t4FbReplaceFacet(
-            column, domain, this._t4FbFacetLabel(column, col, valueInfo));
+        this._t4FbReplaceFacet(column, domain, label);
     },
 
     /**

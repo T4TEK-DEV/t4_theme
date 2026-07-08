@@ -83,10 +83,15 @@
             display: none !important;
             content: none !important;
         }
+        // Select có caret là BACKGROUND-IMAGE (svg) do rule global `select`
+        // vẽ (không phải caret native) → appearance:none vô tác dụng, phải
+        // bỏ background-image mới ẩn được caret đậm. Còn lại nút ▾ t4_fb_more.
         select.o_input {
             appearance: none !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
+            background-image: none !important;
+            padding-right: 6px !important; // bỏ chừa chỗ cho caret cũ
         }
     }
 }

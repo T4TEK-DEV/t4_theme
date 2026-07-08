@@ -70,19 +70,23 @@
             min-width: 0;
         }
 
-        // Ẩn caret ▼ của record-picker m2o/x2many (o_dropdown_button) trong ô
-        // lọc hẹp cho gọn — picker vẫn xổ danh sách khi gõ/bấm vào ô.
+        // Ẩn MỌI caret trang trí trong ô lọc hẹp cho gọn (picker vẫn xổ khi
+        // gõ/bấm). Mỗi loại field vẽ caret bằng element khác nhau:
+        //  - m2o đơn:  .o_dropdown_button::after (triangle on hover)
+        //  - x2many:   .o_record_autocomplete_with_caret::after (Tag Tra Cứu)
+        //  - selection: caret native của <select> → appearance:none
+        // !important để thắng rule :hover/:focus-within của core.
         .o_dropdown_button {
-            display: none;
+            display: none !important;
         }
-
-        // Ô selection (tree_editor <select class="o_input">) hiện 2 caret:
-        // native (đen đậm) + caret theme. Bỏ appearance để ẩn caret native đậm,
-        // giữ 1 caret. (Boolean dùng .form-select nên không bị, không đụng.)
+        .o_record_autocomplete_with_caret::after {
+            display: none !important;
+            content: none !important;
+        }
         select.o_input {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
         }
     }
 }

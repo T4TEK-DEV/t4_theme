@@ -27,8 +27,10 @@
 
     img {
         display: block;
-        max-width: 480px;
-        max-height: 480px;
+        // Tương đối viewport (không cố định px) — ảnh cao dài (phiếu/chứng
+        // từ chụp A4 dọc) co theo tỷ lệ thật thay vì bị ép vào ô vuông nhỏ.
+        max-width: min(640px, 92vw);
+        max-height: 92vh;
         width: auto;
         height: auto;
         object-fit: contain;

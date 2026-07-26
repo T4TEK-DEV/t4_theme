@@ -6,8 +6,9 @@
             <span class="o_avatar o_m2o_avatar flex-shrink-0" t-if="hasImage"
                   t-att-style="avatarStyle"
                   t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
-                <img t-ref="avatar" class="rounded" loading="lazy"
+                <img t-if="hasRealImage" t-ref="avatar" class="rounded" loading="lazy"
                      t-att-src="imageSrc" alt=""/>
+                <span t-else="" class="o_avatar_empty o_m2o_avatar_empty"/>
             </span>
             <CharField t-props="charProps"/>
         </div>

@@ -433,6 +433,73 @@ JS: `theme_systray.js` thêm state `companies/copyFromId/copying/odoobotName`, l
 Lưu ý khi thêm entry point mở panel mới: phải đi qua `togglePanel()` (hoặc tự trigger
 lazy-load), không set `state.open = true` trực tiếp.
 
+## Cập nhật 2026-07-26 — PERF nút "Mở tất cả / Thu gọn" trên list nhiều nhóm
+
+Triệu chứng (user báo trên POC02, list `t4_sti.view_t4_product_template_list`
+group 2 cấp `level_1`/`level_2`): mở/đóng nhóm lâu; mở hết rồi thì bấm nút gì
+cũng lag, scroll giật.
+
+**Đo trên chính POC02** (3.459 SP, 4 nhóm cấp 1 → 46 nhóm cấp 2; DB đã
+`jit=off` sẵn — KHÔNG phải [[project_pg_jit_slow_search]]): server chỉ chiếm
+**0,57s** cho lần `web_read_group` mở hết (payload 724KB, 1.482 record) và
+**0,06s** cho thu gọn; aggregate `qty_available:sum` (override
+`product_template._read_group_select`) chỉ tốn ~0,06s → KHÔNG đáng sửa. Phần
+còn lại là **client dựng/xóa 1.482 dòng DOM** (list view Odoo không có virtual
+scroll). 3 sửa đổi:
+
+- **`group/search/control_panel/control_panel.js` — bỏ 1 lần load NẶNG vô ích.**
+  `_t4ExpandToLevel(Infinity)` dừng theo "số cấp không tăng" (`_t4CountLevels`)
+  nên khi các cấp trên đã mở sẵn (`expand_level=1` là mặc định của action),
+  load ĐẦU TIÊN đã kéo về đủ record nhưng vòng lặp vẫn load LẦN HAI chỉ để
+  thấy điều đó → fetch + dựng lại toàn bộ record lần nữa. Nhánh Infinity giờ
+  dừng theo **`!_t4HasFoldedGroups(config)`** — chính xác tuyệt đối vì core ghi
+  lại `groupConfig.isFolded = !('__records' in groupData)` từ phản hồi server
+  sau MỖI load (`relational_model.js::_loadGroupedList`), tức "không còn nhóm
+  folded" = server đã xác nhận mọi nhóm có record. Cùng vị từ với getter
+  `t4IsFullyExpanded` → vòng lặp dừng đúng lúc nhãn nút đổi sang "Thu gọn".
+  Số load: 1 (cấp con đã có sẵn) / 2 (cấp con chưa vật thể hóa — tối thiểu),
+  trước đây luôn +1. Nhánh maxLevel HỮU HẠN giữ nguyên logic đếm cấp (mark chủ
+  động fold các cấp sâu nên "còn nhóm folded" là trạng thái mong muốn, không
+  dùng làm điều kiện dừng được).
+- **`control_panel.js` — giới hạn số dòng mỗi nhóm khi "Mở tất cả"**:
+  `_t4SetRecordLimit(N, config)` set `g.list.limit` cho nhóm CẤP CUỐI
+  (`g.list.groupBy.length === 0` — KHÔNG đếm depth: với nhóm chưa mở thì `limit`
+  trong `opening_info` là giới hạn số SUB-NHÓM ở `_open_groups` server, đặt
+  nhầm sẽ ẩn mất nhóm con). Mặc định `T4_EXPAND_ALL_GROUP_LIMIT = 20`, override
+  bằng context `expand_all_group_limit`. POC02: 1.482 → 604 dòng. Nhóm còn dòng
+  chưa hiện vẫn có pager riêng của Odoo (`showGroupPager` = `limit < count`).
+  `_t4CollapseToLevel` trả `limit` về `model.initialLimit` (80) để user mở LẺ
+  từng nhóm sau đó vẫn thấy đủ dòng như bình thường. `limit` đã set SỐNG SÓT
+  qua `load()` (`_getNextConfig` shallow-copy, chỉ `delete config.groups` khi
+  ĐỔI groupBy) → đổi filter/domain trong lúc đang mở hết vẫn giữ 20 dòng/nhóm
+  đồng nhất (không có tình trạng lẫn 20/80); đổi tiêu chí group thì config
+  nhóm dựng lại từ đầu = 80 như mặc định.
+- **`views/fields/avatar_text/avatar_text.{js,xml}` — không bắn request ảnh cho
+  record không có ảnh.** `hasImage` (= có `resId`) chỉ còn quyết định CÓ Ô
+  avatar (giữ text thẳng hàng); `<img src="/web/image/...">` giờ gate bằng
+  `hasRealImage` (`record.data[imageField]`, đã có sẵn qua `fieldDependencies`),
+  không có ảnh thì render `<span class="o_avatar_empty o_m2o_avatar_empty"/>`
+  (đúng pattern core `many2one_avatar_field.xml`; sizing từ
+  `web/core/avatar/avatar.scss` nên giữ nguyên chiều rộng ô, `avatar_text.scss`
+  thêm selector cho bo góc 4px). POC02 **0/3.459 SP có ảnh**
+  → trước đây mở hết nhóm là ~1.5k request ảnh chỉ để nhận placeholder, lazy
+  load bắn dần theo scroll → chính là nguồn giật khi scroll.
+- **`views/x2many_grouped/list_renderer_patch.js` — bỏ DOM walk trên list view
+  top-level.** `applyTreeAttrs` (chạy trong `onRendered` → mọi render) xóa/ghi
+  `data-t4-depth/-last/-first` trên MỌI `tr` của bảng. Toàn bộ SCSS tree-indent
+  lại scope dưới `.o_field_x2many_list` (x2many trong form) → với list view
+  thường nó là vô ích 100%: 1.5k dòng ⇒ ~4,6k attribute mutation + invalidate
+  style cả bảng mỗi lần render. Thêm guard `env.config?.viewType === 'list'` →
+  return sớm. Nhánh x2many giữ nguyên hành vi cũ (kể cả việc clear attribute
+  tĩnh do template inheritance đặt — x2many grouped không dùng tree depth vẫn
+  cần clear để `[data-t4-depth] > th.o_group_name > div { transform: none }`
+  không áp oan).
+
+CHƯA browser-verify (máy dev không có Chrome cho hoot; runtime bị session khác
+giữ lock lúc sửa). Cần kiểm tay: nút Mở tất cả/Thu gọn (nhãn + số dòng/nhóm +
+pager trong group header), avatar SP CÓ ảnh vẫn hiện + hover-zoom, x2many
+grouped trong form (Phiếu Lắp) indent không đổi.
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

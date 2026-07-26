@@ -30,6 +30,16 @@ patch(ListRenderer.prototype, {
         // table walk per render, no layout thrashing since we only touch
         // attributes).
         const applyTreeAttrs = () => {
+            // PERF: attrs này CHỈ có tác dụng cho x2many list trong form —
+            // toàn bộ SCSS tree-indent scope dưới `.o_field_x2many_list`
+            // (xem x2many_grouped.scss). Với list view top-level thì walk
+            // dưới đây xóa/ghi ~3 attribute × MỌI dòng, MỖI lần render, mà
+            // không đổi gì về hiển thị: list Sản Phẩm mở hết nhóm (~1.5k
+            // dòng) = ~4.6k mutation + invalidate style toàn bảng mỗi lần
+            // bấm nút → lag. Bỏ hẳn cho nhánh này.
+            if (this.env.config?.viewType === "list") {
+                return;
+            }
             const tableEl = this.tableRef && this.tableRef.el;
             if (!tableEl) {
                 return;

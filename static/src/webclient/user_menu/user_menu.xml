@@ -8,7 +8,8 @@
          - Bố cục do `user_menu.scss` lo: xếp dọc, tên nằm DƯỚI avatar. -->
     <t t-inherit="web.UserMenu" t-inherit-mode="extension">
         <xpath expr="//small[hasclass('oe_topbar_name')]" position="attributes">
-            <attribute name="class">oe_topbar_name d-none d-lg-block text-center smaller lh-1 text-truncate</attribute>
+            <!-- Bỏ `smaller` (12px) — font-size do user_menu.scss quyết định. -->
+            <attribute name="class">oe_topbar_name d-none d-lg-block text-center lh-1 text-truncate</attribute>
             <attribute name="t-att-class"/>
             <attribute name="style"/>
         </xpath>

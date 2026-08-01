@@ -516,10 +516,19 @@ grouped trong form (Phiếu Lắp) indent không đổi.
     `d-none d-md-block`).
   - `//small[...]/mark` — thêm `t-if="env.debug"` để dòng tên **database** vẫn
     CHỈ hiện khi bật debug (giữ hành vi cũ).
-- **SCSS**: `.o_user_menu .dropdown-toggle` → `flex-direction: column`,
-  `justify-content: center`, `gap: 1px`, `line-height: 1`; avatar 22px (ghi đè
-  `calc(var(--o-navbar-height) - 20px)` của `web/user_menu.scss`); tên 10px,
-  `mark` 9px, `max-width: 120px`.
+- **SCSS**: `.o_main_navbar .o_user_menu .dropdown-toggle` →
+  `flex-direction: column`, `justify-content: center`, `gap: 1px`,
+  `line-height: 1`; avatar 22px (ghi đè `calc(var(--o-navbar-height) - 20px)`
+  của `web/user_menu.scss`); tên 10px, `mark` 9px + `padding: 0`,
+  `max-width: 120px`.
+  **Prefix `.o_main_navbar` là CẦN** (không phải trang trí): thiếu nó thì
+  `line-height: 1` (0,0,2,0) thua core `%-main-navbar-entry-spacing`
+  (`line-height: 46px` qua `.o_main_navbar .dropdown-toggle:not(...)` =
+  0,0,3,0), và rule avatar chỉ NGANG điểm với `web/user_menu.scss` (thắng nhờ
+  thứ tự nạp). `mark` phải `padding: 0` vì Bootstrap reboot cho `mark`
+  `padding: .1875em` (~3,4px) — đủ để tràn navbar khi bật debug. `.smaller`
+  (12px, `scss/utilities_custom.scss`, KHÔNG `!important`) đã bỏ khỏi class
+  list vì font-size do file này quyết định.
   Ngân sách chiều cao = **đúng 46px** (`$o-navbar-padding-v: 0`, button
   `py-lg-0`, `.dropdown-toggle` nhận `%-main-navbar-entry-base` với height cố
   định) → trường hợp bật debug (avatar + 2 dòng chữ) là ràng buộc chặt nhất:
@@ -529,9 +538,12 @@ grouped trong form (Phiếu Lắp) indent không đổi.
   (`registerTemplateExtension` trong `assetsbundle.py::generate_xml_bundle`)
   → xpath sai KHÔNG nổ lúc `-u module`, chỉ nổ trong console trình duyệt.
   Upgrade sạch không chứng minh xpath đúng.
-- Verify: `-u t4_theme` sạch (0 ERROR mới) + script offline chạy
+- Verify: `-u t4_theme` sạch (0 ERROR mới); script offline chạy
   `apply_inheritance_specs` trên (core → mail patch → patch này) xác nhận cả
-  2 xpath match và attribute surgery ra đúng markup mong đợi.
+  2 xpath match và attribute surgery ra đúng markup mong đợi; build bundle qua
+  `odoo shell` (`env['ir.qweb']._get_asset_bundle('web.assets_backend')` →
+  `.css()` + `.generate_xml_bundle()`) cho ra đủ 4 CSS rule (Sass compile sạch)
+  và `registerTemplateExtension("web.UserMenu", "/t4_theme/.../user_menu.xml")`.
   **CHƯA browser-verify** (máy dev không có Chrome). Cần kiểm tay: tắt debug →
   tên nằm giữa dưới avatar; bật debug → thêm dòng DB, vẫn không tràn navbar;
   màn hình < lg → chỉ avatar.

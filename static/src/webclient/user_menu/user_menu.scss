@@ -6,7 +6,12 @@
 // Khi bật debug có thêm dòng tên database, nên avatar + 2 dòng chữ phải vừa 46px:
 //   22 (avatar) + 1 + 10 (tên) + 1 + 9 (db) = 43px.
 // Vì phải vừa cả trường hợp debug, dùng MỘT bộ kích thước cho cả 2 chế độ.
-.o_user_menu .dropdown-toggle {
+//
+// Prefix `.o_main_navbar` là CẦN: không có nó thì `line-height` dưới đây
+// (0,0,2,0) thua `%-main-navbar-entry-spacing` của core (line-height: 46px,
+// selector `.o_main_navbar .dropdown-toggle:not(...)` = 0,0,3,0), và rule
+// avatar chỉ NGANG điểm với `web/user_menu.scss` (thắng nhờ thứ tự nạp).
+.o_main_navbar .o_user_menu .dropdown-toggle {
     flex-direction: column;
     justify-content: center;
     gap: 1px;
@@ -24,6 +29,9 @@
         font-weight: 500;
 
         mark {
+            // Bootstrap reboot cho `mark` padding .1875em (~3,4px ở 9px)
+            // — dôi ra là tràn navbar khi bật debug.
+            padding: 0;
             font-size: 9px;
         }
     }

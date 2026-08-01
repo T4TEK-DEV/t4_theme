@@ -518,6 +518,15 @@ nằm BÊN PHẢI avatar.
     `d-none d-md-block`).
   - `//small[...]/mark` — thêm `t-if="env.debug"` để dòng tên **database** vẫn
     CHỈ hiện khi bật debug (giữ hành vi cũ).
+- **`user_menu.scss`** (thêm lại 2026-08-01, theo yêu cầu user "màu nhạt hơn
+  so với bật debug"): `.o_main_navbar .o_user_menu .oe_topbar_name` →
+  `color: var(--NavBar-entry-color--hover, #fff)` + `font-weight: 500`.
+  Lý do: `<small>` kế thừa `--NavBar-entry-color` (core `rgba($o-white, .9)`)
+  nên trông nhạt; biến `--hover` là bản đục 100% và vẫn theo màu theme công ty
+  (`services/theme_colors.scss:46-47`). **KHÔNG có rule nào phụ thuộc debug** —
+  Odoo có `body.o_debug` (`web/static/src/start.js:52`) nhưng không SCSS nào
+  dùng; cảm giác "đậm hơn khi bật debug" là do chip `<mark>` nền vàng của dòng
+  tên DB tương phản mạnh, không phải màu chữ đổi.
 - Bản đầu (commit `b0bb946`/`1a85728`) từng xếp DỌC (tên dưới avatar) bằng
   `user_menu.scss` — user yêu cầu bỏ, đã `git rm` file SCSS. Nếu sau này cần
   xếp dọc lại: ngân sách chiều cao là **đúng 46px** (`$o-navbar-padding-v: 0`,

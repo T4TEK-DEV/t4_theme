@@ -500,52 +500,42 @@ giữ lock lúc sửa). Cần kiểm tay: nút Mở tất cả/Thu gọn (nhãn 
 pager trong group header), avatar SP CÓ ảnh vẫn hiện + hover-zoom, x2many
 grouped trong form (Phiếu Lắp) indent không đổi.
 
-## Cập nhật 2026-08-01 — Tên user trên navbar: luôn hiện, nằm DƯỚI avatar
+## Cập nhật 2026-08-01 — Tên user trên navbar: luôn hiện (không cần bật debug)
 
-`static/src/webclient/user_menu/user_menu.{xml,scss}` (mới — glob
-`t4_theme/static/src/webclient/**/*` tự nạp, KHÔNG cần sửa manifest).
+`static/src/webclient/user_menu/user_menu.xml` (mới — glob
+`t4_theme/static/src/webclient/**/*.xml` tự nạp, KHÔNG cần sửa manifest).
+Chỉ 1 file XML, **KHÔNG override CSS**: bố cục giữ nguyên như Odoo gốc — tên
+nằm BÊN PHẢI avatar.
 
-- **XML** (`t-inherit="web.UserMenu"` extension, 2 xpath):
-  - `//small[hasclass('oe_topbar_name')]` position="attributes" — ghi lại
-    `class` (`d-none d-lg-block text-center`, bỏ `ms-2 text-start`) và XÓA
-    `t-att-class` + `style` (đặt `<attribute name="x"/>` rỗng = remove, đúng
-    cho cả bản Python `template_inheritance.py` lẫn bản JS
+- `t-inherit="web.UserMenu"` mode extension, 2 xpath:
+  - `//small[hasclass('oe_topbar_name')]` position="attributes" — giữ y class
+    gốc (`d-none ms-2 text-start smaller lh-1 text-truncate`), THÊM cố định
+    `d-lg-inline-block` và XÓA `t-att-class` (đặt `<attribute name="x"/>` rỗng
+    = remove, đúng cho cả bản Python `template_inheritance.py` lẫn bản JS
     `web/core/template_inheritance.js`). Odoo gốc chỉ hiện tên khi bật debug
     (`t-att-class="{'d-lg-inline-block': env.debug}"`) → giờ luôn hiện từ
-    breakpoint **lg** trở lên (dưới lg vẫn chỉ avatar; `.o_user_menu` gốc đã
+    breakpoint **lg** trở lên (dưới lg vẫn chỉ avatar — `.o_user_menu` gốc đã
     `d-none d-md-block`).
   - `//small[...]/mark` — thêm `t-if="env.debug"` để dòng tên **database** vẫn
     CHỈ hiện khi bật debug (giữ hành vi cũ).
-- **SCSS**: `.o_main_navbar .o_user_menu .dropdown-toggle` →
-  `flex-direction: column`, `justify-content: center`, `gap: 1px`,
-  `line-height: 1`; avatar 22px (ghi đè `calc(var(--o-navbar-height) - 20px)`
-  của `web/user_menu.scss`); tên 10px, `mark` 9px + `padding: 0`,
-  `max-width: 120px`.
-  **Prefix `.o_main_navbar` là CẦN** (không phải trang trí): thiếu nó thì
-  `line-height: 1` (0,0,2,0) thua core `%-main-navbar-entry-spacing`
-  (`line-height: 46px` qua `.o_main_navbar .dropdown-toggle:not(...)` =
-  0,0,3,0), và rule avatar chỉ NGANG điểm với `web/user_menu.scss` (thắng nhờ
-  thứ tự nạp). `mark` phải `padding: 0` vì Bootstrap reboot cho `mark`
-  `padding: .1875em` (~3,4px) — đủ để tràn navbar khi bật debug. `.smaller`
-  (12px, `scss/utilities_custom.scss`, KHÔNG `!important`) đã bỏ khỏi class
-  list vì font-size do file này quyết định.
-  Ngân sách chiều cao = **đúng 46px** (`$o-navbar-padding-v: 0`, button
-  `py-lg-0`, `.dropdown-toggle` nhận `%-main-navbar-entry-base` với height cố
-  định) → trường hợp bật debug (avatar + 2 dòng chữ) là ràng buộc chặt nhất:
-  22+1+10+1+9 = 43px. Vì phải vừa cả debug nên dùng MỘT bộ kích thước cho 2
-  chế độ (không cần `:has()`).
-- Lưu ý: template `t-inherit-mode="extension"` được apply **CLIENT-SIDE**
+- Bản đầu (commit `b0bb946`/`1a85728`) từng xếp DỌC (tên dưới avatar) bằng
+  `user_menu.scss` — user yêu cầu bỏ, đã `git rm` file SCSS. Nếu sau này cần
+  xếp dọc lại: ngân sách chiều cao là **đúng 46px** (`$o-navbar-padding-v: 0`,
+  button `py-lg-0`, `.dropdown-toggle` nhận `%-main-navbar-entry-base` height
+  cố định), phải prefix `.o_main_navbar` để thắng `line-height: 46px` của
+  `%-main-navbar-entry-spacing`, và `mark` cần `padding: 0` (Bootstrap reboot
+  cho `mark` `.1875em`) — xem lịch sử git 2 commit đó.
+- Lưu ý chung: template `t-inherit-mode="extension"` được apply **CLIENT-SIDE**
   (`registerTemplateExtension` trong `assetsbundle.py::generate_xml_bundle`)
   → xpath sai KHÔNG nổ lúc `-u module`, chỉ nổ trong console trình duyệt.
-  Upgrade sạch không chứng minh xpath đúng.
-- Verify: `-u t4_theme` sạch (0 ERROR mới); script offline chạy
-  `apply_inheritance_specs` trên (core → mail patch → patch này) xác nhận cả
-  2 xpath match và attribute surgery ra đúng markup mong đợi; build bundle qua
-  `odoo shell` (`env['ir.qweb']._get_asset_bundle('web.assets_backend')` →
-  `.css()` + `.generate_xml_bundle()`) cho ra đủ 4 CSS rule (Sass compile sạch)
-  và `registerTemplateExtension("web.UserMenu", "/t4_theme/.../user_menu.xml")`.
+  Upgrade sạch KHÔNG chứng minh xpath đúng.
+- Verify: script offline chạy `apply_inheritance_specs` trên chuỗi (core →
+  mail `user_menu_patch.xml` → patch này) xác nhận 2 xpath match + markup ra
+  đúng mong đợi; build bundle qua `odoo shell`
+  (`env['ir.qweb']._get_asset_bundle('web.assets_backend').generate_xml_bundle()`)
+  có `registerTemplateExtension("web.UserMenu", "/t4_theme/.../user_menu.xml")`.
   **CHƯA browser-verify** (máy dev không có Chrome). Cần kiểm tay: tắt debug →
-  tên nằm giữa dưới avatar; bật debug → thêm dòng DB, vẫn không tràn navbar;
+  hiện tên bên phải avatar, KHÔNG có dòng DB; bật debug → thêm dòng DB như cũ;
   màn hình < lg → chỉ avatar.
 
 ## References

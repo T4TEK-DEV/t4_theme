@@ -500,6 +500,42 @@ giữ lock lúc sửa). Cần kiểm tay: nút Mở tất cả/Thu gọn (nhãn 
 pager trong group header), avatar SP CÓ ảnh vẫn hiện + hover-zoom, x2many
 grouped trong form (Phiếu Lắp) indent không đổi.
 
+## Cập nhật 2026-08-01 — Tên user trên navbar: luôn hiện, nằm DƯỚI avatar
+
+`static/src/webclient/user_menu/user_menu.{xml,scss}` (mới — glob
+`t4_theme/static/src/webclient/**/*` tự nạp, KHÔNG cần sửa manifest).
+
+- **XML** (`t-inherit="web.UserMenu"` extension, 2 xpath):
+  - `//small[hasclass('oe_topbar_name')]` position="attributes" — ghi lại
+    `class` (`d-none d-lg-block text-center`, bỏ `ms-2 text-start`) và XÓA
+    `t-att-class` + `style` (đặt `<attribute name="x"/>` rỗng = remove, đúng
+    cho cả bản Python `template_inheritance.py` lẫn bản JS
+    `web/core/template_inheritance.js`). Odoo gốc chỉ hiện tên khi bật debug
+    (`t-att-class="{'d-lg-inline-block': env.debug}"`) → giờ luôn hiện từ
+    breakpoint **lg** trở lên (dưới lg vẫn chỉ avatar; `.o_user_menu` gốc đã
+    `d-none d-md-block`).
+  - `//small[...]/mark` — thêm `t-if="env.debug"` để dòng tên **database** vẫn
+    CHỈ hiện khi bật debug (giữ hành vi cũ).
+- **SCSS**: `.o_user_menu .dropdown-toggle` → `flex-direction: column`,
+  `justify-content: center`, `gap: 1px`, `line-height: 1`; avatar 22px (ghi đè
+  `calc(var(--o-navbar-height) - 20px)` của `web/user_menu.scss`); tên 10px,
+  `mark` 9px, `max-width: 120px`.
+  Ngân sách chiều cao = **đúng 46px** (`$o-navbar-padding-v: 0`, button
+  `py-lg-0`, `.dropdown-toggle` nhận `%-main-navbar-entry-base` với height cố
+  định) → trường hợp bật debug (avatar + 2 dòng chữ) là ràng buộc chặt nhất:
+  22+1+10+1+9 = 43px. Vì phải vừa cả debug nên dùng MỘT bộ kích thước cho 2
+  chế độ (không cần `:has()`).
+- Lưu ý: template `t-inherit-mode="extension"` được apply **CLIENT-SIDE**
+  (`registerTemplateExtension` trong `assetsbundle.py::generate_xml_bundle`)
+  → xpath sai KHÔNG nổ lúc `-u module`, chỉ nổ trong console trình duyệt.
+  Upgrade sạch không chứng minh xpath đúng.
+- Verify: `-u t4_theme` sạch (0 ERROR mới) + script offline chạy
+  `apply_inheritance_specs` trên (core → mail patch → patch này) xác nhận cả
+  2 xpath match và attribute surgery ra đúng markup mong đợi.
+  **CHƯA browser-verify** (máy dev không có Chrome). Cần kiểm tay: tắt debug →
+  tên nằm giữa dưới avatar; bật debug → thêm dòng DB, vẫn không tràn navbar;
+  màn hình < lg → chỉ avatar.
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

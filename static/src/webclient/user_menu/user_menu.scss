@@ -1,0 +1,30 @@
+// Tên người dùng nằm DƯỚI avatar (Odoo gốc xếp ngang, chữ bên phải avatar).
+//
+// Ngân sách chiều cao = ĐÚNG var(--o-navbar-height) = 46px: `.dropdown-toggle`
+// nhận `%-main-navbar-entry-base` (height cố định, display:flex) và
+// `$o-navbar-padding-v: 0`, `py-lg-0` trên button → không có chỗ dôi ra.
+// Khi bật debug có thêm dòng tên database, nên avatar + 2 dòng chữ phải vừa 46px:
+//   22 (avatar) + 1 + 10 (tên) + 1 + 9 (db) = 43px.
+// Vì phải vừa cả trường hợp debug, dùng MỘT bộ kích thước cho cả 2 chế độ.
+.o_user_menu .dropdown-toggle {
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    line-height: 1;
+
+    .o_user_avatar {
+        // Ghi đè `calc(var(--o-navbar-height) - 20px)` của web/user_menu.scss
+        height: 22px;
+    }
+
+    .oe_topbar_name {
+        max-width: 120px;
+        margin: 0;
+        font-size: 10px;
+        font-weight: 500;
+
+        mark {
+            font-size: 9px;
+        }
+    }
+}

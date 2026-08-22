@@ -656,9 +656,23 @@ Còn lại vẫn **không có cột STT** (nhóm `account`
 `static props` nên OWL từ chối prop lạ ⇒ thêm STT là **crash**, không phải
 lệch cột. Đó là việc khác hẳn, `t4RendererAcceptsRowNumber` vẫn chặn.
 
-**CHƯA browser-verify** (máy dev không có Chrome cho hoot). Cần kiểm tay:
-Working Hours không còn lệch cột; form phiếu kho VẪN còn cột STT; tab kỹ năng /
-hồ sơ nhân viên (SEM) thẳng hàng.
+**Đã browser-verify trên poc02** (2026-08-21, Chromium headless qua
+playwright-core — máy dev CÓ sẵn browser ở `~/AppData/Local/ms-playwright`,
+ghi chú "không có Chrome" ở các mục cũ phía trên đã lỗi thời):
+
+| Màn | `<th>` | `<td>` | Thẳng hàng | STT |
+|---|---|---|---|---|
+| Working Hours (`section_one2many`) | 11 | 11 | ✅ | ✅ 1…16 |
+| Phiếu kho (`t4_picking_move_ids`) | 11 | 11 | ✅ | ✅ 1,2 |
+
+Không có lỗi JS trong console.
+
+⚠️ **`skills_one2many` mới chỉ verify ở mức template** (mô phỏng
+`_getTemplate` + `apply_inheritance_specs`): `hr_employee_skill` **rỗng ở cả
+local lẫn poc02** nên `showTable` falsy ⇒ bảng bị ẩn hoàn toàn, không có dòng
+nào để đo. Muốn kiểm mắt phải tạo trước 1 nhân viên có kỹ năng — lúc đó nhớ
+soi thêm: header nhóm (`o_group_name`) phủ đủ cột, và STT **đếm lại từ 1 ở mỗi
+nhóm kỹ năng**.
 
 🔴 **`-u t4_theme` KHÔNG chạy được trên DB `t4_sti` local** (2026-08-21): upgrade
 lan sang `t4_production` (phụ thuộc gián tiếp), và

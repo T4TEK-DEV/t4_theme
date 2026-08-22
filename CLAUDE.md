@@ -547,6 +547,96 @@ nằm BÊN PHẢI avatar.
   hiện tên bên phải avatar, KHÔNG có dòng DB; bật debug → thêm dòng DB như cũ;
   màn hình < lg → chỉ avatar.
 
+## Cập nhật 2026-08-21 — Cột STT không được chèn vào renderer có template riêng
+
+Triệu chứng user báo: form Working Hours (`resource.calendar`, field
+`attendance_ids` `widget="section_one2many"` — dùng ở
+`SEM-backend/sem_extra/views/resource_calendar_attendance_views.xml`) bị **lệch
+cột**: header có `STT` nhưng dòng dữ liệu thiếu 1 ô ⇒ mọi cột dữ liệu trượt
+sang trái 1 nhịp, cột Name bị bóp còn 1 ký tự.
+
+**Nguyên nhân — cơ chế `t-inherit-mode="primary"` của Odoo**, ở
+`web/static/src/core/templates.js::_getTemplate`:
+
+```js
+const parentTemplate = _getTemplate(inheritFrom, blockId || info[name].blockId);
+...
+for (const otherBlockId in templateExtensions[name] || {}) {
+    if (blockId && otherBlockId > blockId) { break; }
+```
+
+Template `primary` **chụp bản sao template cha TẠI VỊ TRÍ nó nằm trong
+bundle**; mọi extension đăng ký với `blockId` lớn hơn bị `break` bỏ qua.
+`resource.SectionListRenderer.RecordRow` (core, nạp trước `t4_theme`) vì thế
+**không có** nhánh `<td>` STT, trong khi header lấy từ `web.ListRenderer` —
+được request với `blockId=null` nên ăn đủ extension — **vẫn có** `<th>` STT.
+
+Chiều ngược lại cũng có thật: `hr_skills.SkillsListRenderer` là bản sao primary
+của `web.ListRenderer` (mất `<th>`) nhưng dùng `recordRowTemplate` mặc định
+(còn `<td>`) — widget `skills_one2many` + `resume_one2many` đang dùng ở
+`SEM-backend/SEM/views/hr_resume_line_views.xml`.
+
+**Vì sao không thể chặn theo tên class/template**: `t4_sti.T4MovesListRenderer.RecordRow`
+(phiếu kho) cũng là bản sao primary **nhưng LẠI có STT** — do `t4_sti` depends
+`t4_theme` nên nạp SAU. Guard kiểu `recordRowTemplate === "web.ListRenderer.RecordRow"`
+sẽ âm thầm làm mất cột STT trên form phiếu kho.
+
+**blockId đo thực tế** trên bundle `web.assets_backend` của DB `t4_sti`
+(mô phỏng đúng bộ đếm của `templates.js`: `blockId++` mỗi khi `blockType` lật
+giữa `templates`/`extensions`; tổng 97 block). `list_renderer_stt.xml` =
+**blockId 82**:
+
+| Template primary | blockId | Có ô STT? |
+|---|---|---|
+| `resource.SectionListRenderer.RecordRow` | 45 | ✗ `<td>` |
+| `hr_skills.SkillsListRenderer` (header) | 59 | ✗ `<th>` |
+| `hr_skills.ResumeListRenderer.RecordRow` | 59 | ✗ `<td>` |
+| `account.SectionAndNoteListRenderer` (+`.RecordRow`) | 63 | ✗ cả hai |
+| `sale.ListRenderer.RecordRow` | 63 | ✗ `<td>` |
+| **`t4_sti.T4MovesListRenderer.RecordRow`** | **89** | **✓ `<td>`** |
+
+Không có cặp nào trùng blockId với 82 nên không rơi vào biên `>` (bằng nhau
+thì extension VẪN áp dụng — `if (blockId && otherBlockId > blockId) break`).
+Lưu ý `t4_theme` còn 1 extension khác trên `web.ListRenderer` ở blockId 6
+(`filter_bar/list_renderer_patch.xml`) — không liên quan STT.
+
+**Cách sửa** (`views/x2many_grouped/`):
+- `list_renderer_stt.xml` — gắn marker `data-t4-stt="1"` lên cả `<th>` và `<td>`
+  STT. Dùng **attribute** chứ không dùng class: trong XML document, `class`
+  không phải thuộc tính đặc biệt nên selector `[class~="..."]` không đáng tin
+  trên DOM template đã parse.
+- `x2many_field_patch.js` — getter mới `t4RendererSupportsRowNumber`: gọi
+  `getTemplate()` (`@web/core/templates`) cho **cả** `Renderer.template` và
+  `Renderer.recordRowTemplate`, tìm `[data-t4-stt]`. Chỉ khi CẢ HAI đều có mới
+  set prop `t4WithRowNumber`. Kết quả cache theo cặp tên template.
+  `getTemplate` trả `null` khi tên chưa đăng ký và **ném** khi template cha
+  không tồn tại → `try/catch`, cả hai quy về "không hỗ trợ": mất cột STT còn
+  hơn vỡ bảng.
+
+Getter này **khác vai trò** với `t4RendererAcceptsRowNumber` có sẵn — cái kia
+chặn CRASH (renderer clone `static props` nên OWL từ chối prop lạ, vd
+`SectionAndNoteListRenderer` của account), cái này chặn LỆCH CỘT. Đừng gộp.
+
+Hệ quả có chủ ý: các list dùng renderer core có template riêng
+(`section_one2many`, `skills_one2many`, `resume_one2many`,
+`purchase_requisition` alt-POs) **không còn cột STT** — bảng thẳng hàng trở
+lại. Muốn có STT ở đó thì phải đăng ký thêm extension cho đúng tên template
+primary của từng widget (chưa làm — nằm ngoài phạm vi lỗi user báo).
+
+**CHƯA browser-verify** (máy dev không có Chrome cho hoot). Cần kiểm tay:
+Working Hours không còn lệch cột; form phiếu kho VẪN còn cột STT; tab kỹ năng /
+hồ sơ nhân viên (SEM) thẳng hàng.
+
+🔴 **`-u t4_theme` KHÔNG chạy được trên DB `t4_sti` local** (2026-08-21): upgrade
+lan sang `t4_production` (phụ thuộc gián tiếp), và
+`t4_production/migrations/1.2.0/pre-migration.py` đổ vì `relation
+"t4_production_request_component" does not exist` — DB đang ở 1.0.0, script
+`pre-` chạy TRƯỚC khi ORM tạo bảng của model mới. Registry rollback sạch (mọi
+module vẫn `installed`), nhưng **mọi session đều bị chặn upgrade trên DB này**
+cho tới khi module đó sửa. Thay đổi ở đây thuần asset (JS/XML) nên vẫn tới
+trình duyệt qua checksum bundle, không cần upgrade — đã xác minh bằng cách dump
+`generate_xml_bundle()` trong `odoo shell`.
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

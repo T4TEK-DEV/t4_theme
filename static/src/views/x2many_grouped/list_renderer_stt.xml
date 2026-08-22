@@ -25,6 +25,16 @@
             `t-else=""` to an explicit `t-if` with the complementary
             condition before inserting. Same constraint does not apply to
             the row template because it uses three independent t-ifs.
+
+        Marker attribute `data-t4-stt="1"`:
+            Ca hai o (th + td) deu mang attribute nay de
+            `x2many_field_patch.js` do duoc — bang cach doc TEMPLATE DA
+            COMPILE — rang mot renderer cu the co thuc su chua nhanh STT
+            hay khong. Xem comment dai o `t4RendererSupportsRowNumber`
+            ben do de biet vi sao phep do nay la BAT BUOC.
+            Dung ATTRIBUTE chu khong dung class: trong XML document,
+            `class` khong phai thuoc tinh dac biet nen selector
+            `[class~="..."]` khong dang tin tren DOM template da parse.
     -->
 
     <t t-name="t4_theme.ListRendererSTTHead"
@@ -39,6 +49,7 @@
         <!-- Insert STT branch right after the 'field' branch. -->
         <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="after">
             <th t-if="column.type === 't4_stt'"
+                data-t4-stt="1"
                 class="o_t4_stt_col text-center align-middle"
                 tabindex="-1"
                 t-on-keydown="(ev) => this.onCellKeydown(ev)">
@@ -52,7 +63,8 @@
        t-inherit-mode="extension">
         <xpath expr="//t[@t-foreach='getColumns(record)']/t[@t-if=&quot;column.type === 'widget'&quot;]" position="after">
             <t t-if="column.type === 't4_stt'">
-                <td class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
+                <td data-t4-stt="1"
+                    class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
                     t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
                     tabindex="-1">
                     <!-- Pass `list` từ template context (set bởi outer Rows

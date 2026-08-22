@@ -617,11 +617,44 @@ Getter này **khác vai trò** với `t4RendererAcceptsRowNumber` có sẵn — 
 chặn CRASH (renderer clone `static props` nên OWL từ chối prop lạ, vd
 `SectionAndNoteListRenderer` của account), cái này chặn LỆCH CỘT. Đừng gộp.
 
-Hệ quả có chủ ý: các list dùng renderer core có template riêng
-(`section_one2many`, `skills_one2many`, `resume_one2many`,
-`purchase_requisition` alt-POs) **không còn cột STT** — bảng thẳng hàng trở
-lại. Muốn có STT ở đó thì phải đăng ký thêm extension cho đúng tên template
-primary của từng widget (chưa làm — nằm ngoài phạm vi lỗi user báo).
+### Bật lại STT cho widget core (user chốt giữ cột — 2026-08-21)
+
+Getter dò marker khiến việc bật lại STT chỉ còn là **đăng ký thêm extension cho
+đúng tên template primary** — đặt marker vào là tự bật, không phải sửa JS. Đã
+làm cho 2 widget, kèm phần bù đi theo:
+
+| Widget | Template thêm | Ghi chú |
+|---|---|---|
+| `section_one2many` | `resource.SectionListRenderer.RecordRow` (`<td>`) | header lấy từ `web.ListRenderer` nên đã có `<th>` |
+| `skills_one2many` | `hr_skills.SkillsListRenderer` (`<th>`) | dòng dùng `web.ListRenderer.RecordRow` mặc định nên đã có `<td>` |
+| | `hr_skills.SkillsListRenderer.Rows` | `colspan` header nhóm + `t-set list` |
+
+Hai chỉnh sửa đi kèm cho bảng kỹ năng, **đừng gỡ**:
+- `colspan` của dòng tiêu đề nhóm lấy từ getter `colspan` =
+  `allColumns.length` (+1 nếu editable) — `allColumns` là cột khai trong
+  **arch**, KHÔNG gồm cột STT ảo (chèn ở `getActiveColumns`) ⇒ thiếu 1 ô. Cộng
+  bù bằng `t-att-colspan="colspan + (props.t4WithRowNumber ? 1 : 0)"` thay vì
+  patch class `CommonSkillsListRenderer` — import class đó buộc `t4_theme` phụ
+  thuộc `hr_skills`.
+- `t-set list` = `skill_group[1].list`: template Rows của hr_skills không đặt
+  biến `list`, mà `t4GetRowNumber` đọc `list.records`. Không có thì rơi về
+  nhánh dự phòng (`props.list` phẳng) ⇒ STT chạy liên tục xuyên nhóm thay vì
+  đếm lại từ 1 mỗi nhóm.
+
+**KHÔNG làm cho `resume_one2many`** — có chủ ý, không phải bỏ sót.
+`hr_skills.ResumeListRenderer.RecordRow` **REPLACE nguyên** vòng
+`t-foreach="getColumns(record)"` bằng 2 `<td>` viết tay (chấm tròn timeline +
+thẻ nội dung), và thead bị REPLACE bằng 3 `<th>` cố định (32px / w-100 / 32px).
+Đó là dải thời gian hồ sơ CV, không phải bảng dữ liệu — không còn mô hình cột
+để chèn STT vào.
+
+`purchase_requisition` alt-POs cùng dạng bệnh nhưng module chưa cài ở env nào
+nên chưa thêm (thêm thì không verify được).
+
+Còn lại vẫn **không có cột STT** (nhóm `account`
+`section_and_note_one2many` — dòng SO/PO/hóa đơn): renderer đó clone
+`static props` nên OWL từ chối prop lạ ⇒ thêm STT là **crash**, không phải
+lệch cột. Đó là việc khác hẳn, `t4RendererAcceptsRowNumber` vẫn chặn.
 
 **CHƯA browser-verify** (máy dev không có Chrome cho hoot). Cần kiểm tay:
 Working Hours không còn lệch cột; form phiếu kho VẪN còn cột STT; tab kỹ năng /

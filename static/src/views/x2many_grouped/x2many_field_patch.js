@@ -2,6 +2,7 @@
 
 import { patch } from "@web/core/utils/patch";
 import { X2ManyField } from "@web/views/fields/x2many/x2many_field";
+import { getTemplate } from "@web/core/templates";
 import { useState, onWillRender, onWillUnmount } from "@odoo/owl";
 import { attachGroupingToList } from "./x2many_grouped_adapter";
 import { attachNestedGroupingToList } from "./x2many_nested_group_adapter";
@@ -10,6 +11,40 @@ const T4_FOLD_STATE = Symbol("t4ThemeX2mFoldState");
 const T4_UNINSTALL = Symbol("t4ThemeX2mUninstaller");
 const T4_INSTALLED_LIST = Symbol("t4ThemeX2mInstalledList");
 const T4_INSTALLED_MODE = Symbol("t4ThemeX2mInstalledMode");
+
+// Cache ket qua do kha nang STT theo cap ten template
+// (`${Renderer.template}|${Renderer.recordRowTemplate}`). Templates la
+// static per class nen ket qua khong doi trong 1 phien.
+//
+// LUU Y khi chay hoot: cache key chi gom TEN template. Test harness co the
+// dang ky lai template khac nhau duoi cung mot ten (do co
+// `clearProcessedTemplates()` trong `@web/core/templates`) — khi do gia tri
+// `false` cu se song sot sang test sau. Chua gay van de vi hoot suite hien
+// khong cham cac widget nay; neu sau nay co, phai clear Map nay cung luc.
+const T4_STT_TEMPLATE_SUPPORT = new Map();
+
+/**
+ * Template `name` sau khi COMPILE co chua o STT (marker `data-t4-stt`)
+ * hay khong.
+ *
+ * Phai doc template da compile chu khong the suy tu ten class: xem
+ * comment o `t4RendererSupportsRowNumber`.
+ *
+ * `getTemplate` tra ve null khi ten chua dang ky, va NEM khi template cha
+ * cua no khong ton tai. Ca hai truong hop deu quy ve "khong ho tro" —
+ * mat cot STT con hon vo bang.
+ */
+function t4TemplateHasSttCell(name) {
+    if (!name) {
+        return false;
+    }
+    try {
+        const tmpl = getTemplate(name);
+        return !!(tmpl && tmpl.querySelector && tmpl.querySelector("[data-t4-stt]"));
+    } catch {
+        return false;
+    }
+}
 
 patch(X2ManyField.prototype, {
     setup() {
@@ -183,7 +218,11 @@ patch(X2ManyField.prototype, {
      */
     get rendererProps() {
         const props = super.rendererProps;
-        if (this.props.viewMode === "list" && this.t4RendererAcceptsRowNumber) {
+        if (
+            this.props.viewMode === "list" &&
+            this.t4RendererAcceptsRowNumber &&
+            this.t4RendererSupportsRowNumber
+        ) {
             props.t4WithRowNumber = true;
         }
         return props;
@@ -209,5 +248,58 @@ patch(X2ManyField.prototype, {
             return "t4WithRowNumber" in rProps;
         }
         return false;
+    },
+
+    /**
+     * Template <th>/<td> cua renderer nay co THUC SU chua nhanh STT khong.
+     *
+     * 🔴 KHONG DUOC suy tu ten class hay tu `recordRowTemplate === "web..."`.
+     * Ly do nam o co che ke thua template cua Odoo
+     * (`web/static/src/core/templates.js::_getTemplate`):
+     *
+     *     const parentTemplate = _getTemplate(inheritFrom, blockId || info[name].blockId);
+     *     ...
+     *     for (const otherBlockId in templateExtensions[name] || {}) {
+     *         if (blockId && otherBlockId > blockId) { break; }
+     *
+     * Template khai bao `t-inherit-mode="primary"` tao ra BAN SAO cua
+     * template cha TAI THOI DIEM no duoc nap trong bundle: moi extension
+     * dang ky voi blockId LON HON deu bi `break` bo qua. Hau qua:
+     *
+     *   - `resource.SectionListRenderer.RecordRow` (widget
+     *     `section_one2many`) chup ban sao truoc t4_theme → hang KHONG co
+     *     <td> STT, trong khi header lay tu `web.ListRenderer` (request
+     *     voi blockId=null nen an het extension) VAN co <th> STT.
+     *     → thead nhieu hon tbody 1 o, moi cot lech trai 1 nhip.
+     *   - Chieu nguoc lai cung xay ra: `hr_skills.SkillsListRenderer` la
+     *     ban sao primary cua `web.ListRenderer` (mat <th>) nhung van
+     *     dung `recordRowTemplate` mac dinh (con <td>).
+     *   - NHUNG `t4_sti.T4MovesListRenderer.RecordRow` cung la ban sao
+     *     primary ma LAI co STT — vi t4_sti depends t4_theme nen nap SAU.
+     *
+     * Chinh ca thu 3 loai bo moi phep doan theo ten. Cach dung duy nhat la
+     * DOC TEMPLATE DA COMPILE va tim marker `data-t4-stt` (dat trong
+     * list_renderer_stt.xml). Doi BAT BUOC ca hai template — header lech
+     * hay row lech deu vo bang nhu nhau.
+     *
+     * Khac vai tro voi `t4RendererAcceptsRowNumber`: getter kia chan CRASH
+     * (renderer clone `static props` nen OWL tu choi prop la); getter nay
+     * chan LECH COT. Hai loi khac nhau, dung gop lam mot.
+     */
+    get t4RendererSupportsRowNumber() {
+        const Renderer =
+            this.constructor.components && this.constructor.components.ListRenderer;
+        if (!Renderer) {
+            return false;
+        }
+        const key = `${Renderer.template}|${Renderer.recordRowTemplate}`;
+        if (!T4_STT_TEMPLATE_SUPPORT.has(key)) {
+            T4_STT_TEMPLATE_SUPPORT.set(
+                key,
+                t4TemplateHasSttCell(Renderer.template) &&
+                    t4TemplateHasSttCell(Renderer.recordRowTemplate)
+            );
+        }
+        return T4_STT_TEMPLATE_SUPPORT.get(key);
     },
 });

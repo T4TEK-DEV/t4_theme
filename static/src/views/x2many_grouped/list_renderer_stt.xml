@@ -25,6 +25,16 @@
             `t-else=""` to an explicit `t-if` with the complementary
             condition before inserting. Same constraint does not apply to
             the row template because it uses three independent t-ifs.
+
+        Marker attribute `data-t4-stt="1"`:
+            Ca hai o (th + td) deu mang attribute nay de
+            `x2many_field_patch.js` do duoc — bang cach doc TEMPLATE DA
+            COMPILE — rang mot renderer cu the co thuc su chua nhanh STT
+            hay khong. Xem comment dai o `t4RendererSupportsRowNumber`
+            ben do de biet vi sao phep do nay la BAT BUOC.
+            Dung ATTRIBUTE chu khong dung class: trong XML document,
+            `class` khong phai thuoc tinh dac biet nen selector
+            `[class~="..."]` khong dang tin tren DOM template da parse.
     -->
 
     <t t-name="t4_theme.ListRendererSTTHead"
@@ -39,6 +49,7 @@
         <!-- Insert STT branch right after the 'field' branch. -->
         <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="after">
             <th t-if="column.type === 't4_stt'"
+                data-t4-stt="1"
                 class="o_t4_stt_col text-center align-middle"
                 tabindex="-1"
                 t-on-keydown="(ev) => this.onCellKeydown(ev)">
@@ -52,7 +63,8 @@
        t-inherit-mode="extension">
         <xpath expr="//t[@t-foreach='getColumns(record)']/t[@t-if=&quot;column.type === 'widget'&quot;]" position="after">
             <t t-if="column.type === 't4_stt'">
-                <td class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
+                <td data-t4-stt="1"
+                    class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
                     t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
                     tabindex="-1">
                     <!-- Pass `list` từ template context (set bởi outer Rows
@@ -147,5 +159,109 @@
             </button>
         </xpath>
     </t>
+
+
+    <!--
+        ==================================================================
+        BAT LAI STT CHO WIDGET CORE CO TEMPLATE RIENG
+        ==================================================================
+        Renderer core khai `t-inherit-mode="primary"` chup ban sao template
+        cha TAI vi tri no nam trong bundle, nen extension STT o tren (blockId
+        82) KHONG toi duoc chung. Ket qua: `t4RendererSupportsRowNumber`
+        (x2many_field_patch.js) do khong thay marker va TAT cot STT.
+
+        Muon GIU cot STT thi dang ky them extension cho DUNG TEN template
+        primary cua tung widget — dat marker vao la getter tu bat lai, khong
+        phai sua JS.
+
+        Extension tro toi template cua module CHUA CAI la vo hai: Odoo chi ap
+        dung khi co ai do request dung ten do (`_getTemplate`), khong co thi
+        no nam yen.
+    -->
+
+    <!-- (1) widget="section_one2many" (module `resource`) — dung mo hinh cot
+         chuan, chi THIEU <td>. Header lay tu `web.ListRenderer` nen da co
+         <th> san. Dong SECTION khong bi anh huong: `getSectionColumns` loc
+         chi con handle + title, colspan tinh theo `columns.length` (da gom
+         ca STT) nen tu khop. -->
+    <t t-name="t4_theme.SectionListRendererSTTRow"
+       t-inherit="resource.SectionListRenderer.RecordRow"
+       t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='getColumns(record)']/t[@t-if=&quot;column.type === 'widget'&quot;]" position="after">
+            <t t-if="column.type === 't4_stt'">
+                <td data-t4-stt="1"
+                    class="o_data_cell o_t4_stt_cell text-center align-middle text-muted"
+                    t-on-keydown="(ev) => this.onCellKeydown(ev, group, record)"
+                    tabindex="-1">
+                    <t t-esc="t4GetRowNumber(record, list)"/>
+                </td>
+            </t>
+        </xpath>
+    </t>
+
+    <!-- (2a) widget="skills_one2many" (module `hr_skills`) — nguoc lai voi
+         (1): dong dung `web.ListRenderer.RecordRow` mac dinh (DA co <td>),
+         chi HEADER la ban sao primary nen thieu <th>.
+
+         Xpath `th[@t-else='']` van khop vi ban sao o blockId 59 giu nguyen
+         `t-else` goc — phep doi t-else -> t-if o `t4_theme.ListRendererSTTHead`
+         chi tac dung len `web.ListRenderer`, khong lan sang ban sao. Vi tri
+         nay cung khong lam nham voi hang loc cua filter_bar (blockId 6, nam
+         trong ban sao): hang do la <tr> rieng, khong co th mang `t-else`. -->
+    <t t-name="t4_theme.SkillsListRendererSTTHead"
+       t-inherit="hr_skills.SkillsListRenderer"
+       t-inherit-mode="extension">
+        <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-else='']" position="attributes">
+            <attribute name="t-else"/>
+            <attribute name="t-if">column.type !== 'field' and column.type !== 't4_stt'</attribute>
+        </xpath>
+        <xpath expr="//thead/tr/t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="after">
+            <th t-if="column.type === 't4_stt'"
+                data-t4-stt="1"
+                class="o_t4_stt_col text-center align-middle"
+                tabindex="-1"
+                t-on-keydown="(ev) => this.onCellKeydown(ev)">
+                STT
+            </th>
+        </xpath>
+    </t>
+
+    <!-- (2b) Hai chinh sua di kem cho bang ky nang:
+
+         - `colspan` cua dong tieu de nhom lay tu getter `colspan` =
+           `allColumns.length` (+1 neu editable). `allColumns` la cot khai
+           trong ARCH, KHONG gom cot STT ao (chen o `getActiveColumns`) —
+           thieu 1 thi dong tieu de nhom hut mat 1 o. Cong bu tai day thay vi
+           patch class `CommonSkillsListRenderer`: import class do se buoc
+           t4_theme phu thuoc hr_skills.
+
+         - `t-set list`: template Rows cua hr_skills khong dat bien `list`,
+           ma `t4GetRowNumber` doc `list.records` de tinh so. Khong co thi no
+           roi ve nhanh du phong (`props.list` phang) => STT chay lien tuc
+           xuyen nhom. Tro dung `skill_group[1].list` de moi nhom dem lai
+           tu 1, dong bo voi x2many grouped cua t4. -->
+    <t t-name="t4_theme.SkillsListRendererSTTRows"
+       t-inherit="hr_skills.SkillsListRenderer.Rows"
+       t-inherit-mode="extension">
+        <xpath expr="//th[hasclass('o_group_name')]" position="attributes">
+            <attribute name="t-att-colspan">colspan + (props.t4WithRowNumber ? 1 : 0)</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='group']" position="after">
+            <t t-set="list" t-value="skill_group[1].list"/>
+        </xpath>
+    </t>
+
+    <!--
+        KHONG lam cho widget="resume_one2many" (`hr_skills.ResumeListRenderer`)
+        — CO CHU Y, khong phai bo sot.
+
+        Template do KHONG con mo hinh cot de chen vao:
+          - `hr_skills.ResumeListRenderer.RecordRow` REPLACE nguyen ca vong
+            `t-foreach="getColumns(record)"` bang 2 <td> viet tay (cham tron
+            timeline + the noi dung).
+          - thead cung bi REPLACE bang 3 <th> co dinh (32px / w-100 / 32px).
+        Do la mot dai thoi gian ho so CV, khong phai bang du lieu — them cot
+        STT phai viet tay ca hai dau va van khong hop ve mat trinh bay.
+    -->
 
 </templates>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Tên người dùng trên navbar:
+         - Odoo gốc chỉ hiện khi bật debug (`d-none` + `t-att-class` theo
+           env.debug) → bỏ điều kiện debug, luôn hiện từ breakpoint lg trở lên.
+         - Dòng tên database (`<mark>`) vẫn CHỈ hiện khi bật debug — giữ hành vi cũ.
+         - Bố cục giữ NGUYÊN như Odoo gốc: tên nằm BÊN PHẢI avatar
+           (`ms-2 text-start`), không override CSS gì thêm. -->
+    <t t-inherit="web.UserMenu" t-inherit-mode="extension">
+        <xpath expr="//small[hasclass('oe_topbar_name')]" position="attributes">
+            <!-- Giữ y class gốc, chỉ thêm cố định `d-lg-inline-block`
+                 (trước đây do t-att-class thêm khi bật debug). -->
+            <attribute name="class">oe_topbar_name d-none ms-2 text-start smaller lh-1 text-truncate d-lg-inline-block</attribute>
+            <attribute name="t-att-class"/>
+        </xpath>
+        <xpath expr="//small[hasclass('oe_topbar_name')]/mark" position="attributes">
+            <attribute name="t-if">env.debug</attribute>
+        </xpath>
+    </t>
+
+</templates>

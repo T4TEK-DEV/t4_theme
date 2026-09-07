@@ -27,8 +27,13 @@
 
     img {
         display: block;
-        max-width: 480px;
-        max-height: 480px;
+        // Tương đối viewport (không cố định px) — ảnh cao dài (phiếu/chứng
+        // từ chụp A4 dọc) co theo tỷ lệ thật thay vì bị ép vào ô vuông nhỏ.
+        // unquote(): ép Sass xuất literal CSS min() (hàm runtime, hỗ trợ đơn vị
+        // khác nhau) thay vì Sass tự tính compile-time (yêu cầu cùng đơn vị →
+        // lỗi "Incompatible units: 'vw' and 'px'").
+        max-width: unquote("min(640px, 92vw)");
+        max-height: 92vh;
         width: auto;
         height: auto;
         object-fit: contain;

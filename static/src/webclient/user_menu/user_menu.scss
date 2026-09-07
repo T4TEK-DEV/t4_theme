@@ -1,0 +1,12 @@
+// Tên user trên navbar: đục 100% + đậm vừa.
+// Mặc định `<small class="oe_topbar_name">` kế thừa màu từ button, tức
+// `var(--NavBar-entry-color)` — core để rgba($o-white, .9) nên trông nhạt.
+// Dùng biến màu hover (đục hoàn toàn) để vẫn theo màu theme công ty.
+//
+// Prefix `.o_main_navbar` để thắng `%-main-navbar-entry-base` của core
+// (nó set color qua mixin o-hover-text-color trên `.o_main_navbar
+// .dropdown-toggle:not(...)` = 0,0,3,0; chữ ở đây kế thừa từ đó).
+.o_main_navbar .o_user_menu .oe_topbar_name {
+    color: var(--NavBar-entry-color--hover, #fff);
+    font-weight: 500;
+}

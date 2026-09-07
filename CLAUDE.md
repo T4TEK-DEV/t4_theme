@@ -433,6 +433,257 @@ JS: `theme_systray.js` thêm state `companies/copyFromId/copying/odoobotName`, l
 Lưu ý khi thêm entry point mở panel mới: phải đi qua `togglePanel()` (hoặc tự trigger
 lazy-load), không set `state.open = true` trực tiếp.
 
+## Cập nhật 2026-07-26 — PERF nút "Mở tất cả / Thu gọn" trên list nhiều nhóm
+
+Triệu chứng (user báo trên POC02, list `t4_sti.view_t4_product_template_list`
+group 2 cấp `level_1`/`level_2`): mở/đóng nhóm lâu; mở hết rồi thì bấm nút gì
+cũng lag, scroll giật.
+
+**Đo trên chính POC02** (3.459 SP, 4 nhóm cấp 1 → 46 nhóm cấp 2; DB đã
+`jit=off` sẵn — KHÔNG phải [[project_pg_jit_slow_search]]): server chỉ chiếm
+**0,57s** cho lần `web_read_group` mở hết (payload 724KB, 1.482 record) và
+**0,06s** cho thu gọn; aggregate `qty_available:sum` (override
+`product_template._read_group_select`) chỉ tốn ~0,06s → KHÔNG đáng sửa. Phần
+còn lại là **client dựng/xóa 1.482 dòng DOM** (list view Odoo không có virtual
+scroll). 3 sửa đổi:
+
+- **`group/search/control_panel/control_panel.js` — bỏ 1 lần load NẶNG vô ích.**
+  `_t4ExpandToLevel(Infinity)` dừng theo "số cấp không tăng" (`_t4CountLevels`)
+  nên khi các cấp trên đã mở sẵn (`expand_level=1` là mặc định của action),
+  load ĐẦU TIÊN đã kéo về đủ record nhưng vòng lặp vẫn load LẦN HAI chỉ để
+  thấy điều đó → fetch + dựng lại toàn bộ record lần nữa. Nhánh Infinity giờ
+  dừng theo **`!_t4HasFoldedGroups(config)`** — chính xác tuyệt đối vì core ghi
+  lại `groupConfig.isFolded = !('__records' in groupData)` từ phản hồi server
+  sau MỖI load (`relational_model.js::_loadGroupedList`), tức "không còn nhóm
+  folded" = server đã xác nhận mọi nhóm có record. Cùng vị từ với getter
+  `t4IsFullyExpanded` → vòng lặp dừng đúng lúc nhãn nút đổi sang "Thu gọn".
+  Số load: 1 (cấp con đã có sẵn) / 2 (cấp con chưa vật thể hóa — tối thiểu),
+  trước đây luôn +1. Nhánh maxLevel HỮU HẠN giữ nguyên logic đếm cấp (mark chủ
+  động fold các cấp sâu nên "còn nhóm folded" là trạng thái mong muốn, không
+  dùng làm điều kiện dừng được).
+- **`control_panel.js` — giới hạn số dòng mỗi nhóm khi "Mở tất cả"**:
+  `_t4SetRecordLimit(N, config)` set `g.list.limit` cho nhóm CẤP CUỐI
+  (`g.list.groupBy.length === 0` — KHÔNG đếm depth: với nhóm chưa mở thì `limit`
+  trong `opening_info` là giới hạn số SUB-NHÓM ở `_open_groups` server, đặt
+  nhầm sẽ ẩn mất nhóm con). Mặc định `T4_EXPAND_ALL_GROUP_LIMIT = 20`, override
+  bằng context `expand_all_group_limit`. POC02: 1.482 → 604 dòng. Nhóm còn dòng
+  chưa hiện vẫn có pager riêng của Odoo (`showGroupPager` = `limit < count`).
+  `_t4CollapseToLevel` trả `limit` về `model.initialLimit` (80) để user mở LẺ
+  từng nhóm sau đó vẫn thấy đủ dòng như bình thường. `limit` đã set SỐNG SÓT
+  qua `load()` (`_getNextConfig` shallow-copy, chỉ `delete config.groups` khi
+  ĐỔI groupBy) → đổi filter/domain trong lúc đang mở hết vẫn giữ 20 dòng/nhóm
+  đồng nhất (không có tình trạng lẫn 20/80); đổi tiêu chí group thì config
+  nhóm dựng lại từ đầu = 80 như mặc định.
+- **`views/fields/avatar_text/avatar_text.{js,xml}` — không bắn request ảnh cho
+  record không có ảnh.** `hasImage` (= có `resId`) chỉ còn quyết định CÓ Ô
+  avatar (giữ text thẳng hàng); `<img src="/web/image/...">` giờ gate bằng
+  `hasRealImage` (`record.data[imageField]`, đã có sẵn qua `fieldDependencies`),
+  không có ảnh thì render `<span class="o_avatar_empty o_m2o_avatar_empty"/>`
+  (đúng pattern core `many2one_avatar_field.xml`; sizing từ
+  `web/core/avatar/avatar.scss` nên giữ nguyên chiều rộng ô, `avatar_text.scss`
+  thêm selector cho bo góc 4px). POC02 **0/3.459 SP có ảnh**
+  → trước đây mở hết nhóm là ~1.5k request ảnh chỉ để nhận placeholder, lazy
+  load bắn dần theo scroll → chính là nguồn giật khi scroll.
+- **`views/x2many_grouped/list_renderer_patch.js` — bỏ DOM walk trên list view
+  top-level.** `applyTreeAttrs` (chạy trong `onRendered` → mọi render) xóa/ghi
+  `data-t4-depth/-last/-first` trên MỌI `tr` của bảng. Toàn bộ SCSS tree-indent
+  lại scope dưới `.o_field_x2many_list` (x2many trong form) → với list view
+  thường nó là vô ích 100%: 1.5k dòng ⇒ ~4,6k attribute mutation + invalidate
+  style cả bảng mỗi lần render. Thêm guard `env.config?.viewType === 'list'` →
+  return sớm. Nhánh x2many giữ nguyên hành vi cũ (kể cả việc clear attribute
+  tĩnh do template inheritance đặt — x2many grouped không dùng tree depth vẫn
+  cần clear để `[data-t4-depth] > th.o_group_name > div { transform: none }`
+  không áp oan).
+
+CHƯA browser-verify (máy dev không có Chrome cho hoot; runtime bị session khác
+giữ lock lúc sửa). Cần kiểm tay: nút Mở tất cả/Thu gọn (nhãn + số dòng/nhóm +
+pager trong group header), avatar SP CÓ ảnh vẫn hiện + hover-zoom, x2many
+grouped trong form (Phiếu Lắp) indent không đổi.
+
+## Cập nhật 2026-08-01 — Tên user trên navbar: luôn hiện (không cần bật debug)
+
+`static/src/webclient/user_menu/user_menu.xml` (mới — glob
+`t4_theme/static/src/webclient/**/*.xml` tự nạp, KHÔNG cần sửa manifest).
+Chỉ 1 file XML, **KHÔNG override CSS**: bố cục giữ nguyên như Odoo gốc — tên
+nằm BÊN PHẢI avatar.
+
+- `t-inherit="web.UserMenu"` mode extension, 2 xpath:
+  - `//small[hasclass('oe_topbar_name')]` position="attributes" — giữ y class
+    gốc (`d-none ms-2 text-start smaller lh-1 text-truncate`), THÊM cố định
+    `d-lg-inline-block` và XÓA `t-att-class` (đặt `<attribute name="x"/>` rỗng
+    = remove, đúng cho cả bản Python `template_inheritance.py` lẫn bản JS
+    `web/core/template_inheritance.js`). Odoo gốc chỉ hiện tên khi bật debug
+    (`t-att-class="{'d-lg-inline-block': env.debug}"`) → giờ luôn hiện từ
+    breakpoint **lg** trở lên (dưới lg vẫn chỉ avatar — `.o_user_menu` gốc đã
+    `d-none d-md-block`).
+  - `//small[...]/mark` — thêm `t-if="env.debug"` để dòng tên **database** vẫn
+    CHỈ hiện khi bật debug (giữ hành vi cũ).
+- **`user_menu.scss`** (thêm lại 2026-08-01, theo yêu cầu user "màu nhạt hơn
+  so với bật debug"): `.o_main_navbar .o_user_menu .oe_topbar_name` →
+  `color: var(--NavBar-entry-color--hover, #fff)` + `font-weight: 500`.
+  Lý do: `<small>` kế thừa `--NavBar-entry-color` (core `rgba($o-white, .9)`)
+  nên trông nhạt; biến `--hover` là bản đục 100% và vẫn theo màu theme công ty
+  (`services/theme_colors.scss:46-47`). **KHÔNG có rule nào phụ thuộc debug** —
+  Odoo có `body.o_debug` (`web/static/src/start.js:52`) nhưng không SCSS nào
+  dùng; cảm giác "đậm hơn khi bật debug" là do chip `<mark>` nền vàng của dòng
+  tên DB tương phản mạnh, không phải màu chữ đổi.
+- Bản đầu (commit `b0bb946`/`1a85728`) từng xếp DỌC (tên dưới avatar) bằng
+  `user_menu.scss` — user yêu cầu bỏ, đã `git rm` file SCSS. Nếu sau này cần
+  xếp dọc lại: ngân sách chiều cao là **đúng 46px** (`$o-navbar-padding-v: 0`,
+  button `py-lg-0`, `.dropdown-toggle` nhận `%-main-navbar-entry-base` height
+  cố định), phải prefix `.o_main_navbar` để thắng `line-height: 46px` của
+  `%-main-navbar-entry-spacing`, và `mark` cần `padding: 0` (Bootstrap reboot
+  cho `mark` `.1875em`) — xem lịch sử git 2 commit đó.
+- Lưu ý chung: template `t-inherit-mode="extension"` được apply **CLIENT-SIDE**
+  (`registerTemplateExtension` trong `assetsbundle.py::generate_xml_bundle`)
+  → xpath sai KHÔNG nổ lúc `-u module`, chỉ nổ trong console trình duyệt.
+  Upgrade sạch KHÔNG chứng minh xpath đúng.
+- Verify: script offline chạy `apply_inheritance_specs` trên chuỗi (core →
+  mail `user_menu_patch.xml` → patch này) xác nhận 2 xpath match + markup ra
+  đúng mong đợi; build bundle qua `odoo shell`
+  (`env['ir.qweb']._get_asset_bundle('web.assets_backend').generate_xml_bundle()`)
+  có `registerTemplateExtension("web.UserMenu", "/t4_theme/.../user_menu.xml")`.
+  **CHƯA browser-verify** (máy dev không có Chrome). Cần kiểm tay: tắt debug →
+  hiện tên bên phải avatar, KHÔNG có dòng DB; bật debug → thêm dòng DB như cũ;
+  màn hình < lg → chỉ avatar.
+
+## Cập nhật 2026-08-21 — Cột STT không được chèn vào renderer có template riêng
+
+Triệu chứng user báo: form Working Hours (`resource.calendar`, field
+`attendance_ids` `widget="section_one2many"` — dùng ở
+`SEM-backend/sem_extra/views/resource_calendar_attendance_views.xml`) bị **lệch
+cột**: header có `STT` nhưng dòng dữ liệu thiếu 1 ô ⇒ mọi cột dữ liệu trượt
+sang trái 1 nhịp, cột Name bị bóp còn 1 ký tự.
+
+**Nguyên nhân — cơ chế `t-inherit-mode="primary"` của Odoo**, ở
+`web/static/src/core/templates.js::_getTemplate`:
+
+```js
+const parentTemplate = _getTemplate(inheritFrom, blockId || info[name].blockId);
+...
+for (const otherBlockId in templateExtensions[name] || {}) {
+    if (blockId && otherBlockId > blockId) { break; }
+```
+
+Template `primary` **chụp bản sao template cha TẠI VỊ TRÍ nó nằm trong
+bundle**; mọi extension đăng ký với `blockId` lớn hơn bị `break` bỏ qua.
+`resource.SectionListRenderer.RecordRow` (core, nạp trước `t4_theme`) vì thế
+**không có** nhánh `<td>` STT, trong khi header lấy từ `web.ListRenderer` —
+được request với `blockId=null` nên ăn đủ extension — **vẫn có** `<th>` STT.
+
+Chiều ngược lại cũng có thật: `hr_skills.SkillsListRenderer` là bản sao primary
+của `web.ListRenderer` (mất `<th>`) nhưng dùng `recordRowTemplate` mặc định
+(còn `<td>`) — widget `skills_one2many` + `resume_one2many` đang dùng ở
+`SEM-backend/SEM/views/hr_resume_line_views.xml`.
+
+**Vì sao không thể chặn theo tên class/template**: `t4_sti.T4MovesListRenderer.RecordRow`
+(phiếu kho) cũng là bản sao primary **nhưng LẠI có STT** — do `t4_sti` depends
+`t4_theme` nên nạp SAU. Guard kiểu `recordRowTemplate === "web.ListRenderer.RecordRow"`
+sẽ âm thầm làm mất cột STT trên form phiếu kho.
+
+**blockId đo thực tế** trên bundle `web.assets_backend` của DB `t4_sti`
+(mô phỏng đúng bộ đếm của `templates.js`: `blockId++` mỗi khi `blockType` lật
+giữa `templates`/`extensions`; tổng 97 block). `list_renderer_stt.xml` =
+**blockId 82**:
+
+| Template primary | blockId | Có ô STT? |
+|---|---|---|
+| `resource.SectionListRenderer.RecordRow` | 45 | ✗ `<td>` |
+| `hr_skills.SkillsListRenderer` (header) | 59 | ✗ `<th>` |
+| `hr_skills.ResumeListRenderer.RecordRow` | 59 | ✗ `<td>` |
+| `account.SectionAndNoteListRenderer` (+`.RecordRow`) | 63 | ✗ cả hai |
+| `sale.ListRenderer.RecordRow` | 63 | ✗ `<td>` |
+| **`t4_sti.T4MovesListRenderer.RecordRow`** | **89** | **✓ `<td>`** |
+
+Không có cặp nào trùng blockId với 82 nên không rơi vào biên `>` (bằng nhau
+thì extension VẪN áp dụng — `if (blockId && otherBlockId > blockId) break`).
+Lưu ý `t4_theme` còn 1 extension khác trên `web.ListRenderer` ở blockId 6
+(`filter_bar/list_renderer_patch.xml`) — không liên quan STT.
+
+**Cách sửa** (`views/x2many_grouped/`):
+- `list_renderer_stt.xml` — gắn marker `data-t4-stt="1"` lên cả `<th>` và `<td>`
+  STT. Dùng **attribute** chứ không dùng class: trong XML document, `class`
+  không phải thuộc tính đặc biệt nên selector `[class~="..."]` không đáng tin
+  trên DOM template đã parse.
+- `x2many_field_patch.js` — getter mới `t4RendererSupportsRowNumber`: gọi
+  `getTemplate()` (`@web/core/templates`) cho **cả** `Renderer.template` và
+  `Renderer.recordRowTemplate`, tìm `[data-t4-stt]`. Chỉ khi CẢ HAI đều có mới
+  set prop `t4WithRowNumber`. Kết quả cache theo cặp tên template.
+  `getTemplate` trả `null` khi tên chưa đăng ký và **ném** khi template cha
+  không tồn tại → `try/catch`, cả hai quy về "không hỗ trợ": mất cột STT còn
+  hơn vỡ bảng.
+
+Getter này **khác vai trò** với `t4RendererAcceptsRowNumber` có sẵn — cái kia
+chặn CRASH (renderer clone `static props` nên OWL từ chối prop lạ, vd
+`SectionAndNoteListRenderer` của account), cái này chặn LỆCH CỘT. Đừng gộp.
+
+### Bật lại STT cho widget core (user chốt giữ cột — 2026-08-21)
+
+Getter dò marker khiến việc bật lại STT chỉ còn là **đăng ký thêm extension cho
+đúng tên template primary** — đặt marker vào là tự bật, không phải sửa JS. Đã
+làm cho 2 widget, kèm phần bù đi theo:
+
+| Widget | Template thêm | Ghi chú |
+|---|---|---|
+| `section_one2many` | `resource.SectionListRenderer.RecordRow` (`<td>`) | header lấy từ `web.ListRenderer` nên đã có `<th>` |
+| `skills_one2many` | `hr_skills.SkillsListRenderer` (`<th>`) | dòng dùng `web.ListRenderer.RecordRow` mặc định nên đã có `<td>` |
+| | `hr_skills.SkillsListRenderer.Rows` | `colspan` header nhóm + `t-set list` |
+
+Hai chỉnh sửa đi kèm cho bảng kỹ năng, **đừng gỡ**:
+- `colspan` của dòng tiêu đề nhóm lấy từ getter `colspan` =
+  `allColumns.length` (+1 nếu editable) — `allColumns` là cột khai trong
+  **arch**, KHÔNG gồm cột STT ảo (chèn ở `getActiveColumns`) ⇒ thiếu 1 ô. Cộng
+  bù bằng `t-att-colspan="colspan + (props.t4WithRowNumber ? 1 : 0)"` thay vì
+  patch class `CommonSkillsListRenderer` — import class đó buộc `t4_theme` phụ
+  thuộc `hr_skills`.
+- `t-set list` = `skill_group[1].list`: template Rows của hr_skills không đặt
+  biến `list`, mà `t4GetRowNumber` đọc `list.records`. Không có thì rơi về
+  nhánh dự phòng (`props.list` phẳng) ⇒ STT chạy liên tục xuyên nhóm thay vì
+  đếm lại từ 1 mỗi nhóm.
+
+**KHÔNG làm cho `resume_one2many`** — có chủ ý, không phải bỏ sót.
+`hr_skills.ResumeListRenderer.RecordRow` **REPLACE nguyên** vòng
+`t-foreach="getColumns(record)"` bằng 2 `<td>` viết tay (chấm tròn timeline +
+thẻ nội dung), và thead bị REPLACE bằng 3 `<th>` cố định (32px / w-100 / 32px).
+Đó là dải thời gian hồ sơ CV, không phải bảng dữ liệu — không còn mô hình cột
+để chèn STT vào.
+
+`purchase_requisition` alt-POs cùng dạng bệnh nhưng module chưa cài ở env nào
+nên chưa thêm (thêm thì không verify được).
+
+Còn lại vẫn **không có cột STT** (nhóm `account`
+`section_and_note_one2many` — dòng SO/PO/hóa đơn): renderer đó clone
+`static props` nên OWL từ chối prop lạ ⇒ thêm STT là **crash**, không phải
+lệch cột. Đó là việc khác hẳn, `t4RendererAcceptsRowNumber` vẫn chặn.
+
+**Đã browser-verify trên poc02** (2026-08-21, Chromium headless qua
+playwright-core — máy dev CÓ sẵn browser ở `~/AppData/Local/ms-playwright`,
+ghi chú "không có Chrome" ở các mục cũ phía trên đã lỗi thời):
+
+| Màn | `<th>` | `<td>` | Thẳng hàng | STT |
+|---|---|---|---|---|
+| Working Hours (`section_one2many`) | 11 | 11 | ✅ | ✅ 1…16 |
+| Phiếu kho (`t4_picking_move_ids`) | 11 | 11 | ✅ | ✅ 1,2 |
+
+Không có lỗi JS trong console.
+
+⚠️ **`skills_one2many` mới chỉ verify ở mức template** (mô phỏng
+`_getTemplate` + `apply_inheritance_specs`): `hr_employee_skill` **rỗng ở cả
+local lẫn poc02** nên `showTable` falsy ⇒ bảng bị ẩn hoàn toàn, không có dòng
+nào để đo. Muốn kiểm mắt phải tạo trước 1 nhân viên có kỹ năng — lúc đó nhớ
+soi thêm: header nhóm (`o_group_name`) phủ đủ cột, và STT **đếm lại từ 1 ở mỗi
+nhóm kỹ năng**.
+
+🔴 **`-u t4_theme` KHÔNG chạy được trên DB `t4_sti` local** (2026-08-21): upgrade
+lan sang `t4_production` (phụ thuộc gián tiếp), và
+`t4_production/migrations/1.2.0/pre-migration.py` đổ vì `relation
+"t4_production_request_component" does not exist` — DB đang ở 1.0.0, script
+`pre-` chạy TRƯỚC khi ORM tạo bảng của model mới. Registry rollback sạch (mọi
+module vẫn `installed`), nhưng **mọi session đều bị chặn upgrade trên DB này**
+cho tới khi module đó sửa. Thay đổi ở đây thuần asset (JS/XML) nên vẫn tới
+trình duyệt qua checksum bundle, không cần upgrade — đã xác minh bằng cách dump
+`generate_xml_bundle()` trong `odoo shell`.
+
 ## References
 
 - Agent guide: `addons/t4_theme/AGENTS.md`

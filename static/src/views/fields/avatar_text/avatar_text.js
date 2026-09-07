@@ -60,11 +60,19 @@ export class T4AvatarTextField extends Component {
         return props;
     }
 
+    /** Có chỗ cho ô avatar (giữ text các dòng thẳng hàng) — mọi record đã lưu. */
     get hasImage() {
         return Boolean(this.props.record.resId);
     }
 
-    /** Record thực sự có ảnh hay không (gate hover-zoom — tránh zoom placeholder). */
+    /**
+     * Record thực sự có ảnh hay không — gate hover-zoom VÀ gate `<img>`.
+     *
+     * PERF: record không có ảnh thì KHÔNG render `<img>` mà dùng khối rỗng
+     * `o_avatar_empty` (chuẩn core, cùng kích thước). Trước đây mọi dòng đều
+     * có `<img src="/web/image/...">` → list Sản Phẩm group mở hết (~1.5k
+     * dòng) bắn ~1.5k request ảnh, hầu hết chỉ nhận placeholder → scroll lag.
+     */
     get hasRealImage() {
         return Boolean(this.props.record.data[this.props.imageField]);
     }

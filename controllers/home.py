@@ -1,41 +1,38 @@
 from odoo import http
 from odoo.http import request
 from odoo.addons.web.controllers.home import Home
-from odoo.addons.web.controllers.utils import is_user_internal
 from .url_rewrite import url_prefix
 
 
-def index_redirect_target(prefix):
-    """Đích redirect cho route '/', hoặc None = NHƯỜNG route cho lớp dưới.
-
-    Tách ra khỏi controller để test được thẳng, không cần dựng `request`.
-
-    🔴 Trả None khi chưa đặt tiền tố tuỳ biến là điểm mấu chốt. Trước 25/09/2026
-    hàm này luôn redirect về `/odoo`, kể cả khi module không dùng tính năng
-    tiền tố — tức là nó CHIẾM route '/' vô cớ. Trên instance có module
-    `website`, `Website(Home).index` cũng ghi đè đúng route đó để phục vụ trang
-    chủ public; hai class cùng gốc `Home` nên bản nạp sau thắng, và trang chủ
-    biến thành cú nhảy vào backend (đo thật trên demo.sqc.t4tek.co).
-    """
-    prefix = (prefix or '').strip().strip('/')
-    if not prefix or prefix == 'odoo':
-        return None
-    return f'/{prefix}'
+# 🔴 KHÔNG ghi đè route '/' ở đây. Xem docstring T4Home.
+#
+# Tiền tố URL tuỳ biến vẫn chạy mà không cần chạm '/': core Home.index đưa
+# '/' → '/odoo', rồi web_client() bên dưới bắt '/odoo' và đưa tiếp về
+# '/{prefix}'. Thêm một nhịp chuyển hướng, đổi lại không đụng gì tới '/'.
 
 
 class T4Home(Home):
+    """Chỉ nhận '/web', '/odoo', '/scoped_app' — CỐ Ý không nhận '/'.
 
-    @http.route('/', type='http', auth="none")
-    def index(self, s_action=None, db=None, **kw):
-        target = index_redirect_target(url_prefix[0])
-        if target is None:
-            # Nhường route. Có `website` → Website.index phục vụ trang chủ
-            # public; không có → Home.index của core, vốn redirect '/odoo'
-            # y hệt nhánh cũ. Nên instance KHÔNG cài website không đổi hành vi.
-            return super().index(s_action=s_action, db=db, **kw)
-        if request.db and request.session.uid and not is_user_internal(request.session.uid):
-            return request.redirect_query('/web/login_successful', query=request.params)
-        return request.redirect_query(target, query=request.params)
+    Hai lần hỏng vì route này (25/09/2026, demo.sqc.t4tek.co):
+
+    1. Bản đầu ghi đè `index()` và redirect '/odoo' VÔ ĐIỀU KIỆN. Module
+       `website` cũng ghi đè đúng `index()` đó (`Website(Home)`) để phục vụ
+       trang chủ public; cùng gốc `Home` nên bản nạp sau thắng → trang chủ
+       biến thành cú nhảy vào backend.
+
+    2. Bản vá thứ nhất giữ route nhưng cho thân hàm gọi `super().index()`.
+       VẪN HỎNG, vì thứ phải nhường không chỉ là thân hàm mà là **chính việc
+       đăng ký route**: route ở đây khai `auth="none"` (không bind user →
+       `request.env.user` RỖNG) và thiếu `website=True`, trong khi
+       `Website.index` khai `auth="public", website=True, sitemap=True`. Kết
+       quả: `_serve_page()` → `_allow_to_use_cache()` →
+       `res.users._is_public()` → `ensure_one()` nổ
+       `ValueError: Expected singleton: res.users()`.
+
+    Bài học: sao chép route của người khác thì phải sao chép CẢ cờ auth và
+    cờ routing, không chỉ thân hàm. Rẻ hơn và chắc hơn là đừng chiếm route.
+    """
 
     @http.route(
         ['/web', '/odoo', '/odoo/<path:subpath>', '/scoped_app/<path:subpath>'],

@@ -1,6 +1,8 @@
 from . import controllers
 from . import models
-from . import tests
+# KHÔNG `from . import tests` — Odoo tự import gói tests khi chạy test.
+# Import ở đây làm odoo.tests bị nạp trong production, Odoo ghi ERROR
+# "Importing test framework ... when not running in test mode" mỗi lần khởi động.
 
 import base64
 import logging

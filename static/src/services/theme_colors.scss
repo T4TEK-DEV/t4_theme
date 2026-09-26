@@ -105,15 +105,24 @@ button:not(.fa):not(.oi):not([class*="fa-"]):not([class*="oi-"]) {
 }
 
 // --- Primary Button ---
+// `--t4-color-on-primary` do theme_color_service.js tính theo độ sáng của
+// primary (đen khi primary sáng, trắng khi primary tối). Không tính được thì
+// fallback `#fff` = đúng hành vi cũ của Bootstrap.
+// Lý do: primary sáng (vd vàng #F7CB74) + chữ trắng mặc định chỉ đạt 1,5:1,
+// không đọc nổi. Xem ghi chú "Tách màu nút và màu chữ" trong CLAUDE.md.
 .btn-primary {
     --bs-btn-bg: var(--t4-color-primary);
     --bs-btn-border-color: var(--t4-color-primary);
+    --bs-btn-color: var(--t4-color-on-primary, #fff);
     --bs-btn-hover-bg: var(--t4-color-primary);
     --bs-btn-hover-border-color: var(--t4-color-primary);
+    --bs-btn-hover-color: var(--t4-color-on-primary, #fff);
     --bs-btn-active-bg: var(--t4-color-primary);
     --bs-btn-active-border-color: var(--t4-color-primary);
+    --bs-btn-active-color: var(--t4-color-on-primary, #fff);
     --bs-btn-disabled-bg: var(--t4-color-primary);
     --bs-btn-disabled-border-color: var(--t4-color-primary);
+    --bs-btn-disabled-color: var(--t4-color-on-primary, #fff);
 }
 
 // --- Context Color Buttons ---
@@ -172,13 +181,18 @@ button:not(.fa):not(.oi):not([class*="fa-"]):not([class*="oi-"]) {
 }
 
 // --- Links & Accents ---
+// Dùng `--t4-color-text-accent` chứ KHÔNG dùng thẳng `--t4-color-primary`:
+// primary là màu NỀN nút, chữ trên nền trắng cần độ tương phản khác hẳn.
+// theme_color_service.js đặt biến này = primary khi primary đủ tương phản trên
+// nền trắng (≥ 4,5:1), ngược lại rơi về màu thương hiệu. Fallback là primary
+// nên instance chưa nạp JS mới giữ nguyên hành vi cũ.
 .o_web_client {
     a:not(.btn):not(.nav-link):not(.dropdown-item) {
-        color: var(--t4-color-primary);
+        color: var(--t4-color-text-accent, var(--t4-color-primary));
     }
 
     .text-primary {
-        color: var(--t4-color-primary) !important;
+        color: var(--t4-color-text-accent, var(--t4-color-primary)) !important;
     }
 
     .o_navbar_badge_bg {

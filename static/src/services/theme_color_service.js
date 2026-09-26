@@ -99,6 +99,74 @@ const GOOGLE_FONT_MAP = {
     fira_code: 'Fira+Code:wght@300;400;500;600;700',
 };
 
+// --- Độ tương phản (WCAG 2.1) ---------------------------------------------
+// Một màu primary sáng (vd vàng #F7CB74) làm NỀN nút thì đẹp, nhưng dùng làm
+// MÀU CHỮ trên nền trắng chỉ đạt 1,5:1 — không đọc được. Trước đây cả hai việc
+// đều lấy `--t4-color-primary` nên không tách được. Hai biến dẫn xuất dưới đây
+// để SCSS chọn đúng màu cho từng vai trò; xem theme_colors.scss.
+
+const T4_BLACK = '#1A1A1A';
+const T4_WHITE = '#FFFFFF';
+const WCAG_TEXT_MIN = 4.5;     // ngưỡng cho chữ thường
+
+function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec((hex || '').trim());
+    return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : null;
+}
+
+function relativeLuminance(rgb) {
+    const [r, g, b] = rgb.map((c) => {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(l1, l2) {
+    const hi = Math.max(l1, l2);
+    const lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Trả các biến CSS dẫn xuất từ primary/brand, hoặc {} nếu primary không đọc được.
+ *
+ *   --t4-color-on-primary  : chữ ĐẶT TRÊN nền primary (nút) — đen hay trắng,
+ *                            chọn bên nào tương phản hơn.
+ *   --t4-color-text-accent : chữ/link trên nền TRẮNG — giữ primary nếu nó đủ
+ *                            tương phản, không thì rơi về màu thương hiệu, cuối
+ *                            cùng mới tới đen.
+ */
+function deriveContrastVars(colors) {
+    const primaryRgb = hexToRgb(colors.color_primary);
+    if (!primaryRgb) {
+        return {};
+    }
+    const lPrimary = relativeLuminance(primaryRgb);
+    const lBlack = relativeLuminance(hexToRgb(T4_BLACK));
+    const lWhite = 1;
+
+    const onPrimary =
+        contrastRatio(lPrimary, lBlack) >= contrastRatio(lPrimary, lWhite)
+            ? T4_BLACK
+            : T4_WHITE;
+
+    let textAccent;
+    if (contrastRatio(lPrimary, lWhite) >= WCAG_TEXT_MIN) {
+        textAccent = colors.color_primary;
+    } else {
+        const brandRgb = hexToRgb(colors.color_brand);
+        const okBrand =
+            brandRgb && contrastRatio(relativeLuminance(brandRgb), lWhite) >= WCAG_TEXT_MIN;
+        textAccent = okBrand ? colors.color_brand : T4_BLACK;
+    }
+
+    return {
+        '--t4-color-on-primary': onPrimary,
+        '--t4-color-text-accent': textAccent,
+    };
+}
+
 function applyThemeColors(colors) {
     const root = document.documentElement;
     if (!colors) {
@@ -109,6 +177,9 @@ function applyThemeColors(colors) {
         if (value) {
             root.style.setProperty(cssVar, value);
         }
+    }
+    for (const [cssVar, value] of Object.entries(deriveContrastVars(colors))) {
+        root.style.setProperty(cssVar, value);
     }
 }
 

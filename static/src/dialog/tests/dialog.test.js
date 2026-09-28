@@ -9,8 +9,16 @@ import {
     makeDialogMockEnv, 
     mountWithCleanup 
 } from "@web/../tests/web_test_helpers";
+import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
 import "@t4_theme/dialog/core/dialog/dialog";
+
+// Dich vu cua mail khoi dong cung moi truong test va hoi server model
+// "discuss.channel"; khong khai thi Hoot bao "loi chua ai nhan" va test do
+// vi mot chuyen chang lien quan. t4_theme depends mail nen dung duoc helper
+// chuan nay. (Truoc 28/09 khong ai thay vi bundle unit test cua t4_theme
+// hong nen KHONG test JS nao chay duoc - xem ghi chu o __manifest__.py.)
+defineMailModels();
 
 test.tags("muk_web_dialog");
 test("dialog size toggle switches between fullscreen and initial size", async () => {

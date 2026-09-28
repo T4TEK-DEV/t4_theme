@@ -344,8 +344,21 @@
             't4_theme/static/src/appsbar/tests/**/*.test.js',
             't4_theme/static/src/chatter/tests/**/*.test.js',
             't4_theme/static/src/dialog/tests/**/*.test.js',
-            't4_theme/static/src/group/search/**/*.js',
-            't4_theme/static/src/group/search/**/*.xml',
+            # 🔴 KHÔNG thêm file NGUỒN vào đây. Bundle này chỉ chứa file test.
+            #
+            # Trước đây có hai dòng `group/search/**/*.js` và `**/*.xml`. File
+            # .xml đó mang `<t t-inherit="web.ListView.Buttons">`, mà template
+            # cha nằm ở `web.assets_unit_tests_setup` (qua include
+            # web.assets_backend) chứ không nằm ở bundle này. Kiểm tra thiếu
+            # cha chạy THEO TỪNG BUNDLE (assetsbundle.py:422) nên bundle sinh
+            # ra kèm `console.error("Missing (extension) parent templates:
+            # web.ListView.Buttons")`. HttpCase.browser_js coi mọi lỗi console
+            # không phải [HOOT] là hỏng ⇒ MỌI test JS của MỌI module đều đỏ
+            # ngay khi t4_theme được cài, trước cả khi test đầu tiên chạy.
+            #
+            # Hai dòng đó cũng thừa: nguồn đã có trong `web.assets_backend`
+            # (dòng 236), mà setup bundle include nguyên bundle đó nên test
+            # vẫn import được bình thường.
             't4_theme/static/src/group/tests/**/*.test.js',
             't4_theme/static/src/refresh/tests/**/*.test.js',
             't4_theme/static/tests/**/*.test.js',
